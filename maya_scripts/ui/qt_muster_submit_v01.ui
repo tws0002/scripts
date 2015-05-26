@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>674</height>
+    <height>760</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -448,7 +448,7 @@
        </property>
        <property name="icon">
         <iconset>
-         <normaloff>../icons/gear_c8c8c8_12.png</normaloff>../icons/gear_c8c8c8_12.png</iconset>
+         <normaloff>C:/Users/julio/.designer/icons/gear_c8c8c8_12.png</normaloff>C:/Users/julio/.designer/icons/gear_c8c8c8_12.png</iconset>
        </property>
        <property name="checkable">
         <bool>false</bool>
@@ -458,7 +458,7 @@
      <item>
       <widget class="QWidget" name="submit_panel" native="true">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
@@ -572,26 +572,104 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../icons/folder-o_c8c8c8_12.png</normaloff>../icons/folder-o_c8c8c8_12.png</iconset>
+              <normaloff>C:/Users/julio/.designer/icons/folder-o_c8c8c8_12.png</normaloff>C:/Users/julio/.designer/icons/folder-o_c8c8c8_12.png</iconset>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="render_pool_layout">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <property name="spacing">
+           <number>15</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="render_pool_label">
+            <property name="minimumSize">
+             <size>
+              <width>80</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="text">
              <string>Render Pools</string>
             </property>
             <property name="alignment">
-             <set>Qt::AlignCenter</set>
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QListView" name="render_pool"/>
+           <widget class="QListWidget" name="render_pool">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;(滑鼠右鍵) &lt;span style=&quot; font-weight:600;&quot;&gt;選擇&lt;/span&gt;&lt;/p&gt;&lt;p&gt;(CTRL + 滑鼠右鍵)&lt;span style=&quot; font-weight:600;&quot;&gt; 減選&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="default_selection_button">
+              <property name="minimumSize">
+               <size>
+                <width>22</width>
+                <height>22</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>22</width>
+                <height>22</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../icons/refresh_c8c8c8_12.png</normaloff>../icons/refresh_c8c8c8_12.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="clear_selection_button">
+              <property name="minimumSize">
+               <size>
+                <width>22</width>
+                <height>22</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>22</width>
+                <height>22</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../icons/remove_c8c8c8_12.png</normaloff>../icons/remove_c8c8c8_12.png</iconset>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -622,7 +700,7 @@
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../icons/send-o_c8c8c8_12.png</normaloff>../icons/send-o_c8c8c8_12.png</iconset>
+              <normaloff>C:/Users/julio/.designer/icons/send-o_c8c8c8_12.png</normaloff>C:/Users/julio/.designer/icons/send-o_c8c8c8_12.png</iconset>
             </property>
            </widget>
           </item>

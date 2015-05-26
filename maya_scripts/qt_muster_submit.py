@@ -1,4 +1,4 @@
-# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_muster_ui_v01.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_muster_submit_v01.ui
+# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py tactic_3d.ui
 import sys
 sys.path.append("//Art-1405260002/d/assets/client")
 sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
@@ -6,7 +6,7 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts")
 sys.path.append("//Art-1405260002/d/assets/scripts/install")
 from PySide import QtCore, QtGui
 import time
-import qt_muster_ui
+import qt_muster_ui as qt_muster_ui
 import jc_maya_aux_functions as jc
 import os
 import subprocess
@@ -104,7 +104,7 @@ def hideNukePanel():
 
 
 def setMuster():
-    global scene_name, proj_path
+    global scene_name, proj_path, name
 
     name = jc.getNextFileName(1)
     path = name[0]
@@ -143,7 +143,6 @@ def submitRender(arg=None):
     # -n "aoml_cf_c_character_rig_rig_v01_julio"
     # -f "\\art-render\art_3d_project\adventure_of_mystical_land_cf\assets\character\character_rig\rigging\sourceimages\3dPaintTextures\aoml_cf_c_character_rig_rig_v01_julio.mb"
     # -proj "\\art-render\art_3d_project\adventure_of_mystical_land_cf\assets\character\character_rig\rigging"
-
     muster_server = widget.ui.muster_ip.text()
     muster_server_port = widget.ui.muster_port.text()
     start_frame = widget.ui.start_frame.text()
@@ -152,7 +151,7 @@ def submitRender(arg=None):
     frame_padding = widget.ui.frame_padding.text()
     priority = widget.ui.priority.text()
     packet_size = widget.ui.packet_size.text()
-    render_pool = widget.ui.render_pool.currentText()
+    #render_pool = widget.ui.render_pool.currentText()
     job_name = widget.ui.job_name.text()
     image_folder = widget.ui.image_folder.text()
     batch_render_filename = proj_path + "/scenes/" + scene_name
@@ -253,11 +252,12 @@ def submitRender(arg=None):
         post_job_action = image_folder + "\convert.bat"
         post_job_action = post_job_action.replace("/", "\\")
         # post_job_action = ""
+        render_pool = getSelectedPools()
 
         folder_id = str(getParent())
+        print folder_id
         cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -parent " + folder_id + " -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -attr MAYADIGITS " + frame_padding + " 0 -attr ARNOLDMODE 0 0 -attr ARNOLDLICENSE 1 1 -pool \"" + render_pool + "\" -se 1 -st 1 -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -eja \"" + post_job_action + "\" -n \"" + job_name + "\" -dest \"" + image_folder + "\" -f \"" + batch_render_filename + "\" -proj \"" + proj_path + "\""
-        #cmds.textFieldGrp("cmdline", e=1, tx=cmdline.replace("/", "\\"))
-
+        print cmdline
         subprocess.call(cmdline.replace("/", "\\"))
 
     if "Nuke" in appName:
@@ -267,8 +267,8 @@ def submitRender(arg=None):
             os.mkdir(image_folder + "/")
         cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -pool \"" + render_pool + "\" -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -n \"" + job_name + "\" -f \"" + batch_render_filename + "\""
         print cmdline
-        subprocess.call(cmdline.replace("/", "\\"))
-    widget.close()
+        #subprocess.call(cmdline.replace("/", "\\"))
+    #widget.close()
 
 
 def getPools():
@@ -287,12 +287,40 @@ def getPools():
         final.pop(0)
     except:
         print "asdfsd"
-
-    if len(final) == 0:
-        final = ['Muster is Down']
-
+    
+        if len(final) == 0:
+            final = ['Muster is Down']
+    
     widget.ui.render_pool.addItems(final)
 
+
+def poolModifier():
+    modifiers = QtGui.QApplication.keyboardModifiers()
+    if modifiers == QtCore.Qt.ControlModifier:
+        colorDeSelected()
+    else:
+        colorSelected()
+
+
+def colorSelected():
+    selected = widget.ui.render_pool.selectedItems()
+    for x in selected:
+        x.setBackground(QtGui.QColor(215,128,26))
+    widget.ui.render_pool.setStyleSheet("""
+        QWidget {
+            selection-background-color: #d7801a;
+            }
+        """)
+
+def colorDeSelected():
+    selected = widget.ui.render_pool.selectedItems()
+    for x in selected:
+        x.setBackground(QtGui.QColor(40,40,40))
+    widget.ui.render_pool.setStyleSheet("""
+        QWidget {
+            selection-background-color: #282828;
+            }
+        """)
 
 def getParent():
     global name
@@ -315,8 +343,21 @@ def getParent():
     for n, i in muster_jobs:
         if name[3][0] in n:
             folder_id = i
+    if folder_id == "":
+        temp = subprocess.Popen("mrtool -s " + server + " -port " + port + " -u \"admin\" -p \"\" -b -folder -n \"" + name[3][0] + "\"", shell=True, stdout=subprocess.PIPE).communicate()[0]
+        folder_id = temp.split("ID: ")[1].rstrip()
 
     return folder_id
+    
+
+def getSelectedPools():
+    pool = []
+    count = widget.ui.render_pool.count()
+    for x in range(0,count):
+        if widget.ui.render_pool.item(x).background().color().getRgb() == (215,128,26,255):
+            pool.append(widget.ui.render_pool.item(x).text())
+    pool = ", ".join(pool)
+    return pool
 
 
 def openPath():
@@ -333,23 +374,44 @@ def qt_muster_submitMain():
     widget.ui.frame_range_panel_button.clicked.connect(hideFrameRangePanel)
     widget.ui.submit_render_button.clicked.connect(submitRender)
     widget.ui.nuke_panel_button.clicked.connect(hideNukePanel)
-    widget.ui.refresh_muster_pool.clicked.connect(getPools)
     widget.ui.open_path_button.clicked.connect(openPath)
     widget.ui.nuke_write_table.itemClicked.connect(chooseClick)
-
+    widget.ui.render_pool.itemClicked.connect(poolModifier)
+    widget.ui.default_selection_button.clicked.connect(defaultSelection)
+    widget.ui.clear_selection_button.clicked.connect(clearSelection)
+    
     hideFrameRangePanel()
     hideServerPanel()
     hideNukePanel()
     setMuster()
 
     getPools()
-    index = widget.ui.render_pool.findText("Pixar")
-    widget.ui.render_pool.setCurrentIndex(index)
+    defaultSelection()
+
     if "Nuke" in appName:
         nukeWriteNodes()
 
     widget.show()
 
+
+def defaultSelection():
+    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Pixar",0)[0])
+    colorSelected()
+    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("VanGogh",0)[0])
+    colorSelected()
+    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Davinci",0)[0])
+    colorSelected()
+    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Monet",0)[0])
+    colorSelected()
+
+    
+def clearSelection():
+    count = widget.ui.render_pool.count()
+    for x in range(0, count):
+        widget.ui.render_pool.setCurrentRow(x)
+        colorDeSelected()
+    
+    
 def renameWriteNode():
     if widget.ui.nuke_write_table.currentColumn() == 0:
         pass
