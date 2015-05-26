@@ -1,4 +1,4 @@
-# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py tactic_3d.ui
+# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_muster_ui_v01.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_muster_submit_v01.ui
 import sys
 sys.path.append("//Art-1405260002/d/assets/client")
 sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
@@ -254,7 +254,8 @@ def submitRender(arg=None):
         post_job_action = post_job_action.replace("/", "\\")
         # post_job_action = ""
 
-        cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -attr MAYADIGITS " + frame_padding + " 0 -attr ARNOLDMODE 0 0 -attr ARNOLDLICENSE 1 1 -pool \"" + render_pool + "\" -se 1 -st 1 -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -eja \"" + post_job_action + "\" -n \"" + job_name + "\" -dest \"" + image_folder + "\" -f \"" + batch_render_filename + "\" -proj \"" + proj_path + "\""
+        folder_id = str(getParent())
+        cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -parent " + folder_id + " -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -attr MAYADIGITS " + frame_padding + " 0 -attr ARNOLDMODE 0 0 -attr ARNOLDLICENSE 1 1 -pool \"" + render_pool + "\" -se 1 -st 1 -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -eja \"" + post_job_action + "\" -n \"" + job_name + "\" -dest \"" + image_folder + "\" -f \"" + batch_render_filename + "\" -proj \"" + proj_path + "\""
         #cmds.textFieldGrp("cmdline", e=1, tx=cmdline.replace("/", "\\"))
 
         subprocess.call(cmdline.replace("/", "\\"))
@@ -291,6 +292,32 @@ def getPools():
         final = ['Muster is Down']
 
     widget.ui.render_pool.addItems(final)
+
+
+def getParent():
+    global name
+    server = widget.ui.muster_ip.text()
+    port = widget.ui.muster_port.text()
+
+    muster_path = "C:/Program Files/Virtual Vertex/Muster 7/"
+    os.environ["PATH"] += os.pathsep + muster_path
+
+    temp_array = []
+    temp = subprocess.Popen("mrtool -s " + server + " -port " + port + " -u \"admin\" -p \"\" -q j -H 0 -S 0 -jf name,id", shell=True, stdout=subprocess.PIPE).communicate()[0]
+    temp_array = temp.split("\r\n")
+
+    muster_jobs = []
+    for job in temp_array:
+        job_id = job[39:].rstrip()
+        job_name = job[:39].rstrip()
+        muster_jobs.append([job_name, job_id])
+    folder_id = ""
+    for n, i in muster_jobs:
+        if name[3][0] in n:
+            folder_id = i
+
+    return folder_id
+
 
 def openPath():
     image_folder = widget.ui.image_folder.text()
