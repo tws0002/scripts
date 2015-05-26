@@ -1,0 +1,364 @@
+/*
+	Modifications: (sz_renderview)
+			- Enable mental ray log file output to default temp directory.
+*/
+
+//****************************************************************************
+// This script provides functions to start preview mental ray render with
+// override options.
+//****************************************************************************
+
+//
+// Initialize optionVars for mental ray rendering:
+//
+global proc setmrOptionVars ( int $forceFactorySettings )
+{
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderLogVerbosity"`)
+		optionVar -intValue v_mrRenderLogVerbosity 3;
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderMemLimitAuto"`)
+		optionVar -intValue v_mrRenderMemLimitAuto 1;
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderMemLimit"`)
+		optionVar -intValue v_mrRenderMemLimit 0;
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderNumThreadAuto"`)
+		optionVar -intValue v_mrRenderNumThreadAuto 1;
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderNumThread"`)
+		optionVar -intValue v_mrRenderNumThread 2;
+	if ($forceFactorySettings ||
+	    !`optionVar -exists "v_mrRenderTaskSize"`)
+		optionVar -intValue v_mrRenderTaskSize 0;
+	if (!`about -evalVersion`) {
+		if ($forceFactorySettings ||
+		    !`optionVar -exists "v_mrRenderUseMaster"`)
+			optionVar -intValue v_mrRenderUseMaster 1;
+		if ($forceFactorySettings ||
+		    !`optionVar -exists "v_mrRenderUseSlaves"`)
+			optionVar -intValue v_mrRenderUseSlaves 1;
+		}
+}
+
+//
+// Initialize optionVars for mental ray interactive rendering.
+//
+global proc setmrImrOptionVars ( int $forceFactorySettings )
+{
+	string $intOptionVars[] = {"v_mrImrRenderVerbosity",
+	                           "v_mrImrRenderNumThreadAuto",
+	                           "v_mrImrRenderNumThread",
+	                           "v_mrImrRenderTaskSize",
+                               "v_mrImrRenderUpdateVisibility"};
+	int $intOptionVarValues[] = {3,
+	                             1,
+	                             2,
+	                             0,
+                                 0};
+    int $numIntOptionVars = size($intOptionVars);
+    
+	string $nonEvalOptionVars[] = {"v_mrImrRenderUseMaster",
+	                               "v_mrImrRenderUseSlaves"};
+	int $nonEvalOptionVarValues[] = {1,
+	                                 1};
+	int $numNonEvalOptionVars = size($nonEvalOptionVars);
+
+
+	for ($i=0; $i<$numIntOptionVars; $i++) {
+		if ($forceFactorySettings || !`optionVar -exists $intOptionVars[$i]`) {
+			optionVar -intValue $intOptionVars[$i] $intOptionVarValues[$i];
+		}
+	}
+
+	if (!`about -evalVersion`) {
+		for ($i=0; $i<$numNonEvalOptionVars; $i++) {
+			if ($forceFactorySettings || !`optionVar -exists $nonEvalOptionVars[$i]`) {
+				optionVar -intValue $nonEvalOptionVars[$i] $nonEvalOptionVarValues[$i];
+			}
+		}
+	}
+}
+
+// Create dynamic attributes on globals node for IMR.
+//
+proc addImrGlobals(string $globals)
+{
+	if (!attributeExists("imrVerbosity",$globals))
+		addAttr -ln "imrVerbosity" -at short -dv 3 -s false $globals;
+	if (!attributeExists("imrThreads",$globals))
+		addAttr -ln "imrThreads" -at short -dv 1 -s false $globals;
+	if (!attributeExists("imrThreadsAdjust",$globals))
+		addAttr -ln "imrThreadsAdjust" -at bool -dv 1 -s false $globals;
+	if (!attributeExists("imrTaskOrder",$globals))
+		addAttr -ln "imrTaskOrder" -at short -dv 1 -s false $globals; // spiral
+	if (!attributeExists("imrTaskSize",$globals))
+		addAttr -ln "imrTaskSize" -at short -dv 0 -s false $globals;
+	if (!attributeExists("imrTaskAdjust",$globals))
+		addAttr -ln "imrTaskAdjust" -at short -dv 1 -s false $globals;
+}
+
+// Helper function from A|W to stop ongoing IPR before preview rendering
+
+global proc miStopIpr()
+{
+	if (`iprEngine -query -exists defaultIprEngine`) {
+
+		string $iprImageName[] =
+				`iprEngine -q -iprImage defaultIprEngine`;
+		if (size($iprImageName) > 0) {
+			if ($iprImageName[0] != "") {
+				iprEngine -edit -releaseIprImage
+					defaultIprEngine;
+
+				deleteUI defaultIprEngine;
+
+				updateIPRMemoryEstimate;
+
+				text -edit -enable false iprMemEstText;
+				}
+			}
+		}
+}
+
+// Start an external mental ray as a background job for preview rendering.
+//
+// mode:	0 - background render exported scene
+//		1 - background render piped scene   
+//		2 - integrated render current full frame
+//		3 - integrated render redo full frame
+//		4 - integrated render region
+//		5 - IMR render
+
+global proc string mentalrayPreviewRender(
+	int	$mode,
+	string	$camera, 
+        int	$resolutionX,
+	int	$resolutionY,
+        string	$option)
+{
+	string $result;
+
+	setmrOptionVars(0);
+	
+	miStopIpr();	// fixes BUG # 157702
+
+	// Save the current directory so it can be restored later
+
+	string 	$last = `workspace -q -dir`;
+
+	// Get directory to which scenes will be exported for preview rendering,
+	// determined by the mentalRay file rule entry
+	// Change to the preview render directory
+
+	string	$root = miGetRootDir();
+	miDebug("preview export directory " + $root);
+
+	chdir $root;	// required for external applications
+
+	// start the actual translation and rendering
+
+	string $exec = "Mayatomr -preview" + (`miIsDebug` ? "" : " -binary");
+	$exec += " -project \"" + $root + "\"";
+	
+	global string $gRenderViewRenderTarget;
+	if ($gRenderViewRenderTarget != "")
+	{
+	    $exec += " -renderTarget \"" + $gRenderViewRenderTarget + "\"";
+	}
+
+	if (`about -nt`)
+		$exec += " -priorityLevel 2";	// ignored for Maya
+
+	string $globals = "mentalrayGlobals";
+
+	switch ($mode) {
+
+	case 0:	// export and render
+
+		if (catch(eval($exec + " -file \"maya.mi\"")))
+			miInfo("translation aborted");
+		else {
+			if (`about -nt`) {
+				$root = miPathNT($root);
+				system("cmd /c start /b /d" + $root +
+				       " %MAYA_LOCATION%/bin/mentalrayrender" +
+				       " -p maya.mi");
+				}
+			else
+			if (`about -linux`)
+				system("\$MAYA_LOCATION/bin/mentalrayrender" +
+				       " -p maya.mi >/dev/null 2>&1 &");
+			else
+				system("\$MAYA_LOCATION/bin/mentalrayrender" +
+				       " -p maya.mi &");
+			};
+
+		break;
+
+	case 1:	// pipe to renderer
+
+		if (`about -nt`) {
+			miError("pipe to renderer is not supported");
+			return $result;
+			}
+
+		string	$path = `getenv "MAYATOMR"`;
+
+		if (catch(eval($exec+ " -pipe \"" + $path +
+				"/mentalrayrender -p\"")))
+			miInfo("translation aborted");
+
+		break;
+
+	case 2:	// api renderer
+	case 3:
+		if (!`about -evalVersion`) {
+			// retrieve and pass rendering options
+			int $numThread = `optionVar -query v_mrRenderNumThread`;
+			if (`optionVar -query v_mrRenderNumThreadAuto`)
+			{
+				$numThread = `MayatomrJob -q -cpu`;
+				optionVar -intValue "v_mrRenderNumThread" $numThread;
+			}
+			
+			int $useMaster = `optionVar -query v_mrRenderUseMaster`;
+			int $useSlaves = `optionVar -query v_mrRenderUseSlaves`;
+			$exec += " -renderThreads " + $numThread;
+			$exec += $option;	// render layer option
+			// no master (for network rendering)
+			if ($useMaster == 0)
+				$exec += " -renderNoMaster";
+			else
+			if ($useSlaves == 0)
+				$exec += " -renderNoSlaves";
+	
+			if (objExists($globals)) {
+				int $verb  = `optionVar -query v_mrRenderLogVerbosity`;
+				int $tasks = `optionVar -query v_mrRenderTaskSize`;
+				setAttr ($globals+".inheritVerbosity") false;
+				setAttr ($globals+".renderVerbosity") $verb;
+				setAttr ($globals+".taskSize") $tasks;
+				if (`optionVar -query v_mrRenderMemLimitAuto`)
+					setAttr ($globals+".jobLimitPhysicalMemory")
+						`miCalculateMemoryLimit`;
+				else
+					setAttr ($globals+".jobLimitPhysicalMemory")
+						`optionVar -query v_mrRenderMemLimit`;
+			}
+//MOD
+			if (`optionVar -q sz_MIT_MRLog_useLog` == 1)
+			{
+				chdir (getenv("TMPDIR"));		// Change working directory to temp to set the logfile location
+				$exec += (" -logFile");			// and enable logfile write.
+			}
+//END
+		}
+		// fallthru
+	case 5: // IMR render
+
+		// Make sure the mentalray globals nodes are created.
+		//
+		miCreateDefaultNodes();
+		mentalrayRenderWindow;	// open or raise render window
+		miCreateMentalJobs();
+
+		setmrImrOptionVars(0);	// setup IMR render options
+
+		if (!`about -evalVersion` && $mode == 5) {
+			// retrieve and pass rendering options
+			int $useMaster = `optionVar -query v_mrImrRenderUseMaster`;
+			int $useSlaves = `optionVar -query v_mrImrRenderUseSlaves`;
+			$exec += $option;	// render layer option
+			// no master (for network rendering)
+			if ($useMaster == 0)
+				$exec += " -renderNoMaster";
+			else if ($useSlaves == 0)
+				$exec += " -renderNoSlaves";
+
+			if (objExists($globals)) {
+				addImrGlobals($globals);
+
+				int $numThread = `optionVar -query v_mrImrRenderNumThread`;
+				if (`optionVar -query v_mrImrRenderNumThreadAuto`) 	{
+					$numThread = `MayatomrJob -q -cpu`;
+					optionVar -intValue "v_mrRenderNumThread" $numThread;
+				}
+				int $verb  = `optionVar -query v_mrImrRenderVerbosity`;
+				int $tasks = `optionVar -query v_mrImrRenderTaskSize`;
+				setAttr ($globals+".imrVerbosity") $verb;
+				setAttr ($globals+".imrThreads") $numThread;
+				setAttr ($globals+".imrThreadsAdjust") ($numThread == 0);
+				setAttr ($globals+".imrTaskSize") $tasks;
+				setAttr ($globals+".imrTaskAdjust") ($tasks == 0);
+			}
+		}
+
+		string $cam;
+		switch ($mode) {
+			case 2:
+			case 5:
+				if ( $camera != "" ) {
+					if( `nodeType $camera`=="camera" ) 
+						$cam = $camera;
+					else {
+						string $shapes[] = `listRelatives -c -s -fullPath $camera`;
+						if (size($shapes) > 0) 
+							$cam = $shapes[0];
+						else
+							$cam = `mentalrayPreviewCamera`;
+					}
+				}
+				else
+					$cam = `mentalrayPreviewCamera`;
+
+				$exec += " -camera " + $cam +
+					 " -x " + $resolutionX +
+					 " -y " + $resolutionY;
+
+				if (useRenderRegion())
+					$exec += " -region";
+				break;
+
+			case 3:
+				$exec += " -previousView";
+				break;
+			}
+
+		switch ($mode) {
+			case 5:
+				$exec += " -imr true";
+				break;
+			}
+
+		miTimerStart();
+		if (catch($result = `eval($exec)`)) {
+            global int $gRenderViewRenderAborted;
+			$gRenderViewRenderAborted = 1;
+			miInfo("Aborted");
+		} else {
+			// set info describing previous render for the render view so that
+			// it can display all passes
+			global string $gRenderViewLastRenderCamera;
+			string $tempCameras[] = `ls $cam`; // get shortest unique name
+			if (size($tempCameras) > 0) {
+				$gRenderViewLastRenderCamera = $tempCameras[0];
+			}
+			global string $gRenderViewLastRenderLayer;
+			$gRenderViewLastRenderLayer = `editRenderLayerGlobals -q -crl`;
+			global string $gRenderViewLastRenderTime;
+			$gRenderViewLastRenderTime = `currentTime -q`;
+		}
+
+		miTimerEnd();
+
+		break;
+		}
+
+	// Change back to original dir
+
+	chdir $last;
+	
+	return $result;
+}
+

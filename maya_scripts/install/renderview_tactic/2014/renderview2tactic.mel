@@ -1,0 +1,3 @@
+global proc renderview2tactic(){
+    python "import sys\nsys.path.append('//Art-1405260002/d/assets/scripts/maya_scripts/lib')\nimport renderview2tactic\nreload(renderview2tactic)\nrenderview2tactic.saveRV()";
+};

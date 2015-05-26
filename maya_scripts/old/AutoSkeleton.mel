@@ -1,0 +1,3451 @@
+//手部控制器 2014.09.29
+//腳控制器做一半 2014.10.02
+//增加翻腳對位物件 2014.10.09
+//2014.11.04 基本都完成，要修改AutoStretch 和初始軸向
+//2014.11.05 控制器初始軸向修正，防呆完成
+//2014.11.07 含全身及Hips的旋轉中心也完成，基本完工
+//2014.11.20 將 Expression 的部分全部修改成 Connection
+//2014.11.20 增加手指、腳、頭及胸部的 stretch
+//2014.11.21 修正pole vector 方向判斷錯誤問題
+//2014.12.01 鎖住全身旋轉中心 的 Group
+//2014.12.01 修正 hips 的旋轉中心 旋轉有兩倍數值的問題
+//2014.12.03 增加頭部控制器 follow 功能
+//有許多地方可以寫得更精簡，若還有時間再修正
+
+//產生對位物件151行開始
+//產生骨架 740 行開始
+//產生控制器 1159 行開始
+
+//清掉同名UI視窗
+if(`window -exists AutoSkeletonToolWindows` ){
+    deleteUI -window AutoSkeletonToolWindows;
+}else{print "這是自動產生骨架的程式";}
+
+//新版視窗
+string $astwin = `window -title "Auto Skeleton beta1" AutoSkeletonToolWindows`;
+string $form = `formLayout -numberOfDivisions 100`;
+string $t1 = `text -l "角色名字"`;
+string $cNin = `textField -tx "VanGoho" cName`;
+string $b1 = `button -l "產生量身高 Locator" -c "heh()"`;
+string $b2 = `button -l "產生骨架" -c "createSkeleton()"`;
+string $b3 = `button -l "產生控制器" -c "rig()"`;
+string $slg1 = `intSliderGrp -l "手腕骨架數" -cw3 60 30 30  -field true -min 1 -max 10 -v 2 foreArmCount`;
+string $slg2 = `intSliderGrp -l "小腿骨架數" -cw3 60 30 30 -field true -min 1 -max 10 -v 2 legCount`;
+string $slg3 = `intSliderGrp -l "上臂骨架數" -cw3 60 30 30  -field true -min 1 -max 10 -v 1 armCount`;
+string $slg4 = `intSliderGrp -l "大腿骨架數" -cw3 60 30 30 -field true -min 1 -max 10 -v 1 upLegCount`;
+string $slg5 = `intSliderGrp -l "脖子骨架數" -cw3 60 30 30  -field true -min 1 -max 10 -v 2 neckCount`;
+string $slg6 = `checkBox -l "產生胸部骨架" -v 1 breastCount`;
+
+string $cProxy = `rowLayout -numberOfColumns 3
+    -columnWidth3 50 67 67
+    -adjustableColumn 1 
+    -columnAlign  1 "both"
+    -columnAttach 1 "both"  0
+    -columnAttach 2 "both"  0
+    -columnAttach 3 "both"  0 `;
+    text -l "對位物件";
+    button -l "產生" -c "createProxy()";
+    button -l "刪除" -c "killProxy()";
+	
+formLayout -edit
+    /*角色名字_字*/
+    -attachForm     $t1     "top"    5
+    -attachForm     $t1     "left"   5
+    -attachControl  $t1     "bottom" 5 $b1
+    -attachControl  $t1     "right"  5 $cNin
+    
+    /*角色名字_輸入*/
+    -attachForm     $cNin   "top"    5
+    -attachPosition $cNin   "left"   5 30
+    -attachControl  $cNin   "bottom" 5 $b1
+    -attachForm     $cNin   "right"  5  
+    
+    /*產生身高_locator 鈕*/     
+    -attachNone     $b1     "top"
+    -attachForm     $b1     "left"   5 
+    -attachControl  $b1     "bottom" 5 $cProxy
+    -attachForm     $b1     "right"  5
+    
+    /*產生對位物件*/ 
+    -attachNone     $cProxy "top"
+    -attachForm     $cProxy "left"   5
+    -attachControl  $cProxy "bottom" 5 $b2
+    -attachForm     $cProxy "right"  5
+    
+    /*生骨架_鈕*/     
+    -attachNone     $b2    "top"
+    -attachForm	  $b2     "left"   5
+    -attachControl  $b2     "bottom" 5 $slg6
+    -attachForm 	  $b2     "right"  5 
+	
+	 /*是否要胸部_勾勾*/     
+    -attachNone     $slg6    "top"
+    -attachForm	  $slg6     "left"   10
+    -attachControl  $slg6     "bottom" 5 $slg1
+    -attachForm     $slg6    "right"  5
+    
+    /*手骨節拉霸*/     
+    -attachNone     $slg1    "top"
+    -attachForm     $slg1    "left"   5 
+    -attachControl  $slg1    "bottom" 5 $slg2
+    -attachForm     $slg1    "right"  5
+    
+    /*腳骨節拉霸*/     
+    -attachNone     $slg2    "top"
+    -attachForm     $slg2    "left"   5 
+    -attachControl  $slg2    "bottom" 5 $slg3
+    -attachForm     $slg2    "right"  5
+    
+	/*上臂節拉霸*/     
+    -attachNone     $slg3    "top"
+    -attachForm     $slg3    "left"   5 
+    -attachControl  $slg3    "bottom" 5 $slg4
+    -attachForm     $slg3    "right"  5
+	
+	/*大腿節拉霸*/    
+    -attachNone     $slg4    "top"
+    -attachForm     $slg4    "left"   5 
+    -attachControl  $slg4    "bottom" 5 $slg5
+    -attachForm     $slg4    "right"  5
+	
+	/*脖子節拉霸*/     
+    -attachNone     $slg5    "top"
+    -attachForm     $slg5    "left"   5 
+    -attachControl  $slg5    "bottom" 5 $b3
+    -attachForm     $slg5    "right"  5	
+	
+	/*產生控制器鈕*/     
+    -attachNone     $b3   "top"
+    -attachForm     $b3    "left"   5 
+    -attachForm 	  $b3   "bottom" 5 
+    -attachForm     $b3    "right"  5
+
+$form;
+
+showWindow $astwin;
+
+global proc string gcpn() {
+	string $proxyName = `textField -q -tx cName`+"_p";
+	return $proxyName;
+}
+global proc string gcn() {
+	string $characterName = `textField -q -tx cName`;
+	return $characterName;
+}
+
+/*身高locator*/
+global proc heh(){
+	$cn = gcn();
+	$cpn = gcpn() ;
+	/* 防呆 */
+	if(objExists ($cpn + "_headEnd_height") || objExists ($cpn + "_all_proxy") || objExists ($cn + "_hips")){
+		confirmDialog -title "無法產生"
+                -message "已有量身高Locator，或對位物件、骨架"
+                -button "ok" 
+                -defaultButton "ok" ;
+	}else{
+    spaceLocator -n ($cpn + "_headEnd_height");
+    setAttr (($cpn + "_headEnd_height") + "Shape.overrideEnabled") 1;
+    setAttr (($cpn + "_headEnd_height") + "Shape.overrideColor") 13 ;
+    move -r 0 15 0;
+	}
+}
+//-------------------------------------------------------------------
+/*以下為產生對位物件程式*/
+global proc createProxy(){
+	$cpn = gcpn() ;
+	/* 防呆 */
+	if(objExists ($cpn + "_headEnd_height")){
+	
+	
+	float $ch[] = `xform -ws -q -t ($cpn + "_headEnd_height")`;
+	delete ($cpn + "_headEnd_height");
+	
+    //參考物全體Parent用
+    spaceLocator -n ($cpn + "_all_proxy");
+	string $trsxyz[] = {".t",".r",".s","x","y","z"};
+	for($t = 3 ; $t < 6 ; $t++ ){
+		for($x = 0 ; $x < 3 ; $x++ ){
+		setAttr -lock true ($cpn + "_all_proxy"+$trsxyz[$x] + $trsxyz[$t]);
+		}
+	}
+
+    //產生參考球
+    /*大*/
+	string $so[] = {"Shape.overrideEnabled","Shape.overrideShading","Shape.overrideColor"};
+    for($pB = 0 ; $pB<17 ; $pB ++ ){
+        sphere -ax 0 1 0 -ssw 0 -esw 360 -r ((0.25*$ch[1])/15) -d 3 -ut 0 -tol 0.01 -s 1 -nsp 2 -ch 1 -n ("pb_" + $pB );
+        string $pbSel[] = `ls -sl`;
+        setAttr ($pbSel[0] + $so[0]) 1;
+        setAttr ($pbSel[0] + $so[1]) 0;
+        setAttr ($pbSel[0] + $so[2]) 13 ;
+    }
+    
+    /*小*/
+    for($pB_s = 0 ; $pB_s<10 ; $pB_s ++ ){
+        sphere -ax 0 1 0 -ssw 0 -esw 360 -r ((0.1*$ch[1])/15) -d 3 -ut 0 -tol 0.01 -s 1 -nsp 2 -ch 1 -n ("pbs_" + $pB_s );
+        string $pbsSel[] = `ls -sl`;
+        setAttr ($pbsSel[0] + $so[0]) 1;
+        setAttr ($pbsSel[0] + $so[1]) 0;
+        setAttr ($pbsSel[0] + $so[2]) 12 ;
+    }
+    
+    //產生locatot
+    /*大*/
+    for($pL = 0 ; $pL<18 ; $pL ++ ){
+        spaceLocator -n ("pl_" + $pL );
+        string $plSel[] = `ls -sl`;
+		for($la = 3 ; $la < 6  ; $la++){
+		setAttr ($plSel[0] + $trsxyz[2] + $trsxyz[$la] ) ((0.3*$ch[1])/15);
+		}
+        setAttr ($plSel[0] + $so[0]) 1;
+        setAttr ($plSel[0] + $so[2]) 18 ;
+    }
+    
+    /*小*/
+    for($pL_s = 0 ; $pL_s<38 ; $pL_s ++ ){
+        spaceLocator -n ("pls_" + $pL_s );
+        string $plsSel[] = `ls -sl`;
+		for($la = 3 ; $la < 6  ; $la++){
+		setAttr ($plsSel[0] + $trsxyz[2] + $trsxyz[$la] ) ((0.08*$ch[1])/15);
+		}
+        setAttr ($plsSel[0] + $so[0]) 1;
+        setAttr ($plsSel[0] + $so[2]) 17 ;
+    }
+
+    //移動參考球，並命名
+	string $RLNs[] = {"foot","leg","upLeg","arm","foreArm","hand","breast","toesEnd","toeBase","shoulder","nipple","eye"};
+	string $Ns[] = {"_hips","_head","_chest","_spine0","_spine1","_spine2","_neck","_headEnd","_jaw0","_jaw1","_jawEnd"};
+	string $hFour[] = {"thumb","index","middle","ring","pinky"};
+	string $RL[] ={"_L_","_R_"};
+	
+	/*大參考球*/
+	matrix $mpb[7][3] = << 0.9 , 0.62 , 0 ; 0.9 , 3.9 , 0.1 ; 0.9 , 7.18 , 0 ; 1.16 , 11 , -0.2 ; 3.3 , 11 , -0.25 ; 5.37 , 11 , -0.2 ; 0.64 , 10 , 0.44 >>;
+	matrix $mpb2[3][3] = <<0 , 7.18 , 0 ; 0 , 11.97 , -0.18 ; 0 , 10.29 , 0.11>>;
+    for($m = 0 ; $m < 17; $m++){
+		select ("pb_"+ $m) ;
+		if ($m < 7){
+			move -r $mpb[$m][0] $mpb[$m][1] $mpb[$m][2];			
+			rename ($cpn + $RL[0]  + $RLNs[$m]);
+		}else{
+			if($m < 14 ){
+				move -r ($mpb[$m-7][0]*-1) $mpb[$m-7][1] $mpb[$m-7][2];	
+				rename ($cpn + $RL[1]  + $RLNs[$m-7]);
+			}else{
+				move -r $mpb2[$m-14][0] $mpb2[$m-14][1] $mpb2[$m-14][2];
+				rename ($cpn + $Ns[$m-14]);
+			}
+		}
+	}
+	
+	/* 小參考球_手指、腳locator*/
+	matrix $mpb3[5][3] = << 5.72 , 10.9 , 0.08  ; 6.16 , 11 , 0.04 ; 6.17 , 11 , -0.13 ;  6.16 , 11 , -0.26 ; 6.08 , 11 , -0.44 >>;
+	matrix $mpb4[5][3] = << 5.57 , 10.9 , 0.08  ; 5.92 , 11 , 0.04 ; 5.93 , 11 , -0.13 ;  5.92 , 11 , -0.26 ; 5.91 , 11 , -0.44 >>;
+	matrix $mpb5[5][3] = << 5.9 , 10.9 , 0.08  ; 6.36 , 11 , 0.04 ; 6.41 , 11 , -0.13 ; 6.38 , 11 , -0.26  ; 6.24 , 11 , -0.44 >>;
+	matrix $mpb6[5][3] = << 6.11 , 10.9 , 0.08  ; 6.53 , 11 , 0.04 ; 6.61 , 11 , -0.13; 6.56 , 11 , -0.26 ; 6.39 , 11 , -0.44 >>;
+	matrix $mpb7[5][3] = << 0.9 , 0.14 , 1.42 ; 0.9 , 0.14 , 0.83 ; 0.36 , 11 , -0.2 ; 0.64 , 10 , 1 ; 0.2 , 12.86 , 0.62 >>;
+	for($u = 0 ; $u < 10 ; $u++){
+		if($u < 5 ){
+			select ("pbs_"+ $u) ;
+			move -r $mpb3[$u][0] $mpb3[$u][1] $mpb3[$u][2];
+			rename ($cpn + $RL[0] + "hand_" + $hFour[$u] + "1");
+			
+			select ("pls_"+ $u) ;
+			move -r $mpb4[$u][0] $mpb4[$u][1] $mpb4[$u][2];		
+			rename ($cpn + $RL[0] + "hand_" + $hFour[$u] + "0");
+			
+			select ("pls_"+ ($u+10)) ;
+			move -r $mpb5[$u][0] $mpb5[$u][1] $mpb5[$u][2];
+			rename ($cpn + $RL[0] + "hand_" + $hFour[$u] + "2");
+			
+			select ("pls_"+ ($u+20)) ;
+			move -r $mpb6[$u][0] $mpb6[$u][1] $mpb6[$u][2];
+			rename ($cpn + $RL[0] + "hand_" + $hFour[$u] + "3");
+			
+			select ("pl_"+ $u) ;
+			move -r $mpb7[$u][0] $mpb7[$u][1] $mpb7[$u][2];
+			rename ($cpn + $RL[0] + $RLNs[$u+7] );
+		}else{
+			select ("pbs_"+ $u) ;
+			move -r ($mpb3[$u-5][0]*-1) $mpb3[$u-5][1] $mpb3[$u-5][2];
+			rename ($cpn + $RL[1] + "hand_" + $hFour[$u-5] + "1");
+			
+			select ("pls_"+ $u) ;
+			move -r ($mpb4[$u-5][0]*-1) $mpb4[$u-5][1] $mpb4[$u-5][2];
+			rename ($cpn + $RL[1] + "hand_" + $hFour[$u-5] + "0");
+			
+			select ("pls_"+ ($u+10)) ;
+			move -r ($mpb5[$u-5][0]*-1) $mpb5[$u-5][1] $mpb5[$u-5][2];
+			rename ($cpn + $RL[1] + "hand_" + $hFour[$u-5] + "2");
+			
+			select ("pls_"+ ($u+20)) ;
+			move -r ($mpb6[$u-5][0]*-1) $mpb6[$u-5][1] $mpb6[$u-5][2];
+			rename ($cpn + $RL[1] + "hand_" + $hFour[$u-5] + "3");
+			
+			select ("pl_"+ $u) ;
+			move -r ($mpb7[$u-5][0]*-1) $mpb7[$u-5][1] $mpb7[$u-5][2];
+			rename ($cpn + $RL[1] + $RLNs[$u+2] );
+		}
+	}
+
+   /* 手指locator_4*/
+	matrix $mpb8[4][3] = << 6.7 , 11 , 0.04 ; 6.77 , 11 , -0.13 ; 6.72 , 11 , -0.26 ; 6.56 , 11 , -0.44 >>;
+	for($u = 0 ; $u < 8 ; $u++){
+		if($u < 4 ){
+			select ("pls_"+ ($u+30)) ;
+			move -r $mpb8[$u][0] $mpb8[$u][1] $mpb8[$u][2];
+			rename ($cpn + $RL[0] + "hand_" + $hFour[$u+1] + "4");
+		}else{
+			select ("pls_"+ ($u+30)) ;
+			move -r ($mpb8[$u-4][0]*-1) $mpb8[$u-4][1] $mpb8[$u-4][2];
+			rename ($cpn + $RL[1] + "hand_" + $hFour[$u-3] + "4");
+		}
+	}
+	
+	/* 身體、頭非對稱 */
+	matrix $mpb9[8][3] = << 0 , 8 , 0.3 ; 0 , 8.66 , 0.35 ; 0 , 9.3 , 0.34 ; 0 , 11 , -0.31 ; 0 , 13.7 , -0.17 ; 0 , 12.33 , 0.09 ; 0 , 12.11 , 0.27 ; 0 , 12 , 0.65>>;
+	for($u = 0 ; $u < 8 ; $u++){
+		select ("pl_"+ ($u+10)) ;
+		move -r $mpb9[$u][0] $mpb9[$u][1] $mpb9[$u][2];			
+		rename ($cpn + $Ns[$u+3] );
+	}
+	    
+	/* 旋轉參考球軸向_手 */
+	for ($q = 0 ; $q < 2 ; $q++){
+		select -r ($cpn + $RL[$q] +"hand*");
+		select -d "*Shape";
+		string $hpr[] = `ls -sl`;
+		int $ic = size($hpr);
+		for ($i = 0 ; $i < $ic ; $i++){
+			if($q < 1){
+			select -r $hpr[$i] ;
+			rotate -r -os 0 0 -90 ;
+			}else{
+			select -r $hpr[$i] ;
+			rotate -r -os 0 0 90 ;
+			}
+		}
+	}
+	
+	/*墊腳用locator*/
+	matrix $frc[5][3] = << 0.9 , 0 , 1.6 ; 0.9 , 0 , -0.2 ; 1.3 , 0 , 0.8 ; 0.5 , 0 , 0.8 ; 0.9 , 0.62 , 0>> ;
+	string $fl[] = {"toesEndIK_rc","footIK_rc","toeBaseIK_rcL","toeBaseIK_rcR","footIK_frc"} ;
+	for($v = 0 ; $v < 2 ; $v ++ ){
+		for($i = 0 ; $i < 5 ; $i ++ ){
+			spaceLocator -n ($cpn+$RL[$v]+$fl[$i]) ;
+			string $s[] = `ls -sl`;
+			for($la = 3 ; $la < 6  ; $la++){
+			setAttr ($s[0] + $trsxyz[2] + $trsxyz[$la] ) ((0.08*$ch[1])/15);
+			}
+			setAttr ($s[0] + $so[0]) 1;
+			setAttr ($s[0] + $so[2]) 17 ;
+			if($v == 0 ){
+				move -r $frc[$i][0] $frc[$i][1] $frc[$i][2];
+			}else{
+				move -r ($frc[$i][0]*-1) $frc[$i][1] $frc[$i][2];
+			}
+		}
+	}
+	
+    //身高縮放
+	select -r "*_p_*";
+	select -d "*Shape";
+	select -d ($cpn + "*_all_proxy*") ;
+    string $pcplSel[] = `ls -sl`;
+    int $selInt = size($pcplSel);
+    doGroup 0 1 1;
+    rename ($cpn+"_cvclGroup");
+    parent ($cpn+"_cvclGroup") ($cpn + "_all_proxy") ;
+    for ($g = 0 ; $g < $selInt ; $g++){
+        float $nowSel[] = `xform -ws -q -t $pcplSel[$g]`;
+		for ($pt = 0 ;$pt < 3 ; $pt++ ){
+		setAttr ($pcplSel[$g] + $trsxyz[0] + $trsxyz[$pt+3]  ) (($nowSel[$pt]*$ch[1])/13.7);
+		}
+    }
+	
+	/*產生抓骨頭位置用Locator*/
+	lnco(1);
+	lnco(2);
+	lnco(3);
+	lnco(4);
+	lnco(5);
+	
+	/*隱藏up用Locatot*/
+	select -r ($cpn + "*_c_1");
+	select -d ($cpn + "*Shape");
+	string $selc[] = `ls -sl`;
+	int $e = size($selc);
+	for ($i=0 ; $i<$e ; $i++){
+		setAttr ($selc[$i]+".visibility") 0;
+	}
+	select -r ($cpn + "*_c_2");
+	select -d ($cpn + "*Shape");
+	string $selc[] = `ls -sl`;
+	int $e = size($selc);
+	for ($i=0 ; $i<$e ; $i++){
+		for($t = 3 ; $t < 6 ; $t++ ){
+			for($x = 0 ; $x < 3 ; $x++ ){
+			setAttr -lock true ($selc[$i]+$trsxyz[$x] + $trsxyz[$t]);
+			}
+		}
+	}
+	doGroup 0 1 1;
+    rename ($cpn+"_c_2_Group");
+	parent ($cpn+"_c_2_Group") ($cpn + "_all_proxy") ;
+	
+    //產生參考球中間線段
+	string $le[] = {"_LegL","_LegR"};
+	string $le2[] = {"_ArmL","_ArmR"};
+	string $le3[] = {"_ChestL","_ChestR"};
+	string $le4[] = {"_eyeL","_eyeR"};
+	string $le5[] = {"_thumbL","_thumbR"};
+	string $le6[] = {"_indexL","_indexR"};
+	string $le7[] = {"_RingL","_RingR"};
+	string $le8[] = {"_PinkyL","_PinkyR"};
+	
+	for($i = 0 ; $i<2 ; $i++){
+		select -r ($cpn + "_hips") ($cpn + $RL[$i] + "upLeg" ) ($cpn + $RL[$i] + "leg") ($cpn + $RL[$i] + "foot") ($cpn + $RL[$i] + "toeBase") ($cpn + $RL[$i] + "toesEnd");
+		cvLine($cpn + $le[$i]);
+		
+		select -r ($cpn+"_chest") ($cpn + $RL[$i] +"shoulder") ($cpn+ $RL[$i] + "arm") ($cpn+ $RL[$i] + "foreArm") ($cpn + $RL[$i] + "hand")
+		($cpn + $RL[$i] + "hand_middle0") ($cpn + $RL[$i] + "hand_middle1") ($cpn + $RL[$i] + "hand_middle2") ($cpn + $RL[$i] +"hand_middle3")
+		($cpn +  $RL[$i] + "hand_middle4");
+		cvLine($cpn + $le2[$i]);		
+		
+		select -r ($cpn+"_chest")($cpn + $RL[$i] + "breast")($cpn + $RL[$i] + "nipple");
+		cvLine($cpn + $le3[$i]);
+		
+		select -r ($cpn + "_jaw0")($cpn + $RL[$i] + "eye");
+		cvLine($cpn + $le4[$i]);
+		
+		select -r ($cpn+$RL[$i] +"hand")($cpn+$RL[$i]+"hand_thumb0")($cpn+$RL[$i]+"hand_thumb1")($cpn+$RL[$i]+"hand_thumb2")($cpn+$RL[$i]+"hand_thumb3");
+		cvLine($cpn+$le5[$i]);
+		
+		select -r ($cpn+$RL[$i]+"hand")($cpn+$RL[$i]+"hand_index0")($cpn+$RL[$i]+"hand_index1")($cpn+$RL[$i]+"hand_index2")($cpn+$RL[$i]+"hand_index3")($cpn+$RL[$i]+"hand_index4");
+		cvLine($cpn+$le6[$i]);
+		
+		select -r ($cpn+$RL[$i]+"hand")($cpn+$RL[$i]+"hand_ring0")($cpn+$RL[$i]+"hand_ring1")($cpn+$RL[$i]+"hand_ring2")($cpn+$RL[$i]+"hand_ring3")($cpn+$RL[$i]+"hand_ring4");
+		cvLine($cpn+$le7[$i]);
+		
+		select -r ($cpn+$RL[$i]+"hand")($cpn+$RL[$i]+"hand_pinky0")($cpn+$RL[$i]+"hand_pinky1")($cpn+$RL[$i]+"hand_pinky2")($cpn+$RL[$i]+"hand_pinky3")($cpn+$RL[$i]+"hand_pinky4");
+		cvLine($cpn+$le8[$i]);
+    }
+    
+    select -r ($cpn +"_hips") ($cpn+"_spine0")($cpn+"_spine1") ($cpn+"_spine2") ($cpn+"_chest") ($cpn+"_neck") ($cpn+"_head") ($cpn+"_headEnd");
+    cvLine($cpn+"_spine");
+	
+    select -r ($cpn+"_head ")($cpn+"_jaw0 ")($cpn+"_jaw1 ")($cpn+"_jawEnd ");
+    cvLine($cpn+"_Jaw");
+    
+    //cv線parent給all_proxy,隱藏Cl
+	select -r ($cpn + "*Cv_*") ;
+    parent `ls -sl` ($cpn + "_all_proxy") ;
+    hideShow -clusters -hide;
+    
+    //參考物parent
+	/* 左右手腳 */
+	for($r = 0 ; $r < 2 ; $r++){
+		/* 四指 */
+		for($f = 1; $f < 5 ; $f++ ){
+			for($c = 0 ; $c <4 ; $c++){
+				parent ($cpn+$RL[$r]+"hand_"+$hFour[$f]+($c+1))($cpn+$RL[$r]+"hand_"+$hFour[$f]+$c);
+				}
+		}
+		/* 拇指*/
+		for($c = 0 ; $c <3 ; $c++){
+			parent ($cpn+$RL[$r]+"hand_"+$hFour[0]+($c+1))($cpn+$RL[$r]+"hand_"+$hFour[0]+$c);
+		}
+		/* 手掌 */
+		for ($h = 0 ; $h < 5 ; $h++){
+			parent($cpn+$RL[$r]+"hand_"+$hFour[$h]+"0")($cpn+$RL[$r]+"hand");
+		}
+		/*手腳眼身胸*/
+		parent ($cpn+$RL[$r]+"hand")($cpn+$RL[$r]+"foreArm")($cpn+$RL[$r]+"arm");
+		parent ($cpn+$RL[$r]+"toesEnd")($cpn+$RL[$r]+"toeBase")($cpn+$RL[$r]+"foot");
+		parent ($cpn+$RL[$r]+"foot")($cpn+$RL[$r]+"leg")($cpn+$RL[$r]+"upLeg ");
+		parent ($cpn+$RL[$r]+"eye")($cpn+"_head");
+		parent ($cpn+$RL[$r]+"nipple")($cpn+$RL[$r]+"breast");
+		parent ($cpn+$RL[$r]+"arm")($cpn+$RL[$r]+"shoulder")($cpn+$RL[$r]+"breast")($cpn+"_chest");
+	}
+	
+	/* 翻腳用locator */
+	for($v = 0 ; $v < 2 ; $v++){
+	parentConstraint  -skipTranslate y -skipRotate x -skipRotate z ($cpn+$RL[$v]+"foot") ($cpn+$RL[$v]+"footIK_frc");
+		for($i = 0 ; $i < 4 ; $i ++){
+			parent ($cpn+$RL[$v]+$fl[$i]) ($cpn+$RL[$v]+"footIK_frc");
+		}
+	}
+	
+	/* 無對稱身體臉*/
+	parent ($cpn+"_headEnd")($cpn+"_head");
+    parent ($cpn+"_spine0")($cpn+"_spine1")($cpn+"_spine2")($cpn+"_chest")($cpn+"_hips");
+    parent ($cpn+"_jaw0")($cpn+"_jaw1")($cpn+"_jawEnd")($cpn+"_head");
+    parent ($cpn+"_head")($cpn+"_neck")($cpn+"_chest");
+	
+	/* 轉拇指根部*/
+	setAttr ($cpn+$RL[0]+"hand_thumb0"+".rx") 30;
+	setAttr ($cpn+$RL[0]+"hand_thumb0"+".ry") 30;
+	setAttr ($cpn+$RL[1]+"hand_thumb0"+".rx") 30;
+	setAttr ($cpn+$RL[1]+"hand_thumb0"+".ry") -30;
+
+
+    //lock軸向
+	string $lw1[] = {"toesEnd","toeBase","leg","foot","_hips","_spine0","_spine1","_spine2","_chest","_neck","_head","_headEnd","_jaw0","_jaw1","_jawEnd"};
+	for($L = 0 ; $L < 15 ; $L++){
+		if($L<4){
+		setAttr -lock true ($cpn + $RL[0] + $lw1[$L] + ".tx");
+		}else{
+		setAttr -lock true ($cpn + $lw1[$L] + ".tx");
+		}
+	}
+	
+	for($L = 0 ; $L < 5 ; $L++){
+		if($L<1){
+			for ($i = 1 ; $i < 4 ; $i ++ ){
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".tz");
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".rx");
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".ry");
+			}
+		}else{
+			for ($i = 1; $i < 5 ; $i ++ ){
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".tz");
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".rx");
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ $i + ".ry");
+			}
+		}
+	}
+	
+	for($L = 0 ; $L < 5 ; $L++){
+		if($L<1){
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ 3 + ".rz");
+		}else{
+				setAttr -lock true ($cpn + $RL[0] +"hand_" +  $hFour[$L]+ 4 + ".rz");
+		}
+	}
+	
+	string $lw2[] = {"foreArm","leg" , "toeBase" , "toesEnd" , "nipple" , "shoulder" , "eye" , "_hips" ,  "_spine0" , "_spine1" , "_spine2" , "_neck" , "_jaw0" , "_jaw1" ,  "_jawEnd"};
+	for($L = 0 ; $L < 15 ; $L++){
+		if($L < 7){
+			setAttr -lock true ($cpn + $RL[0] + $lw2[$L] + ".rx");
+			setAttr -lock true ($cpn + $RL[0] + $lw2[$L] + ".ry");
+			setAttr -lock true ($cpn + $RL[0] + $lw2[$L] + ".rz");
+		}else{
+			setAttr -lock true ($cpn + $lw2[$L] + ".rx");
+			setAttr -lock true ($cpn + $lw2[$L] + ".ry");
+			setAttr -lock true ($cpn + $lw2[$L] + ".rz");
+		}
+	}
+	
+	string $lw3[] = {"toesEndIK_rc","footIK_rc" , "toeBaseIK_rcL" , "toeBaseIK_rcR"};
+	for($L = 0 ; $L < 4 ; $L++){
+			setAttr -lock true ($cpn + $RL[0] + $lw3[$L] + ".rx");
+			setAttr -lock true ($cpn + $RL[0] + $lw3[$L] + ".ry");
+			setAttr -lock true ($cpn + $RL[0] + $lw3[$L] + ".rz");
+	}
+	
+    setAttr -lock true ($cpn+"_L_upLeg.rz");
+    setAttr -lock true ($cpn+"_L_foot.rz");
+
+	setAttr -lock true ($cpn+"_chest.ry");
+    setAttr -lock true ($cpn+"_chest.rz");
+    setAttr -lock true ($cpn+"_head.ry");
+    setAttr -lock true ($cpn+"_head.rz");
+  
+    setAttr -lock true ($cpn+"_L_arm.rx");
+    setAttr -lock true ($cpn+"_L_foreArm.ty");
+    setAttr -lock true ($cpn+"_L_hand.ty");
+    
+    //參考物左右對稱
+    string $mirP_word[] = {"arm","foreArm","hand","upLeg","leg","foot","breast","eye","toeBase","toesEnd","nipple","shoulder",
+    "hand_thumb0","hand_thumb1","hand_thumb2","hand_thumb3","hand_index0","hand_index1","hand_index2","hand_index3","hand_index4","hand_middle0",
+    "hand_middle1","hand_middle2","hand_middle3","hand_middle4","hand_ring0","hand_ring1","hand_ring2","hand_ring3","hand_ring4","hand_pinky0","hand_pinky1","hand_pinky2","hand_pinky3","hand_pinky4",
+	"toesEndIK_rc","footIK_rc" , "toeBaseIK_rcL" , "toeBaseIK_rcR" , "footIK_frc"};
+    int $mirP_con = size($mirP_word);
+    for($i = 0 ; $i < $mirP_con ; $i++){
+        /*產生乘除節點_inputX-1*/
+        shadingNode -asUtility multiplyDivide -n ($cpn+"mirPT_MD_"+$i);
+        setAttr ($cpn+"mirPT_MD_"+ $i +".input2X") -1;
+        
+        /*連結乘除與參考物件_移動用*/
+        connectAttr -f ($cpn+"_L_"+$mirP_word[$i]+".translate") ($cpn+"mirPT_MD_"+$i+".input1");
+        connectAttr -f ($cpn+"mirPT_MD_"+$i+".output") ($cpn+"_R_"+$mirP_word[$i]+".translate");
+        
+        /*產生乘除節點_inputYZ-1*/
+        shadingNode -asUtility multiplyDivide -n ($cpn+"mirPR_MD_"+$i);
+        setAttr ($cpn+"mirPR_MD_"+$i+".input2Y") -1;
+        setAttr ($cpn+"mirPR_MD_"+$i+".input2Z") -1;
+        
+        /*連結乘除與參考物件_旋轉用*/
+        connectAttr -f ($cpn+"_L_"+$mirP_word[$i]+".rotate") ($cpn+"mirPR_MD_"+$i+".input1");
+        connectAttr -f ($cpn+"mirPR_MD_"+$i+".output") ($cpn+"_R_"+$mirP_word[$i]+".rotate");
+		
+		/*連結參考物件_縮放用*/
+		connectAttr -f ($cpn+"_L_"+$mirP_word[$i]+".scale") ($cpn+"_R_"+$mirP_word[$i]+".scale");
+		
+    }
+	}else{
+		confirmDialog -title "無法產生"
+			-message "已有對位物件，或者還未產生量身高locator"
+			-button "ok" 
+			-defaultButton "ok" ;
+	}
+}
+
+//自動產生 curve 、cluster，並且Parent
+/*製作預設Cv+cl用*/
+global proc cvcl(){
+    curve -d 1 -p 0 0 0 -p 0 0 0 -k 0 -k 1 -n nCv;
+    setAttr "nCv.overrideEnabled" 1;
+    setAttr "nCv.overrideDisplayType" 2;
+
+    select -r nCv.cv[0];
+    newCluster " -envelope 1";
+    rename Cluster_a;
+    
+    select -r nCv.cv[1];
+    newCluster " -envelope 1";
+    rename Cluster_b;         
+}
+
+/*製作cluster parent用*/
+global proc cvLine(string $nuclName){
+    string $sel[] = `ls -sl`;
+    /*取選擇的數量*/
+    int $selInt = size($sel);
+    
+    for($i = 0 ; $i < ($selInt)-1 ; $i++){
+        $t = $i +1 ;
+        /*取得下一個選擇的物件位置*/
+        float $nowSel[] = `xform -ws -q -t $sel[$i]`;
+        float $upSel[] = `xform -ws -q -t $sel[$t]`;
+        /*產生預設Cv+cl*/
+        cvcl();
+        select -r nCv;
+        rename ($nuclName+"Cv_" + $t) ;
+            
+        select -r Cluster_a;
+        move -r $upSel[0] $upSel[1] $upSel[2] ;
+        rename ($nuclName + "_ACl_" + $t);
+        parent ($nuclName + "_ACl_" + $t) $sel[$t];
+    
+        select -r Cluster_b;
+        move -r $nowSel[0] $nowSel[1] $nowSel[2] ;
+        rename ($nuclName + "_BCl_" + $i);
+        parent ($nuclName + "_BCl_" + $i) $sel[$i];
+    }
+}
+/*製作抓骨架用*/
+global proc lnco (string $ww){
+	$cpn = gcpn();
+    float $ch[] = `xform -ws -q -t ($cpn + "_headEnd")`;
+	string $trsxyz[] = {".t",".r",".s","x","y","z"};
+	string $RL[] ={"_L_","_R_"};
+	string $so[] = {"Shape.overrideEnabled","Shape.overrideShading","Shape.overrideColor"};
+	string $ln1[] = {"upLeg","leg","foot","toeBase","toesEnd","toeBase"};
+	string $ln2[] = {"shoulder","arm","foreArm","hand","foreArm"};
+	string $ln3[] = {"breast","nipple","breast"};
+	string $ln4[] = {"_hips","_spine0","_spine1","_spine2","_chest","_neck","_head","_headEnd","_head"};
+	string $ln5[] = {"_jaw0","_jaw1","_jawEnd","_jaw1"};
+	string $ff[];
+	string $cc = $ww ;
+	if($cc  == 1) {
+		$ff = $ln1;	
+	} else {
+		if($cc == 2){
+		$ff = $ln2;	
+		}else{
+			if($cc == 3){
+			$ff = $ln3;	
+			}else{
+				if($cc == 4){
+				$ff = $ln4;	
+				}else{
+					if($cc == 5){
+					$ff = $ln5;	
+					}
+				}
+			}
+		}
+	}
+	int $v= size($ff);
+	for($i = 0 ; $i < ($v-1) ; $i++){
+		/*第一組Constraint*/
+		if( ($cc == 4) || ($cc == 5) ){
+			spaceLocator -n ($cpn + $ff[$i] + "_c_1");
+			pointConstraint -offset -1 0 0 ($cpn +  $ff[$i] ) ($cpn + $ff[$i] + "_c_1");
+			pointConstraint -remove ($cpn +  $ff[$i] ) ($cpn + $ff[$i] + "_c_1");
+			parent ($cpn + $ff[$i] + "_c_1") ($cpn +  $ff[$i] ) ;			 
+		}else{
+			spaceLocator -n ($cpn + $RL[0]  + $ff[$i] + "_c_1");
+			if($cc == 1){
+				pointConstraint -o 1 0 0 ($cpn + $RL[0]  +  $ff[$i] ) ($cpn + $RL[0]  + $ff[$i] + "_c_1");
+			}else{
+				pointConstraint -o 0 1 0 ($cpn + $RL[0]  +  $ff[$i] ) ($cpn + $RL[0]  + $ff[$i] + "_c_1");
+			}
+			pointConstraint -rm ($cpn + $RL[0]  +  $ff[$i] ) ($cpn + $RL[0]  + $ff[$i] + "_c_1");
+			parent ($cpn + $RL[0]  + $ff[$i] + "_c_1") ($cpn + $RL[0]  +  $ff[$i] ) ;
+			
+		}
+		string $ssSel[] = `ls -sl`;
+		for($u = 3 ; $u < 6  ; $u++){
+		setAttr ($ssSel[0] + $trsxyz[2] + $trsxyz[$u] ) ((0.03*$ch[1])/15);
+		}
+		setAttr ($ssSel[0] + $so[0]) 1 ;
+		setAttr ($ssSel[0] + $so[2]) 10 ;
+		
+		/*第二組Constraint*/
+		if(($cc == 4) || ($cc == 5)){
+			spaceLocator -n ($cpn + $ff[$i] + "_c_2");
+			pointConstraint ($cpn +  $ff[$i] ) ($cpn + $ff[$i] + "_c_2");
+			if($i != ($v-2)){
+				aimConstraint -aimVector 0 1 0 -upVector -1 0 0 -worldUpType "object" -worldUpObject ($cpn + $ff[$i] + "_c_1") ($cpn +  $ff[$i+1] ) ($cpn + $ff[$i] + "_c_2");
+			}else{
+				aimConstraint -aimVector 0 -1 0 -upVector -1 0 0 -worldUpType "object" -worldUpObject ($cpn + $ff[$i] + "_c_1") ($cpn +  $ff[$i+1] ) ($cpn + $ff[$i] + "_c_2");
+			}
+		}else{
+			spaceLocator -n ($cpn + $RL[0]  + $ff[$i] + "_c_2");
+			pointConstraint ($cpn + $RL[0]  +  $ff[$i] ) ($cpn + $RL[0]  + $ff[$i] + "_c_2");
+			if($i != ($v-2)){
+				aimConstraint -aimVector 0 1 0 -upVector -1 0 0 -worldUpType "object" -worldUpObject  ($cpn + $RL[0]  +  $ff[$i] + "_c_1" ) ($cpn + $RL[0] + $ff[$i+1] ) ($cpn + $RL[0]  + $ff[$i] + "_c_2");
+			}else{
+				aimConstraint -aimVector 0 -1 0 -upVector -1 0 0 -worldUpType "object" -worldUpObject  ($cpn + $RL[0]  +  $ff[$i-1] + "_c_1" ) ($cpn + $RL[0] + $ff[$i+1] ) ($cpn + $RL[0]  + $ff[$i] + "_c_2");
+			}
+		}
+		string $ssSel[] = `ls -sl`;
+		for($u = 3 ; $u < 6  ; $u++){
+		setAttr ($ssSel[0] + $trsxyz[2] + $trsxyz[$u] ) ((0.05*$ch[1])/15);
+		}
+		setAttr ($ssSel[0] + $so[0]) 1 ;
+		setAttr ($ssSel[0] + $so[2]) 9 ;
+		
+	}
+}
+
+ 
+//-----------------------------------------
+
+/*以下為刪除 proxy */
+global proc killProxy(){
+    $cpn = gcpn();
+	/* 防呆 */
+	if(objExists ($cpn + "_all_proxy")){
+		delete ($cpn + "_all_proxy") ($cpn+"mirP*");
+		
+	}else{
+		confirmDialog -title "無法刪除"
+		-message "沒有對位物件可刪除"
+		-button "ok" 
+		-defaultButton "ok" ;
+	}
+}
+
+//-----------------------------------------
+/*以下產生骨架用程式*/
+global proc createSkeleton(){
+	$cn = gcn();
+	$cpn = gcpn();
+
+	/* 防呆 */
+	if(objExists ($cpn + "_headEnd")){
+	if(objExists ($cn + "_hips")){
+		confirmDialog -title "無法產生"
+			-message "已有同命名骨架"
+			-button "ok" 
+			-defaultButton "ok" ;
+	}else{
+		
+	jointDisplayScale 0.25;
+	
+	//全身joint擺放
+	cSk(1);
+	cSk(2);
+	cSk(3);
+	cSk(4);
+	cSk(5);
+	
+	//字串
+    float $ch[] = `xform -ws -q -t ($cpn + "_headEnd")`;
+	string $hFour[] = {"thumb","index","middle","ring","pinky"};
+	string $RL[] ={"_L_","_R_"};
+	//眼睛joint
+	float $r[]= `xform -ws -q -ro ($cpn + $RL[0] + "eye")`;
+	float $t[]= `xform -ws -q -t ($cpn + $RL[0] + "eye")`;
+	select -d ;
+    joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn+$RL[0]+"eye");
+	select -d ;
+	joint -p ($t[0]*-1) $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn+$RL[1]+"eye");
+	
+	//手指joint
+	for($i = 0 ; $i < 5 ; $i++){
+		select -r ($cpn + $RL[0] +  "hand_"+ $hFour[$i]+"*");
+		select -d "*Shape";
+		int $h = size(`ls -sl`);
+		for($g = 0 ; $g < $h ; $g++){
+			select -d ;
+			float $r[]= `xform -ws -q -ro ($cpn + $RL[0] + "hand_" + $hFour[$i]+$g)`;
+			float $t[]= `xform -ws -q -t ($cpn + $RL[0] + "hand_" + $hFour[$i]+$g)`;
+			joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn + $RL[0] + $hFour[$i]+$g);
+			}
+	}
+	//手掌joint
+	select -r ($cn + "_L_hand");
+	rename ($cn + "_L_wrist");
+	float $r[]= `xform -ws -q -ro ($cpn + $RL[0] + "hand")`;
+	float $t[]= `xform -ws -q -t ($cpn + $RL[0] + "hand")`;
+	select -d ;
+    joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.7*$ch[1])/15) -n ($cn+$RL[0]+"hand");
+	
+	//手掌joint
+	select -r ($cn + "_hips");
+	rename ($cn + "_pelvis");
+	float $t[]= `xform -ws -q -t ($cpn + "_hips")`;
+	select -d ;
+    joint -p $t[0] $t[1] $t[2] -rad ((0.7*$ch[1])/15) -n ($cn+"_hips");
+	parent ($cn + "_pelvis") ($cn+"_hips") ;
+	
+	//手指parent
+	for($i = 0 ; $i < 5 ; $i++){
+		select -r ($cn + $RL[0] + $hFour[$i]+"*");
+		select -d "*Shape";
+		int $h = size(`ls -sl`);
+		for($g = 1; $g < $h ; $g++){
+			parent ($cn + $RL[0] + $hFour[$i]+$g) ($cn + $RL[0] + $hFour[$i]+($g-1)) ;
+			}
+	}
+	//IKFK用骨架
+	duplicate -n ($cn+"_L_armFK0") -po ($cn+"_L_arm") ($cn+"_L_foreArm") ($cn+"_L_wrist");
+	duplicate -n ($cn+"_L_armIK0") -po ($cn+"_L_arm") ($cn+"_L_foreArm") ($cn+"_L_wrist");
+	duplicate -n ($cn+"_L_legFK0") -po ($cn+"_L_upLeg") ($cn+"_L_leg") ($cn+"_L_foot") ($cn+"_L_toeBase") ($cn+"_L_toesEnd");
+	duplicate -n ($cn+"_L_legIK0") -po ($cn+"_L_upLeg") ($cn+"_L_leg") ($cn+"_L_foot") ($cn+"_L_toeBase") ($cn+"_L_toesEnd");
+	duplicate -n ($cn+"_splineIK0") -po ($cn+"_pelvis") ($cn+"_spine0") ($cn+"_spine1") ($cn+"_spine2") ($cn+"_chest");
+	duplicate -n ($cn+"_splineIKR0") -po ($cn+"_pelvis") ($cn+"_spine0") ($cn+"_spine1") ($cn+"_spine2") ($cn+"_chest");
+	duplicate -n ($cn+"_splineIKA0") -po ($cn+"_pelvis") ($cn+"_spine0") ($cn+"_spine1") ($cn+"_spine2") ($cn+"_chest");
+	duplicate -n ($cn+"_splineFK0") -po ($cn+"_pelvis") ($cn+"_spine0") ($cn+"_spine1") ($cn+"_spine2") ($cn+"_chest");
+	duplicate -n ($cn+"_splineCJ0") -po ($cn+"_pelvis") ($cn+"_spine0") ($cn+"_spine1") ($cn+"_spine2") ($cn+"_chest");
+	
+	select -r -hi ($cn+"_L_armIK0") ($cn+"_L_legIK0") ($cn+"_splineIK0");
+	string $ikj[] = `ls -sl`;
+	int $sel = size($ikj);
+	for ($i = 0 ;$i < $sel ; $i++){
+		setAttr ($ikj[$i] +".overrideEnabled") 1;
+		setAttr ($ikj[$i] +".overrideColor") 12;
+		setAttr ($ikj[$i] +".radius") ((0.4*$ch[1])/15) ;
+	}
+	
+	select -r -hi ($cn+"_L_armFK0") ($cn+"_L_legFK0") ($cn+"_splineFK0");
+	string $fkj[] = `ls -sl`;
+	int $sel = size($fkj);
+	for ($i = 0 ;$i < $sel ; $i++){
+		setAttr ($fkj[$i] +".overrideEnabled") 1;
+		setAttr ($fkj[$i] +".overrideColor") 17;
+		setAttr ($fkj[$i] +".radius") ((0.3*$ch[1])/15) ;
+	}
+	
+	select -r -hi ($cn+"_splineIKR0");
+	string $ikr[] = `ls -sl`;
+	int $sel = size($ikr);
+	for ($i = 0 ;$i < $sel ; $i++){
+		setAttr ($ikr[$i] +".overrideEnabled") 1;
+		setAttr ($ikr[$i] +".overrideColor") 16;
+		setAttr ($ikr[$i] +".radius") ((0.2*$ch[1])/15) ;
+	}
+	
+	select -r -hi ($cn+"_splineCJ0");
+	string $sj[] = `ls -sl`;
+	int $sel = size($sj);
+	for ($i = 0 ;$i < $sel ; $i++){
+		parent -w ($cn+"_splineCJ"+$i);
+		setAttr ($sj[$i] +".overrideEnabled") 1;
+		setAttr ($sj[$i] +".overrideColor") 14;
+		setAttr ($sj[$i] +".radius") ((0.1*$ch[1])/15) ;
+	}
+	
+	select -r -hi ($cn+"_splineIKA0");
+	string $ika[] = `ls -sl`;
+	int $sel = size($ika);
+	for ($i = 0 ;$i < $sel ; $i++){
+		parent -w ($cn+"_splineIKA"+$i);
+		setAttr ($ika[$i] +".overrideEnabled") 1;
+		setAttr ($ika[$i] +".overrideColor") 9;
+		setAttr ($ika[$i] +".radius") ((0.6*$ch[1])/15) ;
+	}
+	
+	//重命名IKFK
+	string $an[] = { "_L_arm","_L_foreArm","_L_wrist"};
+	string $ln[] = { "_L_upLeg","_L_leg","_L_foot","_L_toeBase","_L_toesEnd"};
+	string $sn[] = { "_pelvis","_spine0","_spine1","_spine2","_chest"};
+	string $ifn[] = { "IK","FK","CJ","IKR","IKA"};
+	for($v = 0 ; $v < 2 ; $v++){
+		select -r -hi ($cn+"_L_arm"+$ifn[$v]+"0") ;
+		for ($i = 0 ; $i < 3 ; $i++){
+			rename ($cn+"_L_arm"+$ifn[$v]+$i) ($cn+$an[$i]+$ifn[$v]) ;
+		}
+	}
+	
+	for($v = 0 ; $v < 2 ; $v++){
+		select -r -hi ($cn+"_L_leg"+$ifn[$v]+"0") ;
+		for ($i = 0 ; $i < 5 ; $i++){
+			rename ($cn+"_L_leg"+$ifn[$v]+$i) ($cn+$ln[$i]+$ifn[$v]) ;
+		}
+	}
+	
+	for($v = 0 ; $v < 5 ; $v++){
+	select -r -hi ($cn+"_spline"+$ifn[$v]+"0" ) ;
+		for ($i = 0 ; $i < 5 ; $i++){
+			rename ($cn+"_spline"+$ifn[$v]+$i) ($cn+$sn[$i]+$ifn[$v]) ;
+		}
+	}
+	
+	//parent
+	parent ($cn+"_L_upLeg") ($cn+"_L_upLegFK") ($cn+"_L_upLegIK") ($cn+"_hips");
+    parent ($cn+"_L_shoulder")($cn+"_L_breast") ($cn+"_chest");
+    parent ($cn+"_L_eye") ($cn+"_R_eye") ($cn+"_jaw0") ($cn+"_head");
+    parent ($cn+"_L_thumb0")($cn+"_L_index0")($cn+"_L_middle0")($cn+"_L_ring0")($cn+"_L_pinky0") ($cn+"_L_hand") ;
+	parent ($cn+"_L_hand") ($cn+"_L_wrist");
+	
+	//脖子spline用
+	float $nr[]= `xform -ws -q -ro ($cpn + "_neck"+"_c_2")`;
+	float $nt[]= `xform -ws -q -t ($cpn + "_neck"+"_c_2")`;
+	float $hr[]= `xform -ws -q -ro ($cpn + "_head"+"_c_2")`;
+	float $ht[]= `xform -ws -q -t ($cpn + "_head"+"_c_2")`;
+	float $nhd = (sqrt (pow(($nt[0] - $ht[0]),2)+pow(($nt[1] - $ht[1]),2)+pow(($nt[2] - $ht[2]),2)))/2;
+	select -d ;
+    joint -p $nt[0] $nt[1] $nt[2] -o $nr[0] $nr[1] $nr[2] -rad ((0.1*$ch[1])/15) -n ($cn+"_neckCJ0");
+	select -d ;
+    joint -p $nt[0] $nt[1] $nt[2] -o $nr[0] $nr[1] $nr[2] -rad ((0.1*$ch[1])/15) -n ($cn+"_neckCJ1");
+	move -r -os -wd 0 $nhd 0 ;
+	select -d ;
+    joint -p $ht[0] $ht[1] $ht[2] -o $hr[0] $hr[1] $hr[2] -rad ((0.1*$ch[1])/15) -n ($cn+"_headCJ");
+	string $ncj[] = {"_neckCJ0","_neckCJ1","_headCJ"} ;
+	for($i = 0 ; $i < 3 ; $i ++){
+		setAttr ($cn+$ncj[$i] +".overrideEnabled") 1;
+		setAttr ($cn+$ncj[$i] +".overrideColor") 14;
+	}
+	//多節骨架
+	jr();
+	//mirror
+    string $mrJoin[]= {($cn+"_L_upLeg"),($cn+"_L_breast"),($cn+"_L_shoulder"),($cn+"_L_upLegFK"),($cn+"_L_upLegIK")};
+    int $sel = size($mrJoin);
+	for ($mj = 0 ; $mj < $sel ; $mj++){
+        select -r $mrJoin[$mj];
+        mirrorJoint -mirrorYZ -mirrorBehavior -sr "_L_" "_R_";
+    }
+	
+	//翻腳用locator parent
+	string $fl[] = {"toesEndIK_rc","footIK_rc","toeBaseIK_rcL","toeBaseIK_rcR"} ;
+	for($v = 0 ; $v < 2 ; $v++){
+		for($i = 0 ; $i < 4 ; $i ++){
+			float $r[]= `xform -ws -q -ro ($cpn + $RL[$v] + $fl[$i])`;
+			float $t[]= `xform -ws -q -t ($cpn + $RL[$v] + $fl[$i])`;
+			select -d ;
+			joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn + $RL[$v] + $fl[$i]);
+			select -d ;
+		}
+		parent ($cn + $RL[$v] + $fl[0]) ($cn + $RL[$v] + "toesEndIK") ;
+		parent ($cn + $RL[$v] + $fl[1]) ($cn + $RL[$v] + "footIK") ;
+		parent ($cn + $RL[$v] + $fl[2]) ($cn + $RL[$v] + "toeBaseIK") ;
+		parent ($cn + $RL[$v] + $fl[3]) ($cn + $RL[$v] + "toeBaseIK") ;
+	}
+	
+	//判斷是否刪除胸部骨架
+	int $bc = `checkBox -q -v breastCount`;
+	if($bc == 0){
+		delete ($cn+"_L_breast") ;
+		delete ($cn+"_R_breast") ;
+	}
+	
+	//拆開
+	string $dp[] = {"_neckCJ0","_neckCJ1","_headCJ","_pelvisCJ","_spine0CJ","_spine1CJ","_spine2CJ","_chestCJ","_pelvisIKA","_spine0IKA","_spine1IKA","_spine2IKA","_chestIKA","_pelvisIK","_pelvisIKR","_pelvisFK","_L_upLegFK","_R_upLegFK","_L_upLegIK","_R_upLegIK","_L_armIK","_R_armIK","_L_armFK","_R_armFK"};
+	int $dps = size($dp);
+	group -em -name ($cn+"_ctrlJointG");
+	for($i = 0 ; $i < $dps ; $i++){
+		parent ($cn+$dp[$i]) ($cn+"_ctrlJointG");
+	}
+	
+	setAttr ($cn+"_ctrlJointG.visibility") 0;
+	string $t3[] = {".t",".r",".s"} ;
+	string $x3[] = {"x","y","z"} ;
+	for($i = 0 ; $i < 3 ; $i++){
+		for($f = 0 ; $f < 3 ; $f ++ ){
+		setAttr -lock true -keyable false -channelBox false ($cn + "_ctrlJointG" + $t3[$i] + $x3[$f]);
+		}
+	}
+	}
+	}else{
+	confirmDialog -title "無法產生"
+			-message "未有對位物件"
+			-button "ok" 
+			-defaultButton "ok" ;
+			}
+}
+
+global proc cSk(string $ww){
+	//產生骨架
+	$cn = gcn();
+	$cpn = gcpn();
+    float $ch[] = `xform -ws -q -t ($cpn + "_headEnd")`;
+	string $RL[] ={"_L_","_R_"};
+	string $jn1[] = {"upLeg","leg","foot","toeBase","toesEnd"};
+	string $jn2[] = {"shoulder","arm","foreArm","hand"};
+	string $jn3[] = {"breast","nipple"};
+	string $jn4[] = {"_hips","_spine0","_spine1","_spine2","_chest","_neck","_head","_headEnd"};
+	string $jn5[] = {"_jaw0","_jaw1","_jawEnd"};
+	string $ff[];
+	string $cc = $ww ;
+	if($cc  == 1) {
+		$ff = $jn1;	
+	} else {
+		if($cc == 2){
+		$ff = $jn2;	
+		}else{
+			if($cc == 3){
+			$ff = $jn3;	
+			}else{
+				if($cc == 4){
+				$ff = $jn4;	
+				}else{
+					if($cc == 5){
+					$ff = $jn5;	
+					}
+				}
+			}
+		}
+	}
+	int $v= size($ff);
+	select -d ;
+	for($i = 0 ; $i < $v ; $i++){
+		if(($cc == 4) || ($cc == 5)){
+				float $r[]= `xform -ws -q -ro ($cpn + $ff[$i] + "_c_2")`;
+				float $t[]= `xform -ws -q -t ($cpn + $ff[$i] + "_c_2")`;
+				joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn + $ff[$i]);
+				select -d ;
+			}else{
+				float $r[]= `xform -ws -q -ro ($cpn + $RL[0] + $ff[$i] + "_c_2")`;
+				float $t[]= `xform -ws -q -t ($cpn + $RL[0] + $ff[$i] + "_c_2")`;
+				joint -p $t[0] $t[1] $t[2] -o $r[0] $r[1] $r[2] -rad ((0.5*$ch[1])/15) -n ($cn+$RL[0]+$ff[$i]);
+				select -d ;
+			}
+	}
+	for($i = 1 ; $i < $v ; $i++){
+		if(($cc == 4) || ($cc == 5)){
+				parent ($cn + $ff[$i]) ($cn + $ff[$i-1]);
+			}else{
+				parent ($cn + $RL[0] + $ff[$i]) ($cn + $RL[0] + $ff[$i-1]);
+			}
+	}
+}
+
+global proc jr(){
+    $cn = gcn();
+	$cpn = gcpn();
+    float $ch[] = `xform -ws -q -t ($cpn + "_headEnd")`;
+
+    //產生手腕多節骨架
+	int $fac = `intSliderGrp -q -v foreArmCount`;
+	if($fac > 1 ){
+		/*抓手臂位置*/
+		float $c_fac_t[]= `xform -ws -q -t ($cn+"_L_foreArm")`;
+		float $c_fac_r[]= `xform -ws -q -ro ($cn+"_L_foreArm")`;
+		float $c_facb_t[]= `xform -ws -q -t ($cn+"_L_hand")`;
+		/*取兩點距離，除以幾段*/
+		$facdi = (sqrt (pow(($c_fac_t[0] - $c_facb_t[0]),2)+pow(($c_fac_t[1] - $c_facb_t[1]),2)+pow(($c_fac_t[2] - $c_facb_t[2]),2)))/$fac;
+		/*產生兩點間的骨架(第一節)*/
+		select -d;
+		joint -p $c_fac_t[0] $c_fac_t[1] $c_fac_t[2] -o $c_fac_r[0] $c_fac_r[1] $c_fac_r[2] -rad ((0.7*$ch[1])/15) -n ($cn+"_L_foreArmR0");
+		setAttr (($cn+"_L_foreArmR0")+".overrideEnabled") 1;
+		setAttr (($cn+"_L_foreArmR0")+".overrideColor") 6;
+		
+		/*for 迴圈產生多節骨架*/
+		
+		for($i = 0 ; $i<$fac ; $i++){
+			insertJoint ($cn+"_L_foreArmR0") ;
+			rename (($cn+"_L_foreArmR")+($fac - $i)) ;
+			setAttr (($cn+"_L_foreArmR")+($fac - $i)+".radius") ((0.7*$ch[1])/15) ;
+			move -ls  0 $facdi 0 ;
+			}
+     parent ($cn+"_L_foreArmR0")($cn+"_L_foreArm"); 
+     }
+	 
+    //產生小腿多節骨架
+	int $lc = `intSliderGrp -q -v legCount`;
+	if($lc > 1 ){
+		float $c_lc_t[]= `xform -ws -q -t ($cn+"_L_leg")`;
+		float $c_lc_r[]= `xform -ws -q -ro ($cn+"_L_leg")`;
+		float $c_lcb_t[]= `xform -ws -q -t ($cn+"_L_foot")`;
+		$lcdi = (sqrt (pow(($c_lc_t[0] - $c_lcb_t[0]),2)+pow(($c_lc_t[1] - $c_lcb_t[1]),2)+pow(($c_lc_t[2] - $c_lcb_t[2]),2)))/$lc;
+		
+		select -d;
+		joint -p $c_lc_t[0] $c_lc_t[1] $c_lc_t[2] -o $c_lc_r[0] $c_lc_r[1] $c_lc_r[2] -rad ((0.7*$ch[1])/15) -n ($cn+"_L_legR0");
+		setAttr (($cn+"_L_legR0")+".overrideEnabled") 1;
+		setAttr (($cn+"_L_legR0")+".overrideColor") 6;
+		
+		for($i = 0 ; $i<$lc ; $i++){
+			insertJoint ($cn+"_L_legR0");
+			rename (($cn+"_L_legR")+ ($lc - $i));
+			setAttr (($cn+"_L_legR")+ ($lc - $i) +".radius") ((0.7*$ch[1])/15) ;
+			move -ls 0 $lcdi 0 ;
+			}
+		parent ($cn+"_L_legR0")($cn+"_L_leg"); 
+	}
+	
+	//產生上臂多節骨架
+	int $ac = `intSliderGrp -q -v armCount`;
+	if($ac > 1 ){
+		float $c_ac_t[]= `xform -ws -q -t ($cn+"_L_arm")`;
+		float $c_ac_r[]= `xform -ws -q -ro ($cn+"_L_arm")`;
+		float $c_acb_t[]= `xform -ws -q -t ($cn+"_L_foreArm")`;
+		$ardi = (sqrt (pow(($c_ac_t[0] - $c_acb_t[0]),2)+pow(($c_ac_t[1] - $c_acb_t[1]),2)+pow(($c_ac_t[2] - $c_acb_t[2]),2)))/$ac;
+		
+		select -d;
+		joint -p $c_ac_t[0] $c_ac_t[1] $c_ac_t[2] -o $c_ac_r[0] $c_ac_r[1] $c_ac_r[2] -rad ((0.6*$ch[1])/15) -n ($cn+"_L_armR0");
+		setAttr (($cn+"_L_armR0")+".overrideEnabled") 1;
+		setAttr (($cn+"_L_armR0")+".overrideColor") 6;
+		
+		for($i = 0 ; $i<$ac ; $i++){
+			insertJoint ($cn+"_L_armR0") ;
+			rename (($cn+"_L_armR")+($ac - $i)) ;
+			setAttr (($cn+"_L_armR")+($ac - $i)+".radius") ((0.6*$ch[1])/15) ;
+			move -ls  0 $ardi 0 ;
+			}
+     parent ($cn+"_L_armR0")($cn+"_L_arm"); 
+     }
+	
+	 //產生大腿多節骨架
+	int $ulc = `intSliderGrp -q -v upLegCount`;
+	if($ulc > 1 ){
+		float $c_ulc_t[]= `xform -ws -q -t ($cn+"_L_upLeg")`;
+		float $c_ulc_r[]= `xform -ws -q -ro ($cn+"_L_upLeg")`;
+		float $c_ulcb_t[]= `xform -ws -q -t ($cn+"_L_leg")`;
+		$ulcdi = (sqrt (pow(($c_ulc_t[0] - $c_ulcb_t[0]),2)+pow(($c_ulc_t[1] - $c_ulcb_t[1]),2)+pow(($c_ulc_t[2] - $c_ulcb_t[2]),2)))/$ulc;
+		
+		select -d;
+		joint -p $c_ulc_t[0] $c_ulc_t[1] $c_ulc_t[2] -o $c_ulc_r[0] $c_ulc_r[1] $c_ulc_r[2] -rad ((0.6*$ch[1])/15) -n ($cn+"_L_upLegR0");
+		setAttr (($cn+"_L_upLegR0")+".overrideEnabled") 1;
+		setAttr (($cn+"_L_upLegR0")+".overrideColor") 6;
+		
+		for($i = 0 ; $i<$ulc ; $i++){
+			insertJoint ($cn+"_L_upLegR0");
+			rename (($cn+"_L_upLegR")+ ($ulc - $i)) ;
+			setAttr (($cn+"_L_upLegR")+ ($ulc - $i) +".radius") ((0.6*$ch[1])/15) ;
+			move -ls 0 $ulcdi 0 ;
+			}
+		parent ($cn+"_L_upLegR0")($cn+"_L_upLeg"); 
+	}
+	//產生脖子多節骨架
+	//脖子改成固定兩節
+	int $nc = `intSliderGrp -q -v neckCount`;
+	if($nc > 1 ){
+		rename ($cn+"_neck") ($cn+"_neck_old") ;
+		float $c_nc_t[]= `xform -ws -q -t ($cn+"_neck_old")`;
+		float $c_nc_r[]= `xform -ws -q -ro ($cn+"_neck_old")`;
+		float $c_ncb_t[]= `xform -ws -q -t ($cn+"_head")`;
+		$ncdi = (sqrt (pow(($c_nc_t[0] - $c_ncb_t[0]),2)+pow(($c_nc_t[1] - $c_ncb_t[1]),2)+pow(($c_nc_t[2] - $c_ncb_t[2]),2)))/$nc;
+		
+		select -d;
+		joint -p $c_nc_t[0] $c_nc_t[1] $c_nc_t[2] -o $c_nc_r[0] $c_nc_r[1] $c_nc_r[2] -rad ((0.5*$ch[1])/15) -n ($cn+"_neck0");
+		
+		for($i = 0 ; $i < ($nc-1) ; $i++){
+			insertJoint ($cn+"_neck0");
+			rename (($cn+"_neck")+ ($nc - $i - 1)) ;
+			setAttr (($cn+"_neck")+ ($nc - $i - 1) +".radius") ((0.5*$ch[1])/15) ;
+			move -ls 0 $ncdi 0 ;
+			}
+		//重新連結脖子
+		parent -w ($cn+"_head") ;
+		parent ($cn+"_neck0") ($cn+"_chest"); 
+		delete ($cn+"_neck_old");
+		parent ($cn+"_head") ($cn+"_neck"+ ($nc - 1)) ;	
+	}
+}
+
+//-----------------------------------------
+/*以下產生控制器用程式*/
+global proc rig(){
+	$cn = gcn();
+	$cpn = gcpn();
+	
+	/* 防呆 */
+	if(objExists ($cn + "_all_ctrl")){
+		confirmDialog -title "無法產生"
+                -message "已有同命名控制器"
+                -button "ok" 
+                -defaultButton "ok" ;
+	}else{
+	if(objExists ($cn + "_headEnd")){
+	
+    float $ch[] = `xform -ws -q -t ($cn + "_headEnd")`;
+	
+	/* 抓脖子數量 */
+	select ($cn+"_neck*");
+	select -d "*CJ*" ;
+	int $neckcount = size(`ls -sl`);
+
+	/* All Ctrl */
+	circle -nr 0 1 0 -r ((5*$ch[1])/15) -s 8 -ch 0 -n ($cn + "_all_ctrl");
+	textCurves -f "Arial Black|w300|h-8" -t $cn;
+	ungroup;
+	ungroup;
+	string $cs[] = `ls -sl`;
+	int $g = size($cs);
+
+	for($i=0 ; $i < $g ; $i++){
+		rename $cs[$i] ($cn +"name"+$i);
+	}
+	doGroup 0 1 1 ;
+	rename ($cn+"nameG");
+	rotate -r -ws -90 0 0 ;
+	xform -cp;
+	pointConstraint ($cn + "_all_ctrl") ($cn+"nameG") ;
+	pointConstraint ($cn + "_all_ctrl") ($cn+"nameG") ;
+	pointConstraint -rm ($cn + "_all_ctrl") ($cn+"nameG") ;
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	setAttr ($cn+"nameG"+".translateZ") ((4*$ch[1])/15);
+	setAttr ($cn+"nameG"+".scaleZ") ((0.3*$ch[1])/15) ;
+	setAttr ($cn+"nameG"+".scaleX") ((0.3*$ch[1])/15) ;
+	setAttr ($cn+"nameG"+".scaleY") ((0.3*$ch[1])/15);
+	ungroup;
+
+
+	for($i=0 ; $i < $g ; $i++){
+		move 0 0 0 ($cn+"name"+$i+".scalePivot") ($cn+"name"+$i+".rotatePivot");
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		DeleteHistory;
+		parent -r -s ($cn+"nameShape"+$i) ($cn + "_all_ctrl") ;
+		delete ($cn+"name"+$i);  
+	}
+	
+	group -em -name ($cn + "_full");
+	circle -nr 0 1 0 -r ((3*$ch[1])/15) -s 8 -ch 0 -n ($cn + "_move_ctrl");
+	curve -d 1 -p 0 0 2.4 -p 0.2 0 2.4 -p 0 0 2.8 -p -0.2 0 2.4 -p 0 0 2.4 -p 0 0 0 -p 2.4 0 0 -p 2.4 0 0.2 -p 2.8 0 0 -p 2.4 0 -0.2 -p 2.4 0 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 ;
+	rename ($cn+"_move_ctrlb");
+	setAttr ($cn+"_move_ctrlb"+".scaleZ") ((1*$ch[1])/15);
+	setAttr ($cn+"_move_ctrlb"+".scaleX") ((1*$ch[1])/15);
+	setAttr ($cn+"_move_ctrlb"+".scaleY") ((1*$ch[1])/15);
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	parent -r -s ($cn+"_move_ctrlbShape") ($cn + "_move_ctrl") ;
+	delete ($cn+"_move_ctrlb");
+	parent -r -s ($cn+"_move_ctrl") ($cn + "_all_ctrl") ;
+	setAttr ($cn+"_all_ctrl"+".overrideEnabled") 1;
+	setAttr ($cn+"_all_ctrl"+".overrideColor") 10;
+	setAttr ($cn+"_move_ctrl"+".overrideEnabled") 1;
+	setAttr ($cn+"_move_ctrl"+".overrideColor") 9;
+	
+	
+	string $RL[] ={"_L_","_R_"};
+	string $fp[] = {"foreArmIK","legIK"};
+	string $ik[] = {"armIK","upLegIK"};
+	string $ikh[] = {"wristIK","footIK"};
+	string $pvn[] = {"armIK","legIK"};
+	string $sw[] = {"hand","foot"};
+	string $sh[] = {"shoulder","hips"};
+	
+	/* 切換用的Locator */
+	spaceLocator -n ($cn+"_chest_followL");
+	parentConstraint ($cn+"_chest") ($cn+"_chest_followL");
+	spaceLocator -n ($cn+"_hips_followL");
+	parentConstraint ($cn+"_hips") ($cn+"_hips_followL");
+	spaceLocator -n ($cn+"_neck"+"_followL");
+	if(objExists ($cn+"_neck0")){
+		pointConstraint ($cn+"_neck0") ($cn+"_neck"+"_followL") ;
+		pointConstraint -rm ($cn+"_neck0") ($cn+"_neck"+"_followL") ;
+	}else{
+		pointConstraint ($cn+"_neck") ($cn+"_neck"+"_followL") ;
+		pointConstraint -rm ($cn+"_neck") ($cn+"_neck"+"_followL") ;
+	}
+	
+	string $chL[] = {"_chest","_hips","_neck"} ;
+	string $XYZ[] = {"X","Y","Z"} ;
+	for($i = 0 ; $i < 3 ; $i ++){
+		for($v = 0 ; $v < 3 ; $v++ ){
+			setAttr ($cn+$chL[$i]+"_followLShape.localScale"+$XYZ[$v]) ((0.1*$ch[1])/15);
+		}
+	}
+	
+	/* armIKIKFK 先 Constraint */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		parentConstraint -mo ($cn+$RL[$v]+"shoulder") ($cn+$RL[$v]+"armIK");
+		pointConstraint -mo ($cn+$RL[$v]+"arm") ($cn+$RL[$v]+"armFK");
+	}
+	
+	/* pelvis 先 Constraint */
+	pointConstraint -mo ($cn+"_hips") ($cn+"_pelvisFK");
+	
+	
+	 /* 肩膀 */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 2 ; $i ++){
+			if($v == 0 ){
+				if($i == 0){
+					curve -d 1 -p -0.665 -0.107 0 -p -0.644 -0.107 0.243 -p -0.574 -0.107 0.482 -p -0.444 -0.107 0.681 -p -0.289 -0.107 0.795 -p -0.119 -0.036 0.795 -p 0.004 0.083 0.795 -p 0.072 0.354 0.795 -p 0.004 0.625 0.795 -p -0.119 0.744 0.795 -p -0.289 0.815 0.795 -p -0.444 0.815 0.681 -p -0.574 0.815 0.482 -p -0.644 0.815 0.243 -p -0.665 0.815 0 -p -0.644 0.815 -0.243 -p -0.574 0.815 -0.482 -p -0.444 0.815 -0.681 -p -0.289 0.815 -0.795 -p -0.119 0.744 -0.795 -p 0.004 0.625 -0.795 -p 0.072 0.354 -0.795 -p 0.004 0.083 -0.795 -p -0.119 -0.036 -0.795 -p -0.289 -0.107 -0.795 -p -0.444 -0.107 -0.681 -p -0.574 -0.107 -0.482 -p -0.644 -0.107 -0.243 -p -0.665 -0.107 0 -p -0.665 0.815 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 ;
+				}else{
+					curve -d 1 -p 2.092 0.461 0 -p 2.07 0.461 0.243 -p 2.001 0.461 0.482 -p 1.871 0.461 0.681 -p 1.716 0.461 0.795 -p 1.546 0.390 0.795 -p 1.423 0.271 0.795 -p 1.355 0 0.795 -p 1.423 -0.271 0.795 -p 1.546 -0.390 0.795 -p 1.716 -0.461 0.795 -p 1.871 -0.461 0.681 -p 2.001 -0.461 0.482 -p 2.071 -0.461 0.243 -p 2.092 -0.461 0 -p 2.071 -0.461 -0.243 -p 2.001 -0.461 -0.482 -p 1.871 -0.461 -0.681 -p 1.716 -0.461 -0.795 -p 1.546 -0.390 -0.795 -p 1.423 -0.271 -0.795 -p 1.355 0 -0.795 -p 1.423 0.271 -0.795 -p 1.546 0.390 -0.795 -p 1.716 0.461 -0.795 -p 1.871 0.461 -0.681 -p 2.001 0.461 -0.482 -p 2.071 0.461 -0.243 -p 2.092 0.461 0 -p 2.092 -0.461 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 ;
+				}
+			}else{
+				if($i == 0){
+					curve -d 1 -p 0.665 -0.815 0 -p 0.644 -0.815 0.243 -p 0.574 -0.815 0.482 -p 0.444 -0.815 0.681 -p 0.289 -0.815 0.795 -p 0.119 -0.744 0.795 -p -0.004 -0.625 0.795 -p -0.072 -0.354 0.795 -p -0.004 -0.083 0.795 -p 0.119 0.036 0.795 -p 0.289 0.107 0.795 -p 0.444 0.107 0.681 -p 0.574 0.107 0.482 -p 0.644 0.107 0.243 -p 0.665 0.107 0 -p 0.644 0.107 -0.242 -p 0.574 0.107 -0.482 -p 0.444 0.107 -0.681 -p 0.289 0.107 -0.795 -p 0.119 0.036 -0.795 -p -0.004 -0.083 -0.795 -p -0.072 -0.354 -0.795 -p -0.004 -0.625 -0.795 -p 0.119 -0.744 -0.795 -p 0.289 -0.815 -0.795 -p 0.444 -0.815 -0.681 -p 0.574 -0.815 -0.482 -p 0.644 -0.815 -0.243 -p 0.665 -0.815 0 -p 0.665 0.107 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 ;
+				}else{
+					curve -d 1 -p -2.092 0.461 0 -p -2.071 0.461 0.243 -p -2.001 0.461 0.482 -p -1.871 0.461 0.681 -p -1.716 0.461 0.795 -p -1.546 0.390 0.795 -p -1.423 0.271 0.795 -p -1.355 0 0.795 -p -1.423 -0.271 0.795 -p -1.546 -0.390 0.795 -p -1.716 -0.461 0.795 -p -1.871 -0.461 0.681 -p -2.001 -0.461 0.482 -p -2.071 -0.461 0.243 -p -2.092 -0.461 0 -p -2.071 -0.461 -0.243 -p -2.001 -0.461 -0.482 -p -1.871 -0.461 -0.681 -p -1.716 -0.461 -0.795 -p -1.546 -0.390 -0.795 -p -1.423 -0.271 -0.795 -p -1.355 0 -0.795 -p -1.423 0.271 -0.795 -p -1.546 0.390 -0.795 -p -1.716 0.461 -0.795 -p -1.871 0.461 -0.681 -p -2.001 0.461 -0.482 -p -2.071 0.461 -0.243 -p -2.092 0.461 0 -p -2.092 -0.461 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 -k 14 -k 15 -k 16 -k 17 -k 18 -k 19 -k 20 -k 21 -k 22 -k 23 -k 24 -k 25 -k 26 -k 27 -k 28 -k 29 ;
+				}
+			}
+			rename ($cn+$RL[$v]+$sh[$i]+"_ctrl");
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$sh[$i]+"_ctrlG");
+			setAttr ($cn+$RL[$v]+$sh[$i]+"_ctrlG"+".scaleX") ((1*$ch[1])/15);
+			setAttr ($cn+$RL[$v]+$sh[$i]+"_ctrlG"+".scaleY") ((1*$ch[1])/15);
+			setAttr ($cn+$RL[$v]+$sh[$i]+"_ctrlG"+".scaleZ") ((1*$ch[1])/15);
+			if($i == 0 ){
+				parentConstraint  ($cn+$RL[$v]+$sh[$i]) ($cn+$RL[$v]+$sh[$i]+"_ctrlG");
+				parentConstraint  -rm ($cn+$RL[$v]+$sh[$i]) ($cn+$RL[$v]+$sh[$i]+"_ctrlG");
+			}else{
+				parentConstraint  ($cn+"_hips") ($cn+$RL[$v]+"hips"+"_ctrlG");
+				parentConstraint  -rm ($cn+"_hips") ($cn+$RL[$v]+"hips"+"_ctrlG");
+			}
+			setAttr ($cn+$RL[$v]+$sh[$i]+"_ctrl"+".overrideEnabled") 1;
+			setAttr ($cn+$RL[$v]+$sh[$i]+"_ctrl"+".overrideColor") 9;
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		}
+	}
+	
+	/* 屁股用Locator */
+	for($v = 0 ; $v < 2 ; $v++ ){
+	spaceLocator -n ($cn+$RL[$v]+"upLegL");
+	pointConstraint  ($cn+$RL[$v]+"upLeg") ($cn+$RL[$v]+"upLegL") ;
+	pointConstraint  -rm ($cn+$RL[$v]+"upLeg") ($cn+$RL[$v]+"upLegL") ;
+	parent  ($cn+$RL[$v]+"upLegL") ($cn+$RL[$v]+"hips_ctrl") ;
+	}
+	
+	/* 切換用 */
+	string $swa[] = {"FK_IK","ikFollow","pvFollow","handFollow","stretch"};
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 2 ; $i ++){
+			circle -nr 0 0 1 -r ((0.2*$ch[1])/15) -d 1 -s 4 -ch 0 -n "switch1";
+			circle -nr 0 0 1 -r ((0.1*$ch[1])/15) -d 1 -s 4 -ch 0 -n "switch2";
+			parent -r -s "switch2Shape" "switch1" ;
+			rename "switch1" ($cn+$RL[$v]+$sw[$i]+"_switch");
+			delete "switch2";
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$sw[$i]+"_switchG");
+			parentConstraint  ($cn+$RL[$v]+$sw[$i]) ($cn+$RL[$v]+$sw[$i]+"_switchG");
+			parentConstraint  -rm ($cn+$RL[$v]+$sw[$i]) ($cn+$RL[$v]+$sw[$i]+"_switchG");
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			if($v == 0 ){
+				setAttr ($cn+$RL[$v]+$sw[$i]+"_switch"+".translateX") ((-1*$ch[1])/15);
+			}else{
+				setAttr ($cn+$RL[$v]+$sw[$i]+"_switch"+".translateX") ((1*$ch[1])/15);
+			}
+			ungroup ;
+			setAttr ($cn+$RL[$v]+$sw[$i]+"_switch"+".overrideEnabled") 1;
+			setAttr ($cn+$RL[$v]+$sw[$i]+"_switch"+".overrideColor") 31;
+			
+			for($b = 0 ; $b < 3 ; $b++){
+				addAttr -ln $swa[$b]   -at double  -min 0 -max 1 -dv 1 ;
+				setAttr -k on ($cn+$RL[$v]+$sw[$i]+"_switch"+"."+ $swa[$b]);
+			}
+			
+			
+			
+			if ($i == 0){
+				makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+				parentConstraint -mo ($cn+$RL[$v]+$sw[$i]) ($cn+$RL[$v]+$sw[$i]+"_switch");
+				addAttr -ln $swa[3]   -at double  -min 0 -max 1 -dv 1 ;
+				setAttr -k on ($cn+$RL[$v]+$sw[$i]+"_switch"+"."+ $swa[3]);
+			}
+			addAttr -ln $swa[4]   -at double  -min 0.1 -dv 1 ;
+			setAttr -k on ($cn+$RL[$v]+$sw[$i]+"_switch"+"."+ $swa[4]);
+			
+			addAttr -ln "autoStretch"  -at double -min 0 -max 1 -dv 1 ;
+			setAttr -k on ($cn+$RL[$v]+$sw[$i]+"_switch"+".autoStretch");
+			if ($i == 1){
+				addAttr -ln "more"  -at "enum" -en "off:on" ($cn+$RL[$v]+$sw[$i]+"_switch");
+				setAttr -k true ($cn+$RL[$v]+$sw[$i]+"_switch.more");
+			}
+		}
+	}
+	
+	
+	/*pole vector */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 2 ; $i ++){
+			float $j1_t[]= `xform -ws -q -t ($cn+$RL[$v]+$ik[$i])`;
+			float $j1_r[]= `xform -ws -q -ro ($cn+$RL[$v]+$ik[$i])`;
+			float $f[] = `getAttr (($cn+$RL[1]+$fp[$i]) + ".jointOrient")`;
+			select -d;
+			joint -p $j1_t[0] $j1_t[1] $j1_t[2] -o $j1_r[0] $j1_r[1] $j1_r[2] -n ($cn+$RL[$v]+"fpv"+$i);
+			parent ($cn+$RL[$v]+"fpv"+$i) ($cn+$RL[$v]+$ik[$i]) ;
+
+			if($i == 0){
+				if($v == 0){
+					if($f[0] >= 0 ){
+						move -r -os -wd 0 0 ((-3*$ch[1])/15);
+					}else{move -r -os -wd 0 0 ((3*$ch[1])/15);}
+				}else{
+					if($f[0] >= 0 ){
+						move -r -os -wd 0 0 ((3*$ch[1])/15);
+					}else{move -r -os -wd 0 0 ((-3*$ch[1])/15);}
+				}
+			}else{
+				if($v == 0){
+					if($f[0] >= 0 ){
+						move -r -os -wd 0 0 ((-5*$ch[1])/15);
+					}else{move -r -os -wd 0 0 ((5*$ch[1])/15);}
+				}else{
+					if($f[0] >= 0 ){
+						move -r -os -wd 0 0 ((5*$ch[1])/15);
+					}else{move -r -os -wd 0 0 ((-5*$ch[1])/15);}
+				}
+			}	
+			circle -nr 1 0 0 -r ((0.2*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn+$RL[$v]+$pvn[$i]+"_pvcv1");
+			circle -nr 0 1 0 -r ((0.2*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn+$RL[$v]+$pvn[$i]+"_pvcv2");
+			circle -nr 0 0 1 -r ((0.2*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn+$RL[$v]+$pvn[$i]+"_pv");
+			parent -r -s ($cn+$RL[$v]+$pvn[$i]+"_pvcv1"+"Shape") ($cn+$RL[$v]+$pvn[$i]+"_pvcv2"+"Shape") ($cn+$RL[$v]+$pvn[$i]+"_pv") ;
+			float $pv_t[] = `xform -ws -q -t ($cn+$RL[$v]+"fpv"+$i)`;
+			select -r ($cn+$RL[$v]+$pvn[$i]+"_pv") ;
+			move -r $pv_t[0] $pv_t[1] $pv_t[2] ;
+			setAttr (($cn+$RL[$v]+$pvn[$i]+"_pv") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$pvn[$i]+"_pv") +".overrideColor") 15;
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+			spaceLocator -n ($cn+$RL[$v]+$pvn[$i]+"del");
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$pvn[$i]+"_pv"+"G");
+			parentConstraint ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$pvn[$i]+"_pv"+"G") ;
+			parentConstraint -rm ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$pvn[$i]+"_pv"+"G") ;
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			parent ($cn+$RL[$v]+$pvn[$i]+"_pv") ($cn+$RL[$v]+$pvn[$i]+"_pv"+"G") ;
+			parent ($cn+$RL[$v]+$pvn[$i]+"_pv"+"G") ($cn+$RL[$v]+$sh[$i]+"_ctrl");
+			delete ($cn+$RL[$v]+$pvn[$i]+"_pvcv1") ($cn+$RL[$v]+$pvn[$i]+"_pvcv2") ($cn+$RL[$v]+"fpv"+$i) ($cn+$RL[$v]+$pvn[$i]+"del");
+			spaceLocator -n ($cn+$RL[$v]+$ik[$i]+"L");
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$ik[$i]+"LG");
+			parentConstraint ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"LG") ;
+			parentConstraint -rm ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"LG") ;
+			if($i == 0){
+			parent ($cn+$RL[$v]+$ik[$i]+"LG") ($cn+"_chest_followL") ;
+			}else{parent ($cn+$RL[$v]+$ik[$i]+"LG") ($cn+"_hips_followL") ;}
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			pointConstraint  ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"LG");
+		}
+	}	
+	
+	
+	/* pole vector 旋轉*/
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 2 ; $i ++){
+			curve -d 1 -p -0.088 0 1.798 -p -0.091 0 1.843 -p -0.176 0 1.791 -p -0.088 0 1.798 -p 0 0 1.8 -p 0.088 0 1.798 -p 0.176 0 1.791 -p 0.091 0 1.843 -p 0.088 0 1.798 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 ;
+			rename "a1";
+			curve -d 1 -p -0.088 0 -1.798 -p -0.091 0 -1.843 -p -0.176 0 -1.791 -p -0.088 0 -1.798 -p 0 0 -1.8 -p 0.088 0 -1.798 -p 0.176 0 -1.791 -p 0.091 0 -1.843 -p 0.088 0 -1.798 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 ;
+			rename "a2";
+			curve -d 1 -p 0 0.088 1.798 -p 0 0.091 1.843 -p 0 0.176 1.791 -p 0 0.088 1.798 -p 0 0 1.8 -p 0 -0.088 1.79783 -p 0 -0.176 1.791 -p 0 -0.091 1.843 -p 0 -0.0883 1.798 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 ;
+			rename "a3";
+			curve -d 1 -p 0 0.088 -1.798 -p 0 0.091 -1.843 -p 0 0.176 -1.791 -p 0 0.088 -1.798 -p 0 0 -1.8 -p 0 -0.088 -1.79783 -p 0 -0.176 -1.791 -p 0 -0.091 -1.843 -p 0 -0.0883 -1.798 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 ;
+			rename "a4";
+			curve -d 1 -p 0 0 1.8 -p 0 0 -1.8 -k 0 -k 1 ;
+			rename "a5";
+			for($t = 1 ; $t < 5 ; $t++){
+				setAttr ("aShape"+ $t +".overrideEnabled") 1;
+				if($t < 3 ){
+					setAttr ("aShape"+ $t  +".overrideColor") 14;
+				}else{
+					setAttr ("aShape"+ $t  +".overrideColor") 13;
+				}
+			}
+			parent -r -s "aShape2" "aShape3" "aShape4" "aShape5" "a1" ;
+			rename "a1" ($cn+$RL[$v]+$ik[$i]+"pvR_ctrl") ;
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG");
+			delete "a2" "a3" "a4" "a5";
+			parentConstraint  ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG");
+			parentConstraint  -rm ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG");
+			setAttr ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG"+".scaleX") ((1*$ch[1])/15);
+			setAttr ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG"+".scaleY") ((1*$ch[1])/15);
+			setAttr ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG"+".scaleZ") ((1*$ch[1])/15);
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			pointConstraint  ($cn+$RL[$v]+$ik[$i]) ($cn+$RL[$v]+$ik[$i]+"pvR_ctrlG");
+		}
+	}
+
+	/*產生IK*/
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 0 ; $i < 2 ; $i ++){
+			ikHandle -sol ikRPsolver -n ($cn+$RL[$v]+$pvn[$i]+"_handle") -sj ($cn+$RL[$v]+$ik[$i]) -ee ($cn+$RL[$v]+$ikh[$i]);
+			poleVectorConstraint -n ($cn+$RL[$v]+$pvn[$i]+"_pvc") ($cn+$RL[$v]+$pvn[$i]+"_pv") ($cn+$RL[$v]+$pvn[$i]+"_handle") ;
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		}
+	}
+	ikHandleDisplayScale ((0.5*$ch[1])/15);
+	
+	/* 量腳的角度 */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		spaceLocator -n ($cn+$RL[$v]+"f_L1");
+		spaceLocator -n ($cn+$RL[$v]+"f_L2");
+		spaceLocator -n ($cn+$RL[$v]+"f_L3");
+		pointConstraint ($cn+$RL[$v]+"foot") ($cn+$RL[$v]+"f_L1");
+		pointConstraint -rm ($cn+$RL[$v]+"foot") ($cn+$RL[$v]+"f_L1");
+		pointConstraint ($cn+$RL[$v]+"foot") ($cn+$RL[$v]+"f_L2");
+		pointConstraint -rm ($cn+$RL[$v]+"foot") ($cn+$RL[$v]+"f_L2");
+		pointConstraint ($cn+$RL[$v]+"toesEnd") ($cn+$RL[$v]+"f_L3");
+		pointConstraint -rm ($cn+$RL[$v]+"toesEnd") ($cn+$RL[$v]+"f_L3");
+		select ($cn+$RL[$v]+"f_L2") ;
+		move -r -ls -wd 0 1 0 ;
+		
+		if ($v == 0 ){
+			aimConstraint -aimVector 0 -1 0 -upVector 0 0 1 -worldUpType "object" -worldUpObject ($cn+$RL[$v]+"f_L3")   ($cn+$RL[$v]+"f_L2") ($cn+$RL[$v]+"f_L1");
+			}else{
+			aimConstraint -aimVector 0 1 0 -upVector 0 0 -1 -worldUpType "object" -worldUpObject ($cn+$RL[$v]+"f_L3")   ($cn+$RL[$v]+"f_L2") ($cn+$RL[$v]+"f_L1");
+			}
+		}
+	/* FK */
+	string $fk[] = {"armFK","legFK","foreArmFK","upLegFK","hand","foot"};
+	
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 6 ; $i ++){
+			circle -nr 1 0 0 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$fk[$i]+"_ctrlC1");
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlC1Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlC1Shape") +".overrideColor") 13;
+			circle -nr 0 1 0 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$fk[$i]+"_ctrlC2");
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlC2Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlC2Shape") +".overrideColor") 14;
+			circle -nr 0 0 1 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$fk[$i]+"_ctrl");
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlShape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$fk[$i]+"_ctrlShape") +".overrideColor") 6;
+			parent -r -s ($cn+$RL[$v]+$fk[$i]+"_ctrlC1"+"Shape") ($cn+$RL[$v]+$fk[$i]+"_ctrlC2"+"Shape") ($cn+$RL[$v]+$fk[$i]+"_ctrl") ;
+			if($i == 4 || $i == 5 ){
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+ $fk[$i]+"_ctrlG1");
+			}
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+ $fk[$i]+"_ctrlG");
+			delete  ($cn+$RL[$v]+$fk[$i]+"_ctrlC1")  ($cn+$RL[$v]+$fk[$i]+"_ctrlC2");
+			parentConstraint ($cn+$RL[$v]+$fk[$i]) ($cn+$RL[$v]+ $fk[$i]+"_ctrlG");
+			parentConstraint -rm ($cn+$RL[$v]+$fk[$i]) ($cn+$RL[$v]+ $fk[$i]+"_ctrlG");
+			if($i == 5){
+				orientConstraint ($cn+$RL[$v]+"f_L1") ($cn+$RL[$v]+$fk[$i]+"_ctrlG");
+				orientConstraint -rm ($cn+$RL[$v]+"f_L1") ($cn+$RL[$v]+$fk[$i]+"_ctrlG");
+			}
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			if($i != 5){
+			orientConstraint -mo ($cn+$RL[$v]+ $fk[$i]+"_ctrl") ($cn+$RL[$v]+$fk[$i]) ;
+			}
+		}
+	}
+	
+
+	/* 量手臂長度 */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		spaceLocator -n ($cn+$RL[$v]+"armDLS");
+		move ($v+5) ($v+5) ($v+5) ;
+		spaceLocator -n ($cn+$RL[$v]+"armDLE");
+		move ($v+10) ($v+10) ($v+10) ;
+		distanceDimension -sp ($v+5) ($v+5) ($v+5)  -ep ($v+10) ($v+10) ($v+10) ;
+		rename "distanceDimension1" ($cn+$RL[$v]+"armD");
+		}
+		
+	/* 量腳長度 */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		spaceLocator -n ($cn+$RL[$v]+"legDLS");
+		move ($v-5) ($v-5) ($v-5) ;
+		spaceLocator -n ($cn+$RL[$v]+"legDLE");
+		move ($v-10) ($v-10) ($v-10) ;
+		distanceDimension -sp ($v-5) ($v-5) ($v-5)  -ep ($v-10) ($v-10) ($v-10) ;
+		rename "distanceDimension1" ($cn+$RL[$v]+"legD");
+		}
+		
+	/* 量spline長度 */	
+	string $sik[] = {"_pelvisIK","_spine0IK","_spine1IK","_spine2IK","_chestIK"};
+	string $sn[] = { "_pelvis","_spine0","_spine1","_spine2","_chest"};
+	for($i = 0 ; $i < 4 ; $i++ ){
+			spaceLocator -n ($cn+$sik[$i]+"_DLS");
+			move (15 - $i) (15 - $i) (15 - $i) ;
+			spaceLocator -n ($cn+$sik[$i]+"_DLE");
+			move (20 + $i) (20 + $i) (20 + $i) ;
+			distanceDimension -sp (15 - $i) (15 - $i) (15 - $i)  -ep (20 + $i) (20 + $i) (20 + $i) ;
+			rename "distanceDimension1" ($cn+$sik[$i]+"_D");
+			pointConstraint ($cn+$sn[$i]+"CJ") ($cn+$sik[$i]+"_DLS");
+			pointConstraint ($cn+$sn[$i+1]+"CJ") ($cn+$sik[$i]+"_DLE");
+	}
+	
+	/* IK 控制器 */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		curve -d 1 -p 0.5 -0.5 0.5 -p 0.5 -0.5 -0.5 -p -0.5 -0.5 -0.5 -p -0.5 -0.5 0.5 -p 0.5 -0.5 0.5 ;
+		rename "b1";
+		curve -d 1 -p 0.5 0.5 0.5 -p 0.5 0.5 -0.5 -p -0.5 0.5 -0.5 -p -0.5 0.5 0.5 -p 0.5 0.5 0.5;
+		rename "b2";
+		curve -d 1 -p -0.5 0.5 0.5 -p -0.5 -0.5 0.5 ;
+		rename "b3";
+		curve -d 1 -p 0.5 0.5 0.5 -p 0.5 -0.5 0.5 ;
+		rename "b4";
+		curve -d 1 -p -0.5 0.5 -0.5 -p -0.5 -0.5 -0.5 ;
+		rename "b5";
+		curve -d 1 -p 0.5 0.5 -0.5 -p 0.5 -0.5 -0.5 ;
+		rename "b6";
+		curve -d 1 -p 0 0 0 -p 0.5 0 0 ;
+		rename "b7";
+		curve -d 1 -p 0 0 0 -p 0 0.5 0 ;
+		rename "b8";
+		curve -d 1 -p 0 0 0 -p 0 0 0.5 ;
+		rename "b9";
+		parent -r -s "bShape2" "bShape3" "bShape4" "bShape5" "bShape6" "bShape7" "bShape8" "bShape9" "b1" ;
+		delete "b2" "b3" "b4" "b5" "b6" "b7" "b8" "b9";
+		rename "b1" ($cn+$RL[$v]+ "armIK_ctrl");
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape6") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape6") +".overrideColor") 13;
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape7") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape7") +".overrideColor") 14;
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape8") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "armIK_ctrlShape8") +".overrideColor") 6;
+		doGroup 0 1 1 ;
+		rename ($cn+$RL[$v]+"armIK_ctrlG");
+		pointConstraint ($cn+"_chest") ($cn+$RL[$v]+"armIK_ctrlG");
+		pointConstraint -rm ($cn+"_chest") ($cn+$RL[$v]+"armIK_ctrlG");
+		setAttr ($cn+$RL[$v]+"armIK_ctrlG"+".scaleX") ((1*$ch[1])/15);
+		setAttr ($cn+$RL[$v]+"armIK_ctrlG"+".scaleY") ((1*$ch[1])/15);
+		setAttr ($cn+$RL[$v]+"armIK_ctrlG"+".scaleZ") ((1*$ch[1])/15);
+		pointConstraint  ($cn+$RL[$v]+ "armIK_handle") ($cn+$RL[$v]+ "armIK_ctrl");
+		pointConstraint  -rm ($cn+$RL[$v]+ "armIK_handle") ($cn+$RL[$v]+ "armIK_ctrl");
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		parentConstraint -mo ($cn+$RL[$v]+"shoulder_ctrl") ($cn+"_full") ($cn+$RL[$v]+"armIK_ctrlG");
+		pointConstraint ($cn+$RL[$v]+ "armIK_ctrl") ($cn+$RL[$v]+ "armIK_handle");
+		
+		addAttr -ln "twist"   -at double  ($cn+$RL[$v]+ "armIK_ctrl");
+		setAttr -k on ($cn+$RL[$v]+ "armIK_ctrl"+ ".twist");
+		
+		connectAttr -f ($cn+$RL[$v]+ "armIK_ctrl"+ ".twist") ($cn+$RL[$v]+"armIK_handle"+".twist");
+	}
+	
+	/* 腳IK 控制器 */
+	float $fo1[]= `xform -ws -q -t ($cn+"_L_foot")`;
+	float $fo2[]= `xform -ws -q -t ($cn+"_L_toesEnd")`;
+	float $fod = sqrt (pow(($fo1[0] - $fo2[0]),2)+pow(($fo1[1] - $fo2[1]),2)+pow(($fo1[2] - $fo2[2]),2));
+	float $fow = $fod / 3 ;
+	float $fow2 = ($fod / 3) * -1 ;
+	float $foh = $fod / 5;
+	float $foh2 = ( $fo1[1] ) * -1;
+	float $foh3 = ( $fo2[1] ) * -1;
+	float $ter[]= `xform -ws -q -ro ($cn+"_L_toesEnd")`;
+	
+	
+	for($v = 0 ; $v < 2 ; $v++ ){
+		curve -d 1 -p $fow $foh2 $fod -p $fow $foh2 $fow2 -p $fow2 $foh2 $fow2 -p $fow2 $foh2 $fod -p $fow $foh2 $fod ;
+		rename "b1";
+		curve -d 1 -p $fow 0 $fod -p $fow $foh $fow -p $fow $foh $fow2 -p $fow2 $foh $fow2 -p $fow2 $foh $fow -p $fow2 0 $fod -p $fow 0 $fod;
+		rename "b2";
+		curve -d 1 -p $fow2 0 $fod -p $fow2 $foh2 $fod ;
+		rename "b3";
+		curve -d 1 -p $fow 0 $fod -p $fow $foh2 $fod ;
+		rename "b4";
+		curve -d 1 -p $fow2 $foh $fow2 -p $fow2 $foh2 $fow2 ;
+		rename "b5";
+		curve -d 1 -p $fow $foh $fow2 -p $fow $foh2 $fow2 ;
+		rename "b6";
+		curve -d 1 -p 0 0 0 -p $fow 0 0 ;
+		rename "b7";
+		curve -d 1 -p 0 0 0 -p 0 $fow 0 ;
+		rename "b8";
+		curve -d 1 -p 0 0 0 -p 0 0 $fow ;
+		rename "b9";
+		curve -d 1 -p $fow $foh $fow -p $fow2 $foh $fow ;
+		rename "b10";
+		parent -r -s "bShape2" "bShape3" "bShape4" "bShape5" "bShape6" "bShape7" "bShape8" "bShape9" "bShape10" "b1" ;
+		delete "b2" "b3" "b4" "b5" "b6" "b7" "b8" "b9" "b10";
+		rename "b1" ($cn+$RL[$v]+ "legIK_ctrl");
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape6") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape6") +".overrideColor") 13;
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape7") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape7") +".overrideColor") 14;
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape8") +".overrideEnabled") 1;
+		setAttr (($cn+$RL[$v]+ "legIK_ctrlShape8") +".overrideColor") 6;
+		doGroup 0 1 1 ;
+		rename ($cn+$RL[$v]+"legIK_ctrlG1");
+		doGroup 0 1 1 ;
+		rename ($cn+$RL[$v]+"legIK_ctrlG");
+		pointConstraint ($cn+"_hips") ($cn+$RL[$v]+"legIK_ctrlG");
+		pointConstraint -rm ($cn+"_hips") ($cn+$RL[$v]+"legIK_ctrlG");
+		pointConstraint  ($cn+$RL[$v]+ "legIK_handle") ($cn+$RL[$v]+ "legIK_ctrlG1");
+		pointConstraint  -rm ($cn+$RL[$v]+ "legIK_handle") ($cn+$RL[$v]+ "legIK_ctrlG1");
+
+		aimConstraint -aimVector 0 1 0 -upVector 0 0 1 -worldUpType "object" -worldUpObject ($cn+$RL[$v]+"f_L3")   ($cn+$RL[$v]+"f_L2") ($cn+$RL[$v]+ "legIK_ctrlG1");
+		aimConstraint -rm ($cn+$RL[$v]+"f_L2") ($cn+$RL[$v]+ "legIK_ctrlG1");
+
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		parentConstraint -mo ($cn+$RL[$v]+"hips_ctrl") ($cn+"_full") ($cn+$RL[$v]+"legIK_ctrlG");
+
+		string $aa[] = {"toe","heel","tiptoe","turn","twist"};
+		for($i = 0 ; $i < 5 ; $i++ ){
+		addAttr -ln $aa[$i]  -at double  ($cn+$RL[$v]+ "legIK_ctrl");
+		setAttr -k on ($cn+$RL[$v]+ "legIK_ctrl."+ $aa[$i]);
+		}
+		addAttr -ln "stretch"   -at double -min 0.01 -dv 1 ($cn+$RL[$v]+ "legIK_ctrl");
+		setAttr -k on ($cn+$RL[$v]+ "legIK_ctrl.stretch");
+		
+		//stretch twist 連結
+		connectAttr -f ($cn+$RL[$v]+ "legIK_ctrl.stretch") ($cn+$RL[$v]+ "foot.scaleY");
+		connectAttr -f ($cn+$RL[$v]+ "legIK_ctrl.stretch") ($cn+$RL[$v]+ "toeBase.scaleY");
+		connectAttr -f ($cn+$RL[$v]+ "legIK_ctrl.twist") ($cn+$RL[$v]+"legIK_handle.twist");
+	}
+	
+	/* 身體FK控制器 */
+	string $sfk[] = {"_pelvisFK","_spine0FK","_spine1FK","_spine2FK","_chestFK"};
+	for($i = 0 ; $i < 5 ; $i++ ){
+		circle -nr 0 1 0 -r ((1.3*$ch[1])/15) -s 8 -ch 0 ;
+		rename "s1" ;
+		curve -d 1 -p 0 0 0 -p 0 0 ((1.15*$ch[1])/15) -p ((-0.1*$ch[1])/15) 0 ((1.15*$ch[1])/15) -p 0 0 ((1.3*$ch[1])/15) -p ((0.1*$ch[1])/15) 0 ((1.15*$ch[1])/15) -p 0 0 ((1.15*$ch[1])/15) ;
+		rename "s2" ;
+		parent -r -s "sShape2" "s1" ;
+		delete "s2";
+		rename "s1" ($cn+$sfk[$i]+"_ctrl") ;
+		setAttr (($cn+$sfk[$i]+"_ctrl") +".overrideEnabled") 1;
+		setAttr (($cn+$sfk[$i]+"_ctrl") +".overrideColor") 13;
+		doGroup 0 1 1 ;
+		rename ($cn+$sfk[$i]+"_ctrlG") ;
+		parentConstraint ($cn+$sfk[$i])  ($cn+$sfk[$i]+"_ctrlG") ;
+		parentConstraint -rm ($cn+$sfk[$i])  ($cn+$sfk[$i]+"_ctrlG") ;
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		if($i > 0 ){
+			parent ($cn+$sfk[$i]+"_ctrlG") ($cn+$sfk[$i-1]+"_ctrl") ;
+		}
+		//constraint
+		pointConstraint -mo ($cn+$sfk[$i]) ($cn+$sfk[$i]+"_ctrlG");
+		orientConstraint -mo ($cn+$sfk[$i]+"_ctrl") ($cn+$sfk[$i]);
+	}
+	
+	/* 產生 spline IK */
+	//身體
+	select -r ($cn+"_pelvisIK.rotatePivot") ;
+	select -add ($cn+"_chestIK.rotatePivot") ;
+	string $spik[] =`ikHandle -sol ikSplineSolver -scv false -pcv false -n ($cn+"_splineIK_handle")` ;
+	rename $spik[2] ($cn+"_splineIK_curve");
+	skinCluster -tsb ($cn+"_pelvisCJ") ($cn+"_spine0CJ") ($cn+"_spine1CJ") ($cn+"_spine2CJ") ($cn+"_chestCJ") ($cn+"_splineIK_curve");
+	
+	//脖子
+	if(objExists ($cn+"_neck0")){
+		select -r ($cn+"_neck0.rotatePivot") ;
+		select -add ($cn+"_head.rotatePivot") ;
+		string $nkik[] =`ikHandle -sol ikSplineSolver -scv false -pcv false -n ($cn+"_neckIK_handle")` ;
+		rename $nkik[2] ($cn+"_neckIK_curve");
+		skinCluster -tsb ($cn+"_neckCJ0") ($cn+"_neckCJ1") ($cn+"_headCJ") ($cn+"_neckIK_curve");
+	}
+	
+	//Spline 中間控制器
+	string $sik[] = {"_pelvisIK","_spine0IK","_spine1IK","_spine2IK","_chestIK"};
+	string $LN[] = {"PL1","PL2"} ;
+	for($i = 1 ; $i < 4 ; $i++ ){
+		//控制器
+		circle -nr 0 1 0 -r ((1.2*$ch[1])/15) -s 8 -ch 0 ;
+		rename "s1" ;
+		curve -d 1 -p 0 0 0 -p 0 0 ((1.05*$ch[1])/15) -p ((-0.1*$ch[1])/15) 0 ((1.05*$ch[1])/15) -p 0 0 ((1.2*$ch[1])/15) -p ((0.1*$ch[1])/15) 0 ((1.05*$ch[1])/15) -p 0 0 ((1.05*$ch[1])/15) ;
+		rename "s2" ;
+		parent -r -s "sShape2" "s1" ;
+		delete "s2";
+		rename "s1" ($cn+$sik[$i]+"_ctrl") ;
+		setAttr (($cn+$sik[$i]+"_ctrl") +".overrideEnabled") 1;
+		setAttr (($cn+$sik[$i]+"_ctrl") +".overrideColor") 6;
+		setAttr (($cn+$sik[$i]+"_ctrl") +".rotateOrder") 1;
+		doGroup 0 1 1 ;
+		rename ($cn+$sik[$i]+"_ctrlG1") ;
+		setAttr (($cn+$sik[$i]+"_ctrlG1") +".rotateOrder") 1;
+		doGroup 0 1 1 ;
+		rename ($cn+$sik[$i]+"_ctrlG") ;
+		setAttr (($cn+$sik[$i]+"_ctrlG") +".rotateOrder") 1;
+		parentConstraint ($cn+$sik[$i]) ($cn+$sik[$i]+"_ctrlG") ;
+		parentConstraint -rm ($cn+$sik[$i]) ($cn+$sik[$i]+"_ctrlG") ;
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		//point 用locator
+		for($t = 0 ; $t < 2 ; $t++ ){
+			spaceLocator -n ($cn+$sik[$i]+$LN[$t]);
+			parentConstraint ($cn+$sik[$i]) ($cn+$sik[$i]+$LN[$t]) ;
+			parentConstraint -rm ($cn+$sik[$i]) ($cn+$sik[$i]+$LN[$t]);
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		}
+	}
+	
+	//spline pelvis 控制器
+	float $ps1[]= `xform -ws -q -t ($cn+"_pelvis")`;
+	float $ps2[]= `xform -ws -q -t ($cn+"_spine0")`;
+	float $psd = (sqrt (pow(($ps1[0] - $ps2[0]),2)+pow(($ps1[1] - $ps2[1]),2)+pow(($ps1[2] - $ps2[2]),2)))/2;
+	float $ul1[]= `xform -ws -q -t ($cn+"_hips")`;
+	float $ul2[]= `xform -ws -q -t ($cn+"_L_upLeg")`;
+	float $uld = (sqrt (pow(($ul1[0] - $ul2[0]),2)+pow(($ul1[1] - $ul2[1]),2)+pow(($ul1[2] - $ul2[2]),2)))*1.3;
+	float $cn1[]= `xform -ws -q -t ($cn+"_chest")`;
+	if(objExists ($cn+"_neck0")){
+		select ($cn+"_neck0") ;
+	}else{
+		select ($cn+"_neck") ;
+	}
+	string $nkn[] = `ls -sl`;
+	float $cn2[]= `xform -ws -q -t $nkn`;
+	float $cnd = sqrt (pow(($cn1[0] - $cn2[0]),2)+pow(($cn1[1] - $cn2[1]),2)+pow(($cn1[2] - $cn2[2]),2));
+	
+	//pelvis 控制器
+	curve -d 1 -p $uld $psd $uld -p $uld $psd ($uld*-1) -p ($uld*-1) $psd ($uld*-1) -p ($uld*-1) $psd $uld -p $uld $psd $uld ;
+	rename "sp1";
+	curve -d 1 -p $uld ($psd*-1) $uld -p $uld ($psd*-1) ($uld*-1) -p ($uld*-1) ($psd*-1) ($uld*-1) -p ($uld*-1) ($psd*-1) $uld -p $uld ($psd*-1) $uld ;
+	rename "sp2";
+	curve -d 1 -p $uld $psd $uld -p $uld ($psd*-1) $uld ;
+	rename "sp3";
+	curve -d 1 -p $uld $psd ($uld*-1) -p $uld ($psd*-1) ($uld*-1) ;
+	rename "sp4";
+	curve -d 1 -p ($uld*-1) $psd ($uld*-1) -p ($uld*-1) ($psd*-1) ($uld*-1) ;
+	rename "sp5";
+	curve -d 1 -p ($uld*-1) $psd $uld -p ($uld*-1) ($psd*-1) $uld ;
+	rename "sp6";
+	parent -r -s "spShape2" "spShape3" "spShape4" "spShape5" "spShape6" "sp1" ;
+	delete "sp2" "sp3" "sp4" "sp5" "sp6";
+	rename "sp1" ($cn+$sik[0]+"_ctrl") ;
+	setAttr (($cn+$sik[0]+"_ctrl") +".overrideEnabled") 1;
+	setAttr (($cn+$sik[0]+"_ctrl") +".overrideColor") 6;
+	setAttr (($cn+$sik[0]+"_ctrl") +".rotateOrder") 1;
+	doGroup 0 1 1 ;
+	rename ($cn+$sik[0]+"_ctrlG") ;
+	setAttr (($cn+$sik[0]+"_ctrlG") +".rotateOrder") 1;
+	parentConstraint ($cn+$sik[0])  ($cn+$sik[0]+"_ctrlG") ;
+	parentConstraint -rm ($cn+$sik[0])  ($cn+$sik[0]+"_ctrlG") ;
+	makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+	
+	//chest 控制器
+	curve -d 1 -p $uld $cnd $uld -p $uld $cnd ($uld*-1) -p ($uld*-1) $cnd ($uld*-1) -p ($uld*-1) $cnd $uld -p $uld $cnd $uld ;
+	rename "sc1";
+	curve -d 1 -p $uld ($psd*-1) $uld -p $uld ($psd*-1) ($uld*-1) -p ($uld*-1) ($psd*-1) ($uld*-1) -p ($uld*-1) ($psd*-1) $uld -p $uld ($psd*-1) $uld ;
+	rename "sc2";
+	curve -d 1 -p $uld $cnd $uld -p $uld ($psd*-1) $uld ;
+	rename "sc3";
+	curve -d 1 -p $uld $cnd ($uld*-1) -p $uld ($psd*-1) ($uld*-1) ;
+	rename "sc4";
+	curve -d 1 -p ($uld*-1) $cnd ($uld*-1) -p ($uld*-1) ($psd*-1) ($uld*-1) ;
+	rename "sc5";
+	curve -d 1 -p ($uld*-1) $cnd $uld -p ($uld*-1) ($psd*-1) $uld ;
+	rename "sc6";
+	parent -r -s "scShape2" "scShape3" "scShape4" "scShape5" "scShape6" "sc1" ;
+	delete "sc2" "sc3" "sc4" "sc5" "sc6";
+	rename "sc1" ($cn+$sik[4]+"_ctrl") ;
+	
+	setAttr (($cn+$sik[4]+"_ctrl") +".overrideEnabled") 1;
+	setAttr (($cn+$sik[4]+"_ctrl") +".overrideColor") 6;
+	setAttr (($cn+$sik[4]+"_ctrl") +".rotateOrder") 1;
+	doGroup 0 1 1 ;
+	rename ($cn+$sik[4]+"_ctrlG") ;
+	setAttr (($cn+$sik[4]+"_ctrl") +".rotateOrder") 1;
+	parentConstraint ($cn+$sik[4]) ($cn+$sik[4]+"_ctrlG") ;
+	parentConstraint -rm ($cn+$sik[4]) ($cn+$sik[4]+"_ctrlG") ;
+	makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+	
+	//spline 切換用
+	circle -nr 0 0 1 -r ((0.2*$ch[1])/15) -d 1 -s 4 -ch 0 -n "switch1";
+	circle -nr 0 0 1 -r ((0.1*$ch[1])/15) -d 1 -s 4 -ch 0 -n "switch2";
+	parent -r -s "switch2Shape" "switch1" ;
+	rename "switch1" ($cn+$sik[4]+"_switch");
+	delete "switch2";
+	doGroup 0 1 1 ;
+	rename ($cn+$sik[4]+"_switchG");
+	parentConstraint  ($cn+$sik[4]) ($cn+$sik[4]+"_switchG");
+	parentConstraint  -rm ($cn+$sik[4]) ($cn+$sik[4]+"_switchG");
+	makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+	setAttr ($cn+$sik[4]+"_switch"+".translateZ") ((1.5*$ch[1])/15);
+	ungroup ;
+	setAttr ($cn+$sik[4]+"_switch"+".overrideEnabled") 1;
+	setAttr ($cn+$sik[4]+"_switch"+".overrideColor") 31;
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	parentConstraint -mo ($cn+"_chest") ($cn+$sik[4]+"_switch");
+	
+	//加上Attr
+	addAttr -ln "FKIK"  -at double -min 0 -max 1 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.FKIK" );
+	addAttr -ln "headFollow"  -at double -min 0 -max 1 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.headFollow" );
+	addAttr -ln "autoTwist"  -at double -min 0 -max 1 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.autoTwist" );
+	addAttr -ln "stretch"  -at double -min 0.01 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.stretch" );
+	addAttr -ln "autoStretchSpine"  -at double -min 0 -max 1 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.autoStretchSpine" );
+	addAttr -ln "autoStretchNeck"  -at double -min 0 -max 1 -dv 1 ($cn+$sik[4]+"_switch");
+	setAttr -k on ($cn+$sik[4]+"_switch.autoStretchNeck" );
+	addAttr -ln "moreSpine"  -at "enum" -en "off:on" ($cn+$sik[4]+"_switch");
+	setAttr -k true ($cn+$sik[4]+"_switch.moreSpine" );
+	
+	if(objExists ($cn+"_neck0")){
+		addAttr -ln "moreNeck"  -at "enum" -en "off:on" ($cn+$sik[4]+"_switch");
+		setAttr -k true ($cn+$sik[4]+"_switch.moreNeck" );
+	}
+	addAttr -ln "hipsCenter"  -at "enum" -en "off:on" ($cn+$sik[4]+"_switch");
+	setAttr -k true ($cn+$sik[4]+"_switch.hipsCenter" );
+	
+	addAttr -ln "twist"  -at double ($cn+$sik[4]+"_ctrl");
+	setAttr -k on ($cn+$sik[4]+"_ctrl.twist" );
+	addAttr -ln "roll"  -at double ($cn+"_pelvisIK_ctrl");
+	setAttr -k on ($cn+"_pelvisIK_ctrl.roll" );
+	connectAttr -f ($cn+"_pelvisIK_ctrl.roll") ($cn+"_splineIK_handle.roll");
+	
+	//aim 用locator
+	for($i = 0 ; $i < 4 ; $i++ ){
+		spaceLocator -n ($cn+$sik[$i]+"AL");
+		parentConstraint ($cn+$sik[$i]) ($cn+$sik[$i]+"AL") ;
+		parentConstraint -rm ($cn+$sik[$i]) ($cn+$sik[$i]+"AL");
+		move -r -os -wd ((2*$ch[1])/15) 0 0 ;
+		parent ($cn+$sik[$i]+"AL") ($cn+$sik[$i]+"_ctrl");
+	}
+	
+	//head 控制器
+	float $hhe1[]= `xform -ws -q -t ($cn+"_head")`;
+	float $hhe2[]= `xform -ws -q -t ($cn+"_headEnd")`;
+	float $hhed = sqrt (pow(($hhe1[0] - $hhe2[0]),2)+pow(($hhe1[1] - $hhe2[1]),2)+pow(($hhe1[2] - $hhe2[2]),2));
+	float $h2 = $hhed/2;
+	curve -d 1 -p $h2 $hhed $h2 -p $h2 $hhed ($h2*-1) -p ($h2*-1) $hhed ($h2*-1) -p ($h2*-1) $hhed $h2 -p $h2 $hhed $h2 ;
+	rename "hc1";
+	curve -d 1 -p $h2 ((-0.2*$ch[1])/15) $h2 -p $h2 ((-0.2*$ch[1])/15) ($h2*-1) -p ($h2*-1) ((-0.2*$ch[1])/15) ($h2*-1) -p ($h2*-1) ((-0.2*$ch[1])/15) $h2 -p $h2 ((-0.2*$ch[1])/15) $h2 ;
+	rename "hc2";
+	curve -d 1 -p $h2 $hhed $h2 -p $h2 ((-0.2*$ch[1])/15) $h2 ;
+	rename "hc3";
+	curve -d 1 -p $h2 $hhed ($h2*-1) -p $h2 ((-0.2*$ch[1])/15) ($h2*-1) ;
+	rename "hc4";
+	curve -d 1 -p ($h2*-1) $hhed ($h2*-1) -p ($h2*-1) ((-0.2*$ch[1])/15) ($h2*-1) ;
+	rename "hc5";
+	curve -d 1 -p ($h2*-1) $hhed $h2 -p ($h2*-1) ((-0.2*$ch[1])/15) $h2 ;
+	rename "hc6";
+	parent -r -s "hcShape2" "hcShape3" "hcShape4" "hcShape5" "hcShape6" "hc1" ;
+	delete "hc2" "hc3" "hc4" "hc5" "hc6";
+	rename "hc1" ($cn+"_head_ctrl") ;
+	addAttr -ln "stretch"   -at double -min 0.01 -dv 1 ($cn+"_head_ctrl");
+	setAttr -k on ($cn+"_head_ctrl.stretch");
+	setAttr (($cn+"_head_ctrl") +".overrideEnabled") 1;
+	setAttr (($cn+"_head_ctrl") +".overrideColor") 6;
+	setAttr (($cn+"_head_ctrl") +".rotateOrder") 1;
+	doGroup 0 1 1 ;
+	rename ($cn+"_head_ctrlG") ;
+	setAttr (($cn+"_head_ctrlG") +".rotateOrder") 1;
+	parentConstraint ($cn+"_head") ($cn+"_head_ctrlG") ;
+	parentConstraint -rm ($cn+"_head") ($cn+"_head_ctrlG") ;
+	makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+	
+	//stretch 連結
+	connectAttr -f ($cn+"_head_ctrl.stretch") ($cn+"_head.scaleY");
+		
+	//眼睛控制器
+	string $ec[] = {"-180","180"};
+	float $et[]= `xform -ws -q -t ($cn+$RL[0]+"eye")`;
+	for($v = 0 ; $v < 2 ; $v++ ){
+		//眼球控制器
+		circle -nr 0 0 1 -r ((0.2*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+"eye_ctrl");
+		pointConstraint ($cn+$RL[$v]+"eye") ($cn+$RL[$v]+"eye_ctrl");
+		pointConstraint -rm ($cn+$RL[$v]+"eye") ($cn+$RL[$v]+"eye_ctrl");
+		move -r -os -wd 0 0 ((4*$ch[1])/15);
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		//aim 用up
+		circle -nr 0 0 1 -r ((0.05*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn+$RL[$v]+"eye_ctrlUp");
+		pointConstraint ($cn+$RL[$v]+"eye") ($cn+$RL[$v]+"eye_ctrlUp");
+		pointConstraint -rm ($cn+$RL[$v]+"eye") ($cn+$RL[$v]+"eye_ctrlUp");
+		move -r -os -wd 0 ((0.5*$ch[1])/15) 0;
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		
+		circle -nr 0 0 1 -sw $ec[$v] -r ((0.3*$ch[1])/15) -s 4 -ch 0 -n ($cn+"_ec"+$v);
+		if($v==0){
+			move -r -os -wd $et[0] 0 0;
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+			curve -d 1 -p $et[0] ((0.3*$ch[1])/15) 0 -p ($et[0]*-1) ((0.3*$ch[1])/15) 0 ;
+			rename ($cn+"_ec2");
+		}else{
+			move -r -os -wd ($et[0]*-1) 0 0;
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+			curve -d 1 -p $et[0] ((-0.3*$ch[1])/15) 0 -p ($et[0]*-1) ((-0.3*$ch[1])/15) 0 ;
+			rename ($cn+"_ec3");
+		}
+	}
+	parent -r -s ($cn+"_ec0Shape") ($cn+"_ec1Shape") ($cn+"_ecShape3") ($cn+"_ec2") ;
+	delete ($cn+"_ec0") ($cn+"_ec1") ($cn+"_ec3");
+	rename ($cn+"_ec2") ($cn+"_eyeboth_ctrl") ;
+	doGroup 0 1 1 ;
+	rename ($cn+"_eyeboth_ctrlG") ;
+	select ($cn+"_eyeboth_ctrlG") ;
+	move -r -os -wd 0 $et[1] ($et[2] + (4 * $ch[1])/15);
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	parent ($cn+$RL[0]+"eye_ctrl") ($cn+$RL[1]+"eye_ctrl") ($cn+"_eyeboth_ctrl") ;
+	parent ($cn+$RL[0]+"eye_ctrlUp") ($cn+$RL[1]+"eye_ctrlUp") ($cn+"_head_ctrl") ;
+	parentConstraint -mo ($cn+"_jaw0") ($cn+"_eyeboth_ctrlG");
+	
+	//脖子控制器
+	if(objExists ($cn+"_neck0")){
+		float $nt1[]= `xform -ws -q -t ($cn+"_neck0")`;
+		float $nt2[]= `xform -ws -q -t ($cn+"_head")`;
+		float $htd = (sqrt (pow(($nt1[0] - $nt2[0]),2)+pow(($nt1[1] - $nt2[1]),2)+pow(($nt1[2] - $nt2[2]),2)))/2;
+		string $nn[] ={"_neck0_ctrl","_neckC_ctrl"} ;
+		//生控制器
+		for($v = 0 ; $v < 2 ; $v++ ){
+			circle -nr 0 1 0 -r ((0.8*$ch[1])/15) -s 8 -ch 0 ;
+			rename ($cn+"s1") ;
+			if($v==0){
+				curve -d 1 -p 0 0 0 -p 0 0 ((0.65*$ch[1])/15) -p ((-0.1*$ch[1])/15) 0 ((0.65*$ch[1])/15) -p 0 0 ((0.8*$ch[1])/15) -p ((0.1*$ch[1])/15) 0 ((0.65*$ch[1])/15) -p 0 0 ((0.65*$ch[1])/15) ;
+				rename ($cn+"s2") ;
+				parent -r -s ($cn+"sShape2")  ($cn+"s1") ;
+				delete ($cn+"s2");
+			}
+			rename ($cn+"s1") ($cn+$nn[$v]) ;
+			setAttr (($cn+$nn[$v]) +".overrideEnabled") 1;
+			setAttr (($cn+$nn[$v]) +".overrideColor") 6;
+			setAttr (($cn+$nn[$v]) +".rotateOrder") 1;
+			doGroup 0 1 1 ;
+			rename ($cn+$nn[$v]+"G") ;
+			setAttr (($cn+$nn[$v]+"G") +".rotateOrder") 1;
+			parentConstraint ($cn+"_neck0") ($cn+$nn[$v]+"G") ;
+			parentConstraint -rm ($cn+"_neck0") ($cn+$nn[$v]+"G") ;
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			if($v==1){
+				move -r -os -wd 0 $htd 0;
+				makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			}
+		}
+		
+		//中間控制點 constraint
+		pointConstraint -mo ($cn+"_neck0_ctrl") ($cn+"_head_ctrl") ($cn+"_neckC_ctrlG");
+		pointConstraint -mo ($cn+"_head_ctrl") ($cn+"_headCJ");
+		parentConstraint -mo ($cn+"_neckC_ctrl") ($cn+"_neckCJ1");
+		parentConstraint -mo ($cn+"_neck0_ctrl") ($cn+"_neckCJ0");
+				
+		//parent
+		parent ($cn+"_neckC_ctrlG") ($cn+"_neck0_ctrl") ;
+		parentConstraint -mo ($cn+"_neck0_ctrl") ($cn+"_neck"+"_followL") ;
+		parent ($cn+"_head_ctrlG") ($cn+"_neck"+"_followL") ;
+		aimConstraint -mo -aimVector 0 1 0 -upVector 0 1 0 ($cn+"_head_ctrl") ($cn+"_neckC_ctrlG");
+		parentConstraint -mo ($cn+"_chest") ($cn+"_neck0_ctrlG");
+		
+		//量脖子長度
+		spaceLocator -n ($cn+"_neck0"+"_DLS");
+		move 25 25 25;
+		spaceLocator -n ($cn+"_head"+"_DLE");
+		move 30 30 30;
+		distanceDimension -sp 25 25 25  -ep 30 30 30;
+		rename "distanceDimension1" ($cn+"_neck"+"_D");
+		pointConstraint ($cn+"_neckCJ0") ($cn+"_neck0"+"_DLS");
+		pointConstraint ($cn+"_headCJ") ($cn+"_head"+"_DLE");
+		
+		//脖子twist 連結
+		connectAttr -f ($cn+"_head_ctrl.rotateY") ($cn+"_neckIK_handle.twist");
+		//head constraint
+		orientConstraint -mo ($cn+"_head_ctrl") ($cn+"_head");
+	
+		//head follow
+		orientConstraint -mo ($cn+"_move_ctrl") ($cn+"_neck_followL") ($cn+"_head_ctrlG");
+		shadingNode -asUtility reverse -n ($cn+"_headOCR");
+		connectAttr -f ($cn+"_chestIK_switch.headFollow") ($cn+"_headOCR.inputX");
+		connectAttr -f ($cn+"_chestIK_switch.headFollow") ($cn+"_head_ctrlG_orientConstraint1."+$cn+"_neck_followLW1");
+		connectAttr -f ($cn+"_headOCR.outputX") ($cn+"_head_ctrlG_orientConstraint1."+$cn+"_move_ctrlW0");
+	}else{
+		circle -nr 0 1 0 -r ((0.8*$ch[1])/15) -s 8 -ch 0 ;
+		rename ($cn+"s1") ;
+		curve -d 1 -p 0 0 0 -p 0 0 ((0.65*$ch[1])/15) -p ((-0.1*$ch[1])/15) 0 ((0.65*$ch[1])/15) -p 0 0 ((0.8*$ch[1])/15) -p ((0.1*$ch[1])/15) 0 ((0.65*$ch[1])/15) -p 0 0 ((0.65*$ch[1])/15) ;
+		rename ($cn+"s2")  ;
+		parent -r -s ($cn+"sShape2")  ($cn+"s1") ;
+		delete ($cn+"s2");
+		rename ($cn+"s1") ($cn+"_neck_ctrl") ;
+		setAttr ($cn+"_neck_ctrl.overrideEnabled") 1;
+		setAttr ($cn+"_neck_ctrl.overrideColor") 6;
+		doGroup 0 1 1 ;
+		rename ($cn+"_neck_ctrlG") ;
+		parentConstraint ($cn+"_neck") ($cn+"_neck_ctrlG") ;
+		parentConstraint -rm ($cn+"_neck") ($cn+"_neck_ctrlG") ;
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		//parent
+		parentConstraint -mo ($cn+"_chest") ($cn+"_neck_ctrlG");
+		
+		//parent
+		parentConstraint -mo ($cn+"_neck_ctrl") ($cn+"_neck"+"_followL") ;
+		parent ($cn+"_head_ctrlG") ($cn+"_neck"+"_followL") ;
+		parentConstraint -mo ($cn+"_chest") ($cn+"_neck_ctrlG");
+		
+		//head constraint
+		parentConstraint -mo ($cn+"_head_ctrl") ($cn+"_head") ;
+		parentConstraint -mo ($cn+"_neck_ctrl") ($cn+"_neck") ;
+		
+		//head follow
+		orientConstraint -mo ($cn+"_move_ctrl") ($cn+"_neck_followL") ($cn+"_head_ctrlG");
+		shadingNode -asUtility reverse -n ($cn+"_headOCR");
+		connectAttr -f ($cn+"_chestIK_switch.headFollow") ($cn+"_headOCR.inputX");
+		connectAttr -f ($cn+"_chestIK_switch.headFollow") ($cn+"_head_ctrlG_orientConstraint1."+$cn+"_neck_followLW1");
+		connectAttr -f ($cn+"_headOCR.outputX") ($cn+"_head_ctrlG_orientConstraint1."+$cn+"_move_ctrlW0");
+		
+		//殺掉spline用多餘 joint
+		delete ($cn + "_neckCJ0") ($cn + "_neckCJ1") ($cn + "_headCJ");
+	}
+	
+	/* 眼睛Aim */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		aimConstraint -aimVector 0 0 1 -upVector 0 -1 0 -worldUpType "object" -worldUpObject ($cn+$RL[$v]+"eye_ctrlUp") ($cn+$RL[$v]+"eye_ctrl") ($cn+$RL[$v]+"eye");
+	}
+	connectAttr -f ($cn+$RL[0]+"eye_ctrl.rotateZ") ($cn+$RL[0]+"eye_ctrlUp.rotateZ");
+	connectAttr -f ($cn+$RL[1]+"eye_ctrl.rotateZ") ($cn+$RL[1]+"eye_ctrlUp.rotateZ");
+	
+	
+	/* Spline IK constraint */
+	string $sn[] = { "_pelvis","_spine0","_spine1","_spine2","_chest"};
+	for($i = 0 ; $i < 5 ; $i++ ){
+		parentConstraint -mo ($cn+$sik[$i]+"_ctrl") ($cn+$sn[$i]+"CJ");
+		pointConstraint -mo ($cn+$sik[$i]+"_ctrl") ($cn+$sn[$i]+"IKA");
+		pointConstraint -mo ($cn+$sik[$i]) ($cn+$sik[$i]+"_ctrl") ($cn+$sn[$i]+"IKR");
+		orientConstraint -mo ($cn+$sik[$i]) ($cn+$sn[$i]+"IKA") ($cn+$sn[$i]+"IKR");
+		parentConstraint -mo ($cn+$sn[$i]+"IKR") ($cn+$sn[$i]+"FK") ($cn+$sn[$i]);
+		if($i < 4){
+			aimConstraint -aimVector 0 1 0 -upVector 1 0 0 -worldUpType "object" -worldUpObject ($cn+$sik[$i]+"AL") ($cn+$sn[$i+1]+"IKA") ($cn+$sn[$i]+"IKA");
+		}else{
+			orientConstraint -mo ($cn+$sik[$i]+"_ctrl")  ($cn+$sn[$i]+"IKA") ;
+		}
+		if($i == 0){
+			parentConstraint -mo ($cn+$sn[$i]+"IKR") ($cn+$sn[$i]+"FK") ($cn+$sn[$i]);
+		}
+	}
+	
+	/* pointConstraint 用locator  parent */
+	parent ($cn+"_spine1IKPL1") ($cn+"_chestIK_ctrl");
+	parent ($cn+"_spine2IKPL1") ($cn+"_chestIK_ctrl");
+	parent ($cn+"_spine0IKPL1") ($cn+"_spine1IK_ctrl");
+	parent ($cn+"_spine2IKPL2") ($cn+"_spine1IK_ctrl");
+	parent ($cn+"_spine0IKPL2") ($cn+"_pelvisIK_ctrl");
+	parent ($cn+"_spine1IKPL2") ($cn+"_pelvisIK_ctrl");
+	
+	pointConstraint -mo ($cn+"_spine0IKPL1") ($cn+"_spine0IKPL2") ($cn+"_spine0IK_ctrlG") ;
+	pointConstraint -mo ($cn+"_spine1IKPL1") ($cn+"_spine1IKPL2") ($cn+"_spine1IK_ctrlG") ;
+	pointConstraint -mo ($cn+"_spine2IKPL1") ($cn+"_spine2IKPL2") ($cn+"_spine2IK_ctrlG") ;
+	
+	/* Spline IK控制器的Rotate連結 */
+	for($i = 0 ; $i < 3 ; $i++ ){
+		shadingNode -asUtility blendColors -n ($cn+"_spine"+$i+"IKBC");
+		}
+	shadingNode -asUtility plusMinusAverage -n ($cn+"_spine0IKPMA");	
+	connectAttr -f ($cn+"_pelvisIK_ctrl.rotate") ($cn+"_spine0IKBC.color1");
+	connectAttr -f ($cn+"_spine1IK_ctrl.rotate") ($cn+"_spine0IKPMA.input3D[0]");
+	connectAttr -f ($cn+"_spine1IK_ctrlG1.rotate") ($cn+"_spine0IKPMA.input3D[1]") ;
+	connectAttr -f ($cn+"_spine0IKPMA.output3D") ($cn+"_spine0IKBC.color2");
+	connectAttr -f ($cn+"_spine0IKBC.output") ($cn+"_spine0IK_ctrlG1.rotate");
+	
+	connectAttr -f ($cn+"_pelvisIK_ctrl.rotate") ($cn+"_spine1IKBC.color1");
+	connectAttr -f ($cn+"_chestIK_ctrl.rotate") ($cn+"_spine1IKBC.color2");
+	connectAttr -f ($cn+"_spine1IKBC.output") ($cn+"_spine1IK_ctrlG1.rotate");
+	
+	shadingNode -asUtility plusMinusAverage -n ($cn+"_spine2IKPMA");	
+	connectAttr -f ($cn+"_spine1IK_ctrl.rotate") ($cn+"_spine2IKPMA.input3D[0]");
+	connectAttr -f ($cn+"_spine1IK_ctrlG1.rotate") ($cn+"_spine2IKPMA.input3D[1]");
+	connectAttr -f ($cn+"_spine2IKPMA.output3D") ($cn+"_spine2IKBC.color1");
+	connectAttr -f ($cn+"_chestIK_ctrl.rotate") ($cn+"_spine2IKBC.color2");
+	connectAttr -f ($cn+"_spine2IKBC.output") ($cn+"_spine2IK_ctrlG1.rotate");
+	
+	/* pelvisIK 控制hips */
+	parentConstraint -mo ($cn+"_pelvisIK_ctrl") ($cn+"_hips") ;
+
+	//修改軸向,以解決 roll飄動問題
+	float $cjo[] = `getAttr (($cn+"_chest") + ".jointOrient")`;
+	select -r ($cn+"_pelvisIK") ;
+	makeIdentity -apply true -t 0 -r 0 -s 0 -n 0 -pn 1 -jointOrient;
+	setAttr ($cn+"_chestIK.jointOrientX") $cjo[0];
+	
+	/* 胸部控制器 */
+	if(objExists ($cn+$RL[0]+"breast")){
+	float $bn1[]= `xform -ws -q -t ($cn+$RL[0]+"breast")`;
+	float $bn2[]= `xform -ws -q -t ($cn+$RL[0]+"nipple")`;
+	float $bnd = (sqrt (pow(($bn1[0] - $bn2[0]),2)+pow(($bn1[1] - $bn2[1]),2)+pow(($bn1[2] - $bn2[2]),2)))*1.2;
+	for($v = 0 ; $v < 2 ; $v++ ){
+		circle -nr 0 0 1 -sw 180 -r $bnd -s 4 -ch 0 -n "bc1";
+		setAttr "bc1.rotateZ" -90;
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		setAttr ("bc1Shape" +".overrideEnabled") 1;
+		setAttr ("bc1Shape" +".overrideColor") 13;
+		duplicate -rr ;
+		rename "bc2" ;
+		setAttr "bc2.rotateY" 90;
+		makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		setAttr ("bc2Shape" +".overrideEnabled") 1;
+		setAttr ("bc2Shape" +".overrideColor") 14;
+		parent -r -s "bc2Shape" "bc1" ;
+		delete "bc2";
+		rename "bc1" ($cn+$RL[$v]+"breast_ctrl");
+		addAttr -ln "stretch"   -at double -min 0.01 -dv 1 ($cn+$RL[$v]+"breast_ctrl");
+		setAttr -k on ($cn+$RL[$v]+"breast_ctrl.stretch");
+		if($v == 1){
+			setAttr ($cn+$RL[$v]+"breast_ctrl.rotateX") 180;
+			select ($cn+$RL[$v]+"breast_ctrl");
+			makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+		}
+		doGroup 0 1 1 ;
+		rename ($cn+$RL[$v]+"breast_ctrlG");
+		parentConstraint  ($cn+$RL[$v]+"breast") ($cn+$RL[$v]+"breast_ctrlG");
+		parentConstraint  -rm ($cn+$RL[$v]+"breast") ($cn+$RL[$v]+"breast_ctrlG");
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		parentConstraint  -mo ($cn+"_chest") ($cn+$RL[$v]+"breast_ctrlG");
+		//stretch 連結
+		connectAttr -f ($cn+$RL[$v]+"breast_ctrl.stretch") ($cn+$RL[$v]+"breast.scaleY");
+	}
+	}
+	
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 2 ; $i ++){
+			if($i == 0 ){
+				if($v == 0){
+				aimConstraint  -mo -aimVector 1 0 0 -upVector 1 0 0 -worldUpType "vector" -worldUpVector -1 0 0 ($cn+$RL[$v]+$pvn[$i]+"_ctrl") ($cn+$RL[$v]+$ik[$i]+"L");
+				}else{aimConstraint  -aimVector -1 0 0 -upVector -1 0 0 -worldUpType "vector" -worldUpVector 1 0 0 ($cn+$RL[$v]+$pvn[$i]+"_ctrl") ($cn+$RL[$v]+$ik[$i]+"L");}
+			}else{
+				if($v == 0){
+				aimConstraint  -mo -aimVector 0 1 0 -upVector 0 1 0 -worldUpType "vector" -worldUpVector 0 -1 0 ($cn+$RL[$v]+$pvn[$i]+"_handle") ($cn+$RL[$v]+$ik[$i]+"L");
+				}else{aimConstraint  -mo -aimVector 0 -1 0 -upVector 0 -1 0 -worldUpType "vector" -worldUpVector 0 1 0 ($cn+$RL[$v]+$pvn[$i]+"_handle") ($cn+$RL[$v]+$ik[$i]+"L");}
+			}
+			parentConstraint  -mo ($cn+$RL[$v]+$ik[$i]+"L") ($cn+$RL[$v]+$ik[$i]+"pvR_ctrl") ($cn+$RL[$v]+$pvn[$i]+"_pvG");
+			setAttr ($cn+$RL[$v]+$pvn[$i]+"_pvG_parentConstraint1.interpType") 0;
+		}
+	}
+	
+	/* 下巴控制器 */
+	circle -nr 0 0 1 -sw 180 -r $h2 -s 4 -ch 0 -n ($cn+"_jaw1_ctrl");
+	setAttr ($cn+"_jaw1_ctrl.rotateZ") -90;
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	setAttr ($cn+"_jaw1"+".overrideEnabled") 1;
+	setAttr ($cn+"_jaw1" +".overrideColor") 14;
+	doGroup 0 1 1 ;
+	rename ($cn+"_jaw1_ctrlG");
+	parentConstraint  ($cn+"_jaw1") ($cn+"_jaw1_ctrlG");
+	parentConstraint  -rm ($cn+"_jaw1") ($cn+"_jaw1_ctrlG");
+	makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+	parentConstraint  -mo ($cn+"_jaw1_ctrl") ($cn+"_jaw1");
+	parentConstraint -mo ($cn+"_jaw0") ($cn+"_jaw1_ctrlG");
+	
+	/* IKFK parent_constraint */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		//肩膀
+		parent ($cn+$RL[$v]+ $sh[0]+"_ctrlG") ($cn+"_chest_followL") ;
+		orientConstraint -mo ($cn+$RL[$v]+ $sh[0]+"_ctrl") ($cn+$RL[$v]+ $fk[0]+"_ctrlG");
+		parentConstraint -mo ($cn+$RL[$v]+$sh[0]+"_ctrl") ($cn+$RL[$v]+$sh[0]);
+		orientConstraint -mo ($cn+$RL[$v]+ $sh[0]+"_ctrl") ($cn+$RL[$v]+$ik[0]+"pvR_ctrlG") ;
+		//屁股
+		parent ($cn+$RL[$v]+ $sh[1]+"_ctrlG") ($cn+"_hips_followL") ;
+		orientConstraint -mo ($cn+$RL[$v]+ $sh[1]+"_ctrl") ($cn+$RL[$v]+ $fk[3]+"_ctrlG");
+		orientConstraint -mo ($cn+$RL[$v]+ $sh[1]+"_ctrl") ($cn+$RL[$v]+$ik[1]+"pvR_ctrlG") ;
+		pointConstraint -mo ($cn+$RL[$v]+"upLegL") ($cn+$RL[$v]+"upLegFK") ;
+		pointConstraint -mo ($cn+$RL[$v]+"upLegL") ($cn+$RL[$v]+"upLegIK") ;
+		pointConstraint -mo ($cn+$RL[$v]+"upLegL") ($cn+$RL[$v]+"upLeg") ;
+
+		//FK控制器跟著Joint移動
+		for($i = 0 ; $i < 5 ; $i ++){
+		pointConstraint -mo ($cn+$RL[$v]+ $fk[$i]) ($cn+$RL[$v]+ $fk[$i]+"_ctrlG") ;
+		}
+		pointConstraint -mo ($cn+$RL[$v]+ "footFK") ($cn+$RL[$v]+ $fk[5]+"_ctrlG") ;
+		
+		//FK階層同時旋轉
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[0]+"_ctrl") ($cn+$RL[$v]+ $fk[2]+"_ctrlG") ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[2]+"_ctrl") ($cn+$RL[$v]+ $fk[4]+"_ctrlG") ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[3]+"_ctrl") ($cn+$RL[$v]+ $fk[1]+"_ctrlG") ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[1]+"_ctrl") ($cn+$RL[$v]+ $fk[5]+"_ctrlG") ;
+		//IKFK控制SkinJoint
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[0]) ($cn+$RL[$v]+ $ik[0]) ($cn+$RL[$v]+"arm" ) ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[2]) ($cn+$RL[$v]+ $fp[0]) ($cn+$RL[$v]+"foreArm" ) ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[3]) ($cn+$RL[$v]+ $ik[1]) ($cn+$RL[$v]+"upLeg" ) ;
+		orientConstraint -mo ($cn+$RL[$v]+ $fk[1]) ($cn+$RL[$v]+ $fp[1]) ($cn+$RL[$v]+"leg" ) ;
+		
+		//IK hand 朝向 foreArm
+		string $wf[] = {"wrist","foot"};
+		for($i = 0; $i < 2 ; $i ++){
+		spaceLocator -n ($cn+$RL[$v]+$wf[$i]+"L");
+		pointConstraint ($cn+$RL[$v]+$wf[$i]) ($cn+$RL[$v]+$wf[$i]+"L");
+		pointConstraint -rm ($cn+$RL[$v]+$wf[$i]) ($cn+$RL[$v]+$wf[$i]+"L");
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		}
+		parentConstraint -mo ($cn+$RL[$v]+"wrist") ($cn+$RL[$v]+"wristL");
+		pointConstraint -mo ($cn+$RL[$v]+"foot") ($cn+$RL[$v]+"footL");
+		orientConstraint -mo ($cn+$RL[$v]+"leg") ($cn+$RL[$v]+"footL");
+		orientConstraint  -mo ($cn+$RL[$v]+"wristL") ($cn+"_full") ($cn+$RL[$v]+"hand_ctrlG1");
+		
+		//IKFK介質與墊腳等腳控制
+		spaceLocator -n ($cn+$RL[$v]+"footFKL_med");
+		parentConstraint ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"footFKL_med");
+		parentConstraint -rm ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"footFKL_med");
+		parentConstraint -mo ($cn+$RL[$v]+"foot_ctrl") ($cn+$RL[$v]+"footFKL_med");
+		
+		string $rc1[] = {"toeBaseIKL_rcR","toeBaseIKL_rcL","footIKL_rc","toesEndIKL_rc","toeBaseIKL_tr","toeBaseIKL_fr"};
+		string $rc2[] = {"toeBaseIK_rcR","toeBaseIK_rcL","footIK_rc","toesEndIK_rc","toeBaseIK","toeBaseIK"};
+		
+		for($i = 0; $i < 6 ; $i ++){
+			//翹腳locator
+			spaceLocator -n ($cn+$RL[$v]+$rc1[$i]);
+			pointConstraint ($cn+$RL[$v]+$rc2[$i]) ($cn+$RL[$v]+$rc1[$i]);
+			pointConstraint -rm ($cn+$RL[$v]+$rc2[$i]) ($cn+$RL[$v]+$rc1[$i]);
+			orientConstraint ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+$rc1[$i]);
+			orientConstraint -rm ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+$rc1[$i]);
+			}
+		for($i = 0; $i < 4 ; $i ++){
+			//腳掌小控制器
+			circle -nr 1 0 0 -r ((0.2*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$rc2[$i]+"_ctrlC1");
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlC1Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlC1Shape") +".overrideColor") 13;
+			circle -nr 0 1 0 -r ((0.2*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$rc2[$i]+"_ctrlC2");
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlC2Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlC2Shape") +".overrideColor") 14;
+			circle -nr 0 0 1 -r ((0.2*$ch[1])/15) -s 4 -ch 0 -n ($cn+$RL[$v]+$rc2[$i]+"_ctrl");
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlShape") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_ctrlShape") +".overrideColor") 6;
+			parent -r -s ($cn+$RL[$v]+$rc2[$i]+"_ctrlC1"+"Shape") ($cn+$RL[$v]+$rc2[$i]+"_ctrlC2"+"Shape") ($cn+$RL[$v]+$rc2[$i]+"_ctrl") ;
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+ $rc2[$i]+"_ctrlG");
+			delete  ($cn+$RL[$v]+$rc2[$i]+"_ctrlC1")  ($cn+$RL[$v]+$rc2[$i]+"_ctrlC2");
+			parentConstraint ($cn+$RL[$v]+$rc2[$i]) ($cn+$RL[$v]+ $rc2[$i]+"_ctrlG");
+			parentConstraint -rm ($cn+$RL[$v]+$rc2[$i]) ($cn+$RL[$v]+ $rc2[$i]+"_ctrlG");
+			parent ($cn+$RL[$v]+ $rc2[$i]+"_ctrlG") ($cn+$RL[$v]+"legIK_ctrl");
+		}
+		
+		//locator階層
+		parent ($cn+$RL[$v]+$rc1[4]) ($cn+$RL[$v]+$rc1[0]);
+		parent ($cn+$RL[$v]+$rc1[5]) ($cn+$RL[$v]+$rc1[0]);
+		parent ($cn+$RL[$v]+$rc1[0]) ($cn+$RL[$v]+$rc1[1]);
+		parent ($cn+$RL[$v]+$rc1[1]) ($cn+$RL[$v]+$rc1[2]);
+		parent ($cn+$RL[$v]+$rc1[2]) ($cn+$RL[$v]+$rc1[3]);
+		parent ($cn+$RL[$v]+$rc1[3]) ($cn+$RL[$v]+"legIK_ctrl");
+		
+		//IKFK切換用
+		spaceLocator -n ($cn+$RL[$v]+"footIKL_med");
+		parentConstraint ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"footIKL_med");
+		parentConstraint -rm ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"footIKL_med");
+		parentConstraint -mo ($cn+$RL[$v]+$rc1[5]) ($cn+$RL[$v]+"footIKL_med");
+		parent ($cn+$RL[$v]+ "legIK_handle") ($cn+$RL[$v]+$rc1[5]);
+		
+		orientConstraint -mo ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"footIK");
+		orientConstraint -mo ($cn+$RL[$v]+"foot_ctrl") ($cn+$RL[$v]+"footFK");
+		parentConstraint -mo ($cn+$RL[$v]+$rc1[4]) ($cn+$RL[$v]+"toeBaseIK");
+		orientConstraint -mo ($cn+$RL[$v]+"footIKL_med") ($cn+$RL[$v]+"footFKL_med") ($cn+$RL[$v]+"foot");
+		orientConstraint -mo ($cn+$RL[$v]+"toeBaseIK") ($cn+$RL[$v]+"toeBaseFK") ($cn+$RL[$v]+"toeBase");
+		
+		//控制器控制locator
+		for($i = 0; $i < 4 ; $i ++){
+			connectAttr -f ($cn+$RL[$v]+$rc2[$i]+"_ctrl.translate") ($cn+$RL[$v]+$rc1[$i]+".rotatePivot");
+			if($i > 1){
+				connectAttr -f ($cn+$RL[$v]+$rc2[$i]+"_ctrl.rotateY") ($cn+$RL[$v]+$rc1[$i]+".rotateY");
+				connectAttr -f ($cn+$RL[$v]+$rc2[$i]+"_ctrl.rotateZ") ($cn+$RL[$v]+$rc1[$i]+".rotateZ");
+			}else{
+				connectAttr -f ($cn+$RL[$v]+$rc2[$i]+"_ctrl.rotateX") ($cn+$RL[$v]+$rc1[$i]+".rotateX");
+				connectAttr -f ($cn+$RL[$v]+$rc2[$i]+"_ctrl.rotateY") ($cn+$RL[$v]+$rc1[$i]+".rotateY");
+			}
+			
+			//locator 參考中心
+			curve -d 1 -p 0 ((0.1*$ch[1])/15) 0 -p 0  ((-0.1*$ch[1])/15) 0 ;
+			rename "p1";
+			curve -d 1 -p ((0.1*$ch[1])/15) 0 0 -p ((-0.1*$ch[1])/15) 0 0 ;
+			rename "p2";
+			curve -d 1 -p 0 0 ((0.1*$ch[1])/15) -p 0 0 ((-0.1*$ch[1])/15);
+			rename "p3";
+			parent -r -s "pShape2" "pShape3" "p1" ;
+			rename "p1" ($cn+$RL[$v]+$rc2[$i]+"_center");
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_center") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$rc2[$i]+"_center") +".overrideColor") 13;
+			delete "p2" "p3";
+			parentConstraint ($cn+$RL[$v]+$rc1[$i]) ($cn+$RL[$v]+$rc2[$i]+"_center");
+			
+			//胸部
+			if(objExists ($cn+$RL[0]+"breast")){
+				parentConstraint  -mo ($cn+$RL[$v]+"breast_ctrl") ($cn+$RL[$v]+"breast");
+			}
+		}
+		
+		//腳尖控制器
+		//FK
+		if($v == 0 ){
+			curve -d 1 -p $fow 0 $foh3 -p $fow 0 ((0.5*$ch[1])/15) -p $fow2 0 ((0.5*$ch[1])/15) -p $fow2 0 $foh3 -p $fow 0 $foh3;
+		}else{
+			curve -d 1 -p $fow 0 ($foh3*-1) -p $fow 0 ((-0.5*$ch[1])/15) -p $fow2 0 ((-0.5*$ch[1])/15) -p $fow2 0 ($foh3*-1) -p $fow 0 ($foh3*-1);
+		}
+		rename ($cn+$RL[$v]+"toeBaseFK_ctrl");
+		doGroup 0 1 1;
+		rename ($cn+$RL[$v]+"toeBaseFK_ctrlG");
+		parentConstraint ($cn+$RL[$v]+"toeBaseFK") ($cn+$RL[$v]+"toeBaseFK_ctrlG");
+		parentConstraint -rm ($cn+$RL[$v]+"toeBaseFK") ($cn+$RL[$v]+"toeBaseFK_ctrlG");
+		parent ($cn+$RL[$v]+"toeBaseFK_ctrlG") ($cn+$RL[$v]+"foot_ctrl");
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		orientConstraint ($cn+$RL[$v]+"toeBaseFK_ctrl") ($cn+$RL[$v]+"toeBaseFK");
+		
+		//IK
+		string $toc[] = {"footIK_ctrl","toeBaseIK_ctrl"};
+		for($i = 0; $i < 2 ; $i ++){
+		if($i == 0){
+			curve -d 1 -p $fow $foh3 0 -p $fow ((0.5*$ch[1])/15) 0 -p $fow2 ((0.5*$ch[1])/15) 0 -p $fow2 $foh3  0 -p $fow $foh3  0 ;
+		}else{
+			curve -d 1 -p ($fow*0.8) ($foh3*0.8) 0 -p ($fow*0.8) (((0.5*$ch[1])/15)*0.8) 0 -p ($fow2*0.8) (((0.5*$ch[1])/15)*0.8) 0 -p ($fow2*0.8) ($foh3*0.8)  0 -p ($fow*0.8) ($foh3*0.8)  0 ;
+		}
+		rename ($cn+$RL[$v]+$toc[$i]);
+		doGroup 0 1 1;
+		rename ($cn+$RL[$v]+$toc[$i]+"G");
+		pointConstraint ($cn+$RL[$v]+"toeBaseIK") ($cn+$RL[$v]+$toc[$i]+"G");
+		pointConstraint -rm ($cn+$RL[$v]+"toeBaseIK") ($cn+$RL[$v]+$toc[$i]+"G");
+		orientConstraint ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+$toc[$i]+"G");
+		orientConstraint -rm ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+$toc[$i]+"G");
+		parent ($cn+$RL[$v]+$toc[$i]+"G") ($cn+$RL[$v]+"legIK_ctrl");
+		makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+		}
+		//連結控制器
+		connectAttr -f ($cn+$RL[$v]+"footIK_ctrl.rotateY") ($cn+$RL[$v]+"toeBaseIKL_fr.rotateY");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_ctrl.rotateY") ($cn+$RL[$v]+"toeBaseIKL_tr.rotateY");
+		connectAttr -f ($cn+$RL[$v]+"footIK_ctrl.rotateZ") ($cn+$RL[$v]+"toeBaseIKL_fr.rotateZ");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_ctrl.rotateZ") ($cn+$RL[$v]+"toeBaseIKL_tr.rotateZ");
+	}
+
+	/* Constraint量手腳長度Locator */
+	for($v = 0 ; $v < 2 ; $v++ ){
+		pointConstraint ($cn+$RL[$v]+ "armFK_ctrl") ($cn+$RL[$v]+"armDLS");
+		pointConstraint ($cn+$RL[$v]+ "armIK_ctrl") ($cn+$RL[$v]+"armDLE");
+		pointConstraint ($cn+$RL[$v]+ "upLegFK_ctrl") ($cn+$RL[$v]+"legDLS");
+		pointConstraint ($cn+$RL[$v]+"footIKL_med") ($cn+$RL[$v]+"legDLE");
+	}
+	
+	/* 手指頭 */
+	string $hFour[] = {"thumb","index","middle","ring","pinky"};
+	float $in1[]= `xform -ws -q -t ($cn+"_L_index1")`;
+	float $in2[]= `xform -ws -q -t ($cn+"_L_index4")`;
+	float $ind = (sqrt (pow(($in1[0] - $in2[0]),2)+pow(($in1[1] - $in2[1]),2)+pow(($in1[2] - $in2[2]),2)))/3.5;
+	
+	//四指
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 1 ; $i < 5 ; $i ++){
+			for($t = 1 ; $t < 4 ; $t ++ ){
+				float $fc1[]= `xform -ws -q -t ($cn+$RL[$v]+$hFour[$i]+$t)`;
+				float $fc2[]= `xform -ws -q -t ($cn+$RL[$v]+$hFour[$i]+($t+1))`;
+				float $fid = sqrt (pow(($fc1[0] - $fc2[0]),2)+pow(($fc1[1] - $fc2[1]),2)+pow(($fc1[2] - $fc2[2]),2));
+				if($v == 0 ){
+					curve -d 1 -p ($ind*-1) 0 ($ind/3) -p ($ind*-1) 0 ($ind*-1/3) -p ($ind*-1) $fid ($ind*-1/3) -p ($ind*-1) $fid ($ind/3) -p ($ind*-1) 0 ($ind/3)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+				}else{
+					curve -d 1 -p $ind 0 ($ind/3) -p $ind 0 ($ind*-1/3) -p $ind ($fid*-1) ($ind*-1/3) -p $ind ($fid*-1) ($ind/3) -p $ind 0 ($ind/3)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+				}
+				rename ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrl");
+				setAttr (($cn+$RL[$v]+$hFour[$i]+$t+"_ctrl") +".overrideEnabled") 1;
+				setAttr (($cn+$RL[$v]+$hFour[$i]+$t+"_ctrl") +".overrideColor") 13;
+				doGroup 0 1 1 ;
+				rename ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1");
+				doGroup 0 1 1 ;
+				rename ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG");
+				parentConstraint ($cn+$RL[$v]+$hFour[$i]+$t) ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG");
+				parentConstraint  -rm ($cn+$RL[$v]+$hFour[$i]+$t) ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG");
+				makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+				orientConstraint -mo ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrl") ($cn+$RL[$v]+$hFour[$i]+$t) ;
+			}
+		}
+	}
+	//拇指
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($t = 1 ; $t < 3 ; $t ++ ){
+			float $fc1[]= `xform -ws -q -t ($cn+$RL[$v]+$hFour[0]+$t)`;
+			float $fc2[]= `xform -ws -q -t ($cn+$RL[$v]+$hFour[0]+($t+1))`;
+			float $fid = sqrt (pow(($fc1[0] - $fc2[0]),2)+pow(($fc1[1] - $fc2[1]),2)+pow(($fc1[2] - $fc2[2]),2));
+			if($v == 0 ){
+				curve -d 1 -p ($ind*-1) 0 ($ind/3) -p ($ind*-1) 0 ($ind*-1/3) -p ($ind*-1) $fid ($ind*-1/3) -p ($ind*-1) $fid ($ind/3) -p ($ind*-1) 0 ($ind/3)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+				}else{
+				curve -d 1 -p $ind 0 ($ind/3) -p $ind 0 ($ind*-1/3) -p $ind ($fid*-1) ($ind*-1/3) -p $ind ($fid*-1) ($ind/3) -p $ind 0 ($ind/3)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+				}			
+			rename ($cn+$RL[$v]+$hFour[0]+$t+"_ctrl");
+			setAttr (($cn+$RL[$v]+$hFour[0]+$t+"_ctrl") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$hFour[0]+$t+"_ctrl") +".overrideColor") 13;
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$hFour[0]+$t+"_ctrlG1");
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$hFour[0]+$t+"_ctrlG");
+			parentConstraint  ($cn+$RL[$v]+$hFour[0]+$t) ($cn+$RL[$v]+$hFour[0]+$t+"_ctrlG");
+			parentConstraint  -rm ($cn+$RL[$v]+$hFour[0]+$t) ($cn+$RL[$v]+$hFour[0]+$t+"_ctrlG");
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			orientConstraint -mo ($cn+$RL[$v]+$hFour[0]+$t+"_ctrl") ($cn+$RL[$v]+$hFour[0]+$t) ;
+		}
+	}
+	
+	//手掌
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 0 ; $i < 5 ; $i ++ ){
+			if($v == 0 ){
+			curve -d 1 -p ($ind*-1) ($ind*-1/2.5) ($ind/2.5) -p ($ind*-1) ($ind*-1/2.5) ($ind*-1/2.5) -p ($ind*-1) ($ind/2.5) ($ind*-1/2.5) -p ($ind*-1) ($ind/2.5) ($ind/2.5) -p ($ind*-1) ($ind*-1/2.5) ($ind/2.5)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+			}else{
+			curve -d 1 -p $ind ($ind*-1/2.5) ($ind/2.5) -p $ind ($ind*-1/2.5) ($ind*-1/2.5) -p $ind ($ind/2.5) ($ind*-1/2.5) -p $ind ($ind/2.5) ($ind/2.5) -p $ind ($ind*-1/2.5) ($ind/2.5)  -k 0 -k 1 -k 2 -k 3 -k 4 ;
+			}
+			rename ($cn+$RL[$v]+$hFour[$i]+"0_ctrl");
+			setAttr (($cn+$RL[$v]+$hFour[$i]+"0_ctrl") +".overrideEnabled") 1;
+			setAttr (($cn+$RL[$v]+$hFour[$i]+"0_ctrl") +".overrideColor") 12;
+			addAttr -ln "bend"   -at double ;
+			setAttr -k on ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.bend");
+			addAttr -ln "level"   -at double ;
+			setAttr -k on ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.level");
+			addAttr -ln "twist"   -at double ;
+			setAttr -k on ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.twist");
+			addAttr -ln "stretch"   -at double -min 0.01 -dv 1 ;
+			setAttr -k on ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.stretch");
+			
+			doGroup 0 1 1 ;
+			rename ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG");
+			parentConstraint  ($cn+$RL[$v]+$hFour[$i]+"0") ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG");
+			parentConstraint  -rm ($cn+$RL[$v]+$hFour[$i]+"0") ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG");
+			makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+			parentConstraint -mo ($cn+$RL[$v]+$hFour[$i]+"0_ctrl") ($cn+$RL[$v]+$hFour[$i]+"0") ;
+			parentConstraint -mo  ($cn+$RL[$v]+"hand_ctrl") ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG") ;
+		}
+	}
+	
+	//constraint 四指
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 1 ; $i < 5 ; $i ++){
+			for($t = 0 ; $t < 3 ; $t ++ ){
+				parentConstraint -mo ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrl") ($cn+$RL[$v]+$hFour[$i]+($t+1)+"_ctrlG") ;
+			}
+		}
+	}
+
+	//constraint 姆指
+	for($v = 0 ; $v < 2 ; $v ++){
+			for($t = 0 ; $t < 2 ; $t ++ ){
+				parentConstraint -mo ($cn+$RL[$v]+$hFour[0]+$t+"_ctrl") ($cn+$RL[$v]+$hFour[0]+($t+1)+"_ctrlG") ;
+		}
+	}
+	
+	//手指集體控制
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 0 ; $i < 5 ; $i ++){
+			for($t = 1 ; $t < 4 ; $t ++ ){
+				if($i != 0 ){
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.bend") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateZ");
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.level") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateX");
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.twist") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateY");
+				}else{
+				if($t < 3 ){
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.bend") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateZ");
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.level") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateX");
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.twist") ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG1.rotateY");
+					}
+				}
+			}
+		}
+	}
+	//手指伸縮
+	for($v = 0 ; $v < 2 ; $v ++){
+		for($i = 0 ; $i < 5 ; $i ++){
+			for($t = 0 ; $t < 4 ; $t ++ ){
+				if($i != 0 ){
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.stretch") ($cn+$RL[$v]+$hFour[$i]+$t+".scaleY");
+				}else{
+				if($t < 3 ){
+					connectAttr -f ($cn+$RL[$v]+$hFour[$i]+"0_ctrl.stretch") ($cn+$RL[$v]+$hFour[$i]+$t+".scaleY");
+					}
+				}
+			}
+		}
+	}
+	
+	/* 多節骨架旋轉 */
+	
+	//量手臂長度
+	float $at[]= `xform -ws -q -t ($cn+$RL[0]+"arm")`;
+	float $fat[]= `xform -ws -q -t ($cn+$RL[0]+"foreArm")`;
+	float $wt[]= `xform -ws -q -t ($cn+$RL[0]+"wrist")`;
+	float $ult[]= `xform -ws -q -t ($cn+$RL[0]+"upLeg")`;
+	float $lt[]= `xform -ws -q -t ($cn+$RL[0]+"leg")`;
+	float $ft[]= `xform -ws -q -t ($cn+$RL[0]+"foot")`;
+	float $fad = (sqrt (pow(($at[0] - $fat[0]),2)+pow(($at[1] - $fat[1]),2)+pow(($at[2] - $fat[2]),2)))/2 ;
+	float $ad = (sqrt (pow(($fat[0] - $wt[0]),2)+pow(($fat[1] - $wt[1]),2)+pow(($fat[2] - $wt[2]),2)))/2 ;
+	float $uld = (sqrt (pow(($ult[0] - $lt[0]),2)+pow(($ult[1] - $lt[1]),2)+pow(($ult[2] - $lt[2]),2)))/2 ;
+	float $ld = (sqrt (pow(($lt[0] - $ft[0]),2)+pow(($lt[1] - $ft[1]),2)+pow(($lt[2] - $ft[2]),2)))/2 ;
+	
+	string $r1[] = {"armR","foreArmR","upLegR","legR"};
+	string $r2[] = {"foreArm","wrist","leg","foot"};
+	string $r3[] = {"arm","foreArm","upLeg","leg"};
+	string $trs[] = {"x","y","z"};
+
+	//生twist控制器
+	for($r = 0 ; $r < 4 ; $r ++){
+		if(objExists ($cn+$RL[0]+$r1[$r]+"0")){
+			for($v = 0 ; $v < 2 ; $v ++){
+				if($v == 0 ){
+					if($r == 0 ) {
+					curve -d 1 -p 0 ($fad*-1) 0 -p ((-0.48*$ch[1])/15) ($fad*-1) 0 -p ((-0.48*$ch[1])/15) ($fad*-1) ((-0.09*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($fad*-1) 0 -p ((-0.426*$ch[1])/15) ($fad*-1) ((-0.426*$ch[1])/15) -p 0 ($fad*-1) ((-0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) ($fad*-1) ((-0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) ($fad*-1) 0 -p ((0.426*$ch[1])/15) ($fad*-1) ((0.426*$ch[1])/15) -p 0 ($fad*-1) ((0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) ($fad*-1) ((0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($fad*-1) 0 -p ((-0.48*$ch[1])/15) ($fad*-1) ((0.09*$ch[1])/15) -p ((-0.48*$ch[1])/15) ($fad*-1) 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+					}else{
+						if($r == 1 ) {
+						curve -d 1 -p 0 ($ad*-1) 0 -p ((-0.48*$ch[1])/15) ($ad*-1) 0 -p ((-0.48*$ch[1])/15) ($ad*-1) ((-0.09*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($ad*-1) 0 -p ((-0.426*$ch[1])/15) ($ad*-1) ((-0.426*$ch[1])/15) -p 0 ($ad*-1) ((-0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) ($ad*-1) ((-0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) ($ad*-1) 0 -p ((0.426*$ch[1])/15) ($ad*-1) ((0.426*$ch[1])/15) -p 0 ($ad*-1) ((0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) ($ad*-1) ((0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($ad*-1) 0 -p ((-0.48*$ch[1])/15) ($ad*-1) ((0.09*$ch[1])/15) -p ((-0.48*$ch[1])/15) ($ad*-1) 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+						}else{
+							if($r == 2 ) {
+								curve -d 1 -p 0 ($uld*-1) 0 -p ((-0.48*$ch[1])/15) ($uld*-1) 0 -p ((-0.48*$ch[1])/15) ($uld*-1) ((-0.09*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($uld*-1) 0 -p ((-0.426*$ch[1])/15) ($uld*-1) ((-0.426*$ch[1])/15) -p 0 ($uld*-1) ((-0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) ($uld*-1) ((-0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) ($uld*-1) 0 -p ((0.426*$ch[1])/15) ($uld*-1) ((0.426*$ch[1])/15) -p 0 ($uld*-1) ((0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) ($uld*-1) ((0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($uld*-1) 0 -p ((-0.48*$ch[1])/15) ($uld*-1) ((0.09*$ch[1])/15) -p ((-0.48*$ch[1])/15) ($uld*-1) 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+							}else{
+								curve -d 1 -p 0 ($ld*-1) 0 -p ((-0.48*$ch[1])/15) ($ld*-1) 0 -p ((-0.48*$ch[1])/15) ($ld*-1) ((-0.09*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($ld*-1) 0 -p ((-0.426*$ch[1])/15) ($ld*-1) ((-0.426*$ch[1])/15) -p 0 ($ld*-1) ((-0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) ($ld*-1) ((-0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) ($ld*-1) 0 -p ((0.426*$ch[1])/15) ($ld*-1) ((0.426*$ch[1])/15) -p 0 ($ld*-1) ((0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) ($ld*-1) ((0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) ($ld*-1) 0 -p ((-0.48*$ch[1])/15) ($ld*-1) ((0.09*$ch[1])/15) -p ((-0.48*$ch[1])/15) ($ld*-1) 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+							}
+						}
+					}
+				}else{
+					if($r == 0 ) {
+					curve -d 1 -p 0 $fad 0 -p ((0.48*$ch[1])/15) $fad 0 -p ((0.48*$ch[1])/15) $fad ((-0.09*$ch[1])/15) -p ((0.6*$ch[1])/15) $fad 0 -p ((0.426*$ch[1])/15) $fad ((-0.426*$ch[1])/15) -p 0 $fad ((-0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) $fad ((-0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) $fad 0 -p ((-0.426*$ch[1])/15) $fad ((0.426*$ch[1])/15) -p 0 $fad ((0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) $fad ((0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) $fad 0 -p ((0.48*$ch[1])/15) $fad ((0.09*$ch[1])/15) -p ((0.48*$ch[1])/15) $fad 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+					}else{
+						if($r == 1 ) {
+						curve -d 1 -p 0 $ad 0 -p ((0.48*$ch[1])/15) $ad 0 -p ((0.48*$ch[1])/15) $ad ((-0.09*$ch[1])/15) -p ((0.6*$ch[1])/15) $ad 0 -p ((0.426*$ch[1])/15) $ad ((-0.426*$ch[1])/15) -p 0 $ad ((-0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) $ad ((-0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) $ad 0 -p ((-0.426*$ch[1])/15) $ad ((0.426*$ch[1])/15) -p 0 $ad ((0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) $ad ((0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) $ad 0 -p ((0.48*$ch[1])/15) $ad ((0.09*$ch[1])/15) -p ((0.48*$ch[1])/15) $ad 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+						}else{
+							if($r == 2 ) {
+							curve -d 1 -p 0 $uld 0 -p ((0.48*$ch[1])/15) $uld 0 -p ((0.48*$ch[1])/15) $uld ((-0.09*$ch[1])/15) -p ((0.6*$ch[1])/15) $uld 0 -p ((0.426*$ch[1])/15) $uld ((-0.426*$ch[1])/15) -p 0 $uld ((-0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) $uld ((-0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) $uld 0 -p ((-0.426*$ch[1])/15) $uld ((0.426*$ch[1])/15) -p 0 $uld ((0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) $uld ((0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) $uld 0 -p ((0.48*$ch[1])/15) $uld ((0.09*$ch[1])/15) -p ((0.48*$ch[1])/15) $uld 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+							}else{
+								curve -d 1 -p 0 $ld 0 -p ((0.48*$ch[1])/15) $ld 0 -p ((0.48*$ch[1])/15) $ld ((-0.09*$ch[1])/15) -p ((0.6*$ch[1])/15) $ld 0 -p ((0.426*$ch[1])/15) $ld ((-0.426*$ch[1])/15) -p 0 $ld ((-0.6*$ch[1])/15) -p ((-0.426*$ch[1])/15) $ld ((-0.426*$ch[1])/15) -p ((-0.6*$ch[1])/15) $ld 0 -p ((-0.426*$ch[1])/15) $ld ((0.426*$ch[1])/15) -p 0 $ld ((0.6*$ch[1])/15) -p ((0.426*$ch[1])/15) $ld ((0.426*$ch[1])/15) -p ((0.6*$ch[1])/15) $ld 0 -p ((0.48*$ch[1])/15) $ld ((0.09*$ch[1])/15) -p ((0.48*$ch[1])/15) $ld 0 -k 0 -k 1 -k 2 -k 3 -k 4 -k 5 -k 6 -k 7 -k 8 -k 9 -k 10 -k 11 -k 12 -k 13 ;
+							}
+						}
+					}
+				}
+				rename ($cn+$RL[$v]+$r1[$r]+"_ctrl");
+				doGroup 0 1 1 ;
+				rename ($cn+$RL[$v]+$r1[$r]+"_ctrlG");
+				pointConstraint  ($cn+$RL[$v]+$r2[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+				pointConstraint  -rm ($cn+$RL[$v]+$r2[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+				orientConstraint  ($cn+$RL[$v]+$r3[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+				orientConstraint -rm ($cn+$RL[$v]+$r3[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+				makeIdentity -apply true -t 1 -r 0 -s 1 -n 0 -pn 1;
+				if($r == 1 ){
+					parentConstraint  -mo ($cn+$RL[$v]+$r2[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+				}else{
+					if($r == 3){
+						parentConstraint  -mo ($cn+$RL[$v]+"footL") ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+						}else{
+							parentConstraint  -mo ($cn+$RL[$v]+$r3[$r]) ($cn+$RL[$v]+$r1[$r]+"_ctrlG") ;
+					}
+				}
+				for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.t"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.r"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.s"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrlG.t"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrlG.r"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrlG.s"+$trs[$t]);
+				}
+				setAttr -lock false -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.sy");
+				setAttr -lock false -keyable true -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.ry");
+				setAttr -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrl.visibility");
+				setAttr -keyable false -channelBox false ($cn+$RL[$v]+$r1[$r]+"_ctrlG.visibility");
+				
+				select -d ;
+				select ($cn+$RL[$v]+$r1[$r]+"*");
+				select -d "*_ctrl*";
+				int $farc = size(`ls -sl`);
+
+				shadingNode -asUtility multiplyDivide -n ($cn+$RL[$v]+$r1[$r]+"MD");
+				setAttr ($cn+$RL[$v]+$r1[$r]+"MD"+".operation") 2;
+				setAttr ($cn+$RL[$v]+$r1[$r]+"MD"+".input2X") $farc;
+				connectAttr -f ($cn+$RL[$v]+$r1[$r]+"_ctrl.rotateY") ($cn+$RL[$v]+$r1[$r]+"MD"+".input1X");
+				for($i = 0 ; $i < $farc ; $i++){
+					connectAttr -f ($cn+$RL[$v]+$r3[$r]+".scaleY") ($cn+$RL[$v]+$r1[$r]+$i+".scaleY");
+					connectAttr -f ($cn+$RL[$v]+$r1[$r]+"MD"+".outputX") ($cn+$RL[$v]+$r1[$r]+$i+".rotateY");
+				}
+				connectAttr -f ($cn+$RL[$v]+$r3[$r]+".scaleY") ($cn+$RL[$v]+$r1[$r]+"_ctrl.scaleY");
+			}
+		}
+	}
+	
+	/* 上身總控制器 */
+	//最外
+	circle -nr 0 1 0 -r ((3.5*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn + "_hips_ctrl");
+	pointConstraint ($cn + "_hips") ($cn + "_hips_ctrl") ;
+	pointConstraint -rm ($cn + "_hips") ($cn + "_hips_ctrl") ;
+	makeIdentity -apply true -t 1 -r 1 -s 1 -n 0 -pn 1;
+	//小
+	circle -nr 1 0 0 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+"_hips_ctrlC1");
+	setAttr (($cn+"_hips_ctrlC1Shape") +".overrideEnabled") 1;
+	setAttr (($cn+"_hips_ctrlC1Shape") +".overrideColor") 13;
+	circle -nr 0 1 0 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+"_hips_ctrlC2");
+	setAttr (($cn+"_hips_ctrlC2Shape") +".overrideEnabled") 1;
+	setAttr (($cn+"_hips_ctrlC2Shape") +".overrideColor") 14;
+	circle -nr 0 0 1 -r ((0.5*$ch[1])/15) -s 4 -ch 0 -n ($cn+"_hips_ctrlC");
+	setAttr (($cn+"_hips_ctrlCShape") +".overrideEnabled") 1;
+	setAttr (($cn+"_hips_ctrlCShape") +".overrideColor") 6;
+	
+	curve -d 1 -p 0 ((0.3*$ch[1])/15) 0 -p 0  ((-0.2*$ch[1])/15) 0 ;
+	rename ($cn+"p1");
+	curve -d 1 -p ((0.3*$ch[1])/15) 0 0 -p ((-0.2*$ch[1])/15) 0 0 ;
+	rename ($cn+"p2");
+	curve -d 1 -p 0 0 ((0.3*$ch[1])/15) -p 0 0 ((-0.2*$ch[1])/15);
+	rename ($cn+"p3");
+	parent -r -s ($cn+"pShape1") ($cn+"pShape2") ($cn+"pShape3") ($cn+"_hips_ctrlC1"+"Shape") ($cn+"_hips_ctrlC2"+"Shape") ($cn+"_hips_ctrlC") ;
+	delete ($cn+"_hips_ctrlC1") ($cn+"_hips_ctrlC2") ($cn+"p1") ($cn+"p2") ($cn+"p3");
+	circle -nr 0 1 0 -r ((3*$ch[1])/15) -d 1 -s 4 -ch 0 -n ($cn + "_hips_ctrlS");
+	doGroup 0 1 1 ;
+	rename ($cn + "_hips_ctrlG1") ;
+	doGroup 0 1 1 ;
+	rename ($cn + "_hips_ctrlG") ;
+	parent ($cn+"_hips_ctrlC") ($cn + "_hips_ctrlG");
+	//hips移動中心點連結
+	connectAttr -f ($cn+"_hips_ctrlC.translate") ($cn+"_hips_ctrlG1.rotatePivot");
+	connectAttr -f ($cn+"_hips_ctrlC.rotate") ($cn+"_hips_ctrlG1.rotate");	
+	//移動		
+	pointConstraint ($cn + "_hips") ($cn + "_hips_ctrlG") ;
+	pointConstraint -rm ($cn + "_hips") ($cn + "_hips_ctrlG") ;
+	//階層連結
+	parent ($cn + "_hips_ctrlG") ($cn + "_hips_ctrl");
+	parent ($cn + "_hips_ctrl") ($cn + "_full") ;
+	parent ($cn + "_pelvisIK_ctrlG") ($cn + "_hips_ctrlS");
+	parent ($cn + "_spine0IK_ctrlG") ($cn + "_hips_ctrlS");
+	parent ($cn + "_spine1IK_ctrlG") ($cn + "_hips_ctrlS");
+	parent ($cn + "_spine2IK_ctrlG") ($cn + "_hips_ctrlS");
+	parent ($cn + "_chestIK_ctrlG") ($cn + "_hips_ctrlS");
+	parent ($cn + "_pelvisFK_ctrlG") ($cn + "_hips_ctrlS");
+
+	/* 大控制器加上縮放值_rotateCenter */
+	select ($cn+"_all_ctrl");
+	addAttr -ln "scaleAll"   -at double  -min 0.01 -dv 1 ;
+	setAttr -k on ($cn+"_all_ctrl.scaleAll");
+	addAttr -ln "rotateCenter"  -at "enum" -en "off:on"  ($cn+"_all_ctrl");
+	setAttr -k true  ($cn+"_all_ctrl.rotateCenter");
+	
+	connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+"_move_ctrl.scaleX");
+	connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+"_move_ctrl.scaleY");
+	connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+"_move_ctrl.scaleZ");
+	
+	string $g1[] = {"_eyeboth_ctrlG","_hips_ctrl","_chestIK_switch","_hips_followL","_chest_followL","_jaw1_ctrlG","_neck_followL"};
+	string $g2[] = {"foot_ctrlG","hand_ctrlG","upLegFK_ctrlG","foreArmFK_ctrlG","legFK_ctrlG","armFK_ctrlG","upLegIKpvR_ctrlG","armIKpvR_ctrlG","foot_switch","hand_switch","legIK_ctrlG","armIK_ctrlG"};
+	string $g3[] = {"_pelvisIK_DLS","_pelvisIK_DLE","_pelvisIK_D","_spine0IK_DLS","_spine0IK_DLE","_spine0IK_D","_spine1IK_DLS","_spine1IK_DLE","_spine1IK_D","_spine2IK_DLS","_spine2IK_DLE","_spine2IK_D","_splineIK_handle","_splineIK_curve"};
+	string $g4[] = {"armIK_handle","armDLS","armDLE","armD","legDLS","legDLE","legD","wristL","footL","footFKL_med","footIKL_med","toeBaseIK_rcR_center","toeBaseIK_rcL_center","footIK_rc_center","toesEndIK_rc_center"} ;
+	string $g5[] = {"_neck0_DLS","_head_DLE","_neck_D","_neckIK_curve","_neckIK_handle"};
+	int $g1s = size($g1);
+	int $g2s = size($g2);
+	int $g3s = size($g3);
+	int $g4s = size($g4);
+	int $g5s = size($g5);
+	group -em -name ($cn+"_ctrlsG");
+	for($i = 0 ; $i < $g1s ; $i++){
+		parent ($cn+$g1[$i]) ($cn+"_ctrlsG");
+	}
+	
+	for($v = 0 ; $v < 2 ; $v++){
+		for($i = 0 ; $i < $g2s ; $i++){
+			parent ($cn+$RL[$v]+$g2[$i]) ($cn+"_ctrlsG");
+		}
+	}
+	for($v = 0 ; $v < 2 ; $v++){
+		for($i = 0 ; $i < 5 ; $i++){
+			for($t = 0 ; $t < 4 ; $t++){
+			if($i > 0){
+				parent ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG") ($cn+"_ctrlsG");
+			}else{
+				if($t < 3){
+					parent ($cn+$RL[$v]+$hFour[$i]+$t+"_ctrlG") ($cn+"_ctrlsG");
+					}
+			}
+			}
+		}
+	}
+	
+	group -em -name ($cn+"_rigUseG");
+	for($i = 0 ; $i < $g3s ; $i++){
+		parent ($cn+$g3[$i]) ($cn+"_rigUseG");
+	}
+	
+	for($v = 0 ; $v < 2 ; $v++){
+		for($i = 0 ; $i < $g4s ; $i++){
+			parent ($cn+$RL[$v]+$g4[$i]) ($cn+"_rigUseG");
+		}
+	}
+	
+	if(objExists ($cn+"_neck0_ctrlG")){
+		parent ($cn+"_neck0_ctrlG") ($cn+"_ctrlsG");
+		for($i = 0 ; $i < $g5s ; $i++){
+			parent ($cn+$g5[$i]) ($cn+"_rigUseG");
+		}
+	}else{
+			parent ($cn+"_neck_ctrlG") ($cn+"_ctrlsG");
+		}
+
+	
+	if(objExists ($cn+$RL[0]+"legR_ctrlG")){
+		for($v = 0 ; $v < 2 ; $v++){
+			parent ($cn+$RL[$v]+"legR_ctrlG") ($cn+"_ctrlsG");
+		}
+	}
+	
+	if(objExists ($cn+$RL[0]+"upLegR_ctrlG")){
+		for($v = 0 ; $v < 2 ; $v++){
+			parent ($cn+$RL[$v]+"upLegR_ctrlG") ($cn+"_ctrlsG");
+		}
+	}
+	
+	if(objExists ($cn+$RL[0]+"armR_ctrlG")){
+		for($v = 0 ; $v < 2 ; $v++){
+			parent ($cn+$RL[$v]+"armR_ctrlG") ($cn+"_ctrlsG");
+		}
+	}
+	
+	if(objExists ($cn+$RL[0]+"foreArmR_ctrlG")){
+		for($v = 0 ; $v < 2 ; $v++){
+			parent ($cn+$RL[$v]+"foreArmR_ctrlG") ($cn+"_ctrlsG");
+		}
+	}
+	if(objExists ($cn+$RL[0]+"breast_ctrlG")){
+		for($v = 0 ; $v < 2 ; $v++){
+			parent ($cn+$RL[$v]+"breast_ctrlG") ($cn+"_ctrlsG");
+		}
+	}
+	
+	group -em -name $cn;
+	parent ($cn+"_ctrlJointG") ($cn+"_hips") ($cn+"_ctrlsG") ($cn+"_full");
+	parent ($cn+"_all_ctrl") ($cn+"_rigUseG") $cn;
+	
+	string $t3[] = {".t",".r",".s"} ;
+	string $x3[] = {"x","y","z"} ;
+	for($i = 0 ; $i < 3 ; $i++){
+		for($f = 0 ; $f < 3 ; $f ++ ){
+		setAttr -lock true -keyable false -channelBox false ($cn + "_ctrlsG" + $t3[$i] + $x3[$f]);
+		setAttr -lock true -keyable false -channelBox false ($cn + "_rigUseG" + $t3[$i] + $x3[$f]);
+		setAttr -lock true -keyable false -channelBox false ($cn + $t3[$i] + $x3[$f]);
+		}
+	}
+	
+	//設定預設軸向
+	select -r ($cn+"*_ctrl");
+	string $aj[] = `ls -sl` ;
+	int $ajs = size(`ls -sl`) ;
+	for($i = 0 ; $i < $ajs ; $i++){
+		setAttr ($aj[$i] +".rotateOrder") 1;
+	}
+	
+
+	/* 全身旋轉中心 */
+	string $frc[] = {"_topRotate","_centerRotate","_underRotate"} ;
+	string $frn[] = {"_headEnd","_hips","_move_ctrl"} ;
+	for($i = 0 ; $i < 3 ; $i++){
+			circle -nr 1 0 0 -r ((0.3*$ch[1])/15) -s 4 -ch 0 -n ($cn+$frc[$i]+"_ctrlC1");
+			setAttr (($cn+$frc[$i]+"_ctrlC1Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$frc[$i]+"_ctrlC1Shape") +".overrideColor") 13;
+			circle -nr 0 1 0 -r ((0.3*$ch[1])/15) -s 4 -ch 0 -n ($cn+$frc[$i]+"_ctrlC2");
+			setAttr (($cn+$frc[$i]+"_ctrlC2Shape") +".overrideEnabled") 1;
+			setAttr (($cn+$frc[$i]+"_ctrlC2Shape") +".overrideColor") 14;
+			circle -nr 0 0 1 -r ((0.3*$ch[1])/15) -s 4 -ch 0 -n ($cn+$frc[$i]+"_ctrl");
+			setAttr (($cn+$frc[$i]+"_ctrlShape") +".overrideEnabled") 1;
+			setAttr (($cn+$frc[$i]+"_ctrlShape") +".overrideColor") 6;
+			
+			curve -d 1 -p 0 ((0.2*$ch[1])/15) 0 -p 0  ((-0.2*$ch[1])/15) 0 ;
+			rename ($cn+$i+"p1");
+			curve -d 1 -p ((0.2*$ch[1])/15) 0 0 -p ((-0.2*$ch[1])/15) 0 0 ;
+			rename ($cn+$i+"p2");
+			curve -d 1 -p 0 0 ((0.2*$ch[1])/15) -p 0 0 ((-0.2*$ch[1])/15);
+			rename ($cn+$i+"p3");
+			
+			parent -r -s ($cn+$i+"pShape1") ($cn+$i+"pShape2") ($cn+$i+"pShape3") ($cn+$frc[$i]+"_ctrlC1"+"Shape") ($cn+$frc[$i]+"_ctrlC2"+"Shape") ($cn+$frc[$i]+"_ctrl") ;
+			doGroup 0 1 1 ;
+			rename ($cn+ $frc[$i]+"_ctrlG");
+			delete ($cn+$frc[$i]+"_ctrlC1") ($cn+$frc[$i]+"_ctrlC2") ($cn+$i+"p1") ($cn+$i+"p2") ($cn+$i+"p3");
+			
+			group -em -name ($cn+$frc[$i]+"_ctrlG1");
+			parent ($cn+$frc[$i]+"_ctrlG1") ($cn+$frc[$i]+"_ctrlG") ;
+
+			//連結
+			connectAttr -f ($cn+$frc[$i]+"_ctrl.translate") ($cn+$frc[$i]+"_ctrlG1.rotatePivot");
+			connectAttr -f ($cn+$frc[$i]+"_ctrl.rotate") ($cn+$frc[$i]+"_ctrlG1.rotate");
+			//移動
+			parentConstraint ($cn+$frn[$i]) ($cn+$frc[$i]+"_ctrlG") ;
+			parentConstraint -rm ($cn+$frn[$i]) ($cn+$frc[$i]+"_ctrlG") ;
+			
+			//parent
+			if($i>0){
+				parent ($cn+$frc[$i]+"_ctrlG") ($cn+$frc[$i-1]+"_ctrlG1") ;
+			}
+	}
+	parent ($cn+"_full") ($cn+$frc[2]+"_ctrlG1");
+	parent ($cn+$frc[0]+"_ctrlG") ($cn+"_move_ctrl");
+	
+	/* Lock and hide attr */
+	string $vis[] = {"armIKL","armD","armDLS","armDLE","wristL","armIK","armFK","armIK_handle","upLegIKL","legD","legDLS","legDLE","footL","legIK_handle","upLegIK","upLegFK","toesEndIKL_rc","footIKL_med","footFKL_med","upLegL"};
+	int $vs = size($vis);
+	
+	string $lockT[] = {"armIK_ctrlG","armFK_ctrl","armFK_ctrlG","foreArmFK_ctrl","foreArmFK_ctrlG","hand_ctrl","hand_ctrlG","hand_ctrlG1","hand_switch","armIKpvR_ctrl","armIK_pvG","shoulder_ctrlG",
+	"upLegFK_ctrl","upLegFK_ctrlG","legFK_ctrl","legFK_ctrlG","foot_ctrl","foot_ctrlG","foot_ctrlG1","toeBaseFK_ctrl","toeBaseFK_ctrlG","foot_switch","legIK_pvG","hips_ctrlG","upLegIKpvR_ctrl","upLegIKpvR_ctrlG","legIK_ctrlG","legIK_ctrlG1",
+	"toesEndIK_rc_ctrlG","footIK_rc_ctrlG","toeBaseIK_rcL_ctrlG","toeBaseIK_rcR_ctrlG","toesEndIK_rc_center","footIK_rc_center","toeBaseIK_rcL_center","toeBaseIK_rcR_center",
+	"toeBaseIK_ctrl","toeBaseIK_ctrlG","footIK_ctrl","footIK_ctrlG"};
+	int $lts = size($lockT);
+	
+	string $lockR[] = {"hand_ctrlG1","hand_ctrlG","foreArmFK_ctrlG","armFK_ctrlG","armIK_ctrl","armIK_ctrlG","hand_switch","armIK_pv","armIK_pvG","armIK_ctrlG","shoulder_ctrlG",
+	"upLegFK_ctrlG","legFK_ctrlG","toeBaseFK_ctrlG","foot_ctrlG","foot_ctrlG1","foot_switch","legIK_pv","legIK_pvG","hips_ctrlG","upLegIKpvR_ctrlG","legIK_ctrlG","legIK_ctrlG1",
+	"toesEndIK_rc_ctrlG","footIK_rc_ctrlG","toeBaseIK_rcL_ctrlG","toeBaseIK_rcR_ctrlG","toesEndIK_rc_center","footIK_rc_center","toeBaseIK_rcL_center","toeBaseIK_rcR_center","toeBaseIK_ctrlG","footIK_ctrlG"};
+	int $lrs = size($lockR);
+	
+	string $lockS[] = {"eye_ctrl","armFK_ctrl","armFK_ctrlG","foreArmFK_ctrl","foreArmFK_ctrlG","hand_ctrl","hand_ctrlG","hand_ctrlG1","armIKpvR_ctrl","shoulder_ctrlG","armIK_ctrl","armIK_ctrlG","hand_switch","armIK_pv","armIK_pvG","shoulder_ctrl",
+	"upLegFK_ctrl","upLegFK_ctrlG","legFK_ctrl","legFK_ctrlG","foot_ctrl","foot_ctrlG","foot_ctrlG1","toeBaseFK_ctrl","toeBaseFK_ctrlG","foot_switch","legIK_pv","legIK_pvG","hips_ctrl","hips_ctrlG","upLegIKpvR_ctrl","upLegIKpvR_ctrlG","legIK_ctrl","legIK_ctrlG","legIK_ctrlG1",
+	"toesEndIK_rc_ctrl","toesEndIK_rc_ctrlG","footIK_rc_ctrl","footIK_rc_ctrlG","toeBaseIK_rcL_ctrl","toeBaseIK_rcL_ctrlG","toeBaseIK_rcR_ctrl","toeBaseIK_rcR_ctrlG","toesEndIK_rc_center","footIK_rc_center","toeBaseIK_rcL_center","toeBaseIK_rcR_center",
+	"toeBaseIK_ctrl","toeBaseIK_ctrlG","footIK_ctrl","footIK_ctrlG"};
+	int $lss = size($lockS);
+	
+	string $hFour[] = {"thumb","index","middle","ring","pinky"};
+	
+	//修改IKFI切換的軸向，刪除對位用locator，joint
+	for($v = 0 ; $v < 2 ; $v++ ){
+		orientConstraint ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"foot_switch");
+		orientConstraint -rm ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"foot_switch");
+		parentConstraint -mo ($cn+$RL[$v]+"legIK_ctrl") ($cn+$RL[$v]+"foot_switch");
+		delete ($cn+$RL[$v]+"f_L1") ($cn+$RL[$v]+"f_L2") ($cn+$RL[$v]+"f_L3") ($cn+$RL[$v]+"toeBaseIK_rcL") ($cn+$RL[$v]+"toeBaseIK_rcR") ($cn+$RL[$v]+"toesEndIK_rc") ($cn+$RL[$v]+"footIK_rc");
+		setAttr ($cn+$RL[$v]+"foot_switch.ikFollow") 0 ;
+	}
+	//鎖住手參數
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 5 ; $i ++ ){
+			for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG"+".t"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG"+".r"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG"+".s"+$trs[$t]);
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrl"+".s"+$trs[$t]);
+			}
+			setAttr  -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrlG"+".visibility");
+			setAttr  -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+"0_ctrl"+".visibility");
+		}
+	}
+	//鎖住手腳參數
+	for($v = 0 ; $v < 2 ; $v++ ){
+		for($i = 0 ; $i < 5 ; $i ++ ){
+			if($i != 0){
+				for($f = 1 ; $f < 4 ; $f ++){ 
+					for($t = 0 ; $t < 3 ; $t++ ){
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".t"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".s"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".t"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".s"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".t"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".s"+$trs[$t]);
+						
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".r"+$trs[$t]);
+						setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".r"+$trs[$t]);
+						setAttr -lock true  ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".r"+$trs[$t]);
+					}
+
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".visibility");
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".visibility");
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".visibility");
+						setAttr -lock false  ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".rz");
+				}
+			}else{
+					for($f = 1 ; $f < 3 ; $f ++){ 
+						for($t = 0 ; $t < 3 ; $t++ ){
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".t"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".s"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".t"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".s"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".t"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".s"+$trs[$t]);
+
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".r"+$trs[$t]);
+							setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".r"+$trs[$t]);
+							setAttr -lock true ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".r"+$trs[$t]);
+				}
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".visibility");
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG1"+".visibility");
+						setAttr -keyable false -channelBox false ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrlG"+".visibility");
+						setAttr -lock false  ($cn+$RL[$v]+$hFour[$i]+$f+"_ctrl"+".rz");
+			}
+		}
+	}
+	
+	
+		for($i = 0 ; $i < $vs ; $i++){
+		setAttr ($cn+$RL[$v]+$vis[$i]+".visibility") 0;
+		}
+		
+		for($i = 0 ; $i < $lts ; $i++){
+			for($t = 0 ; $t < 3 ; $t++ ){
+					setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockT[$i]+".t"+$trs[$t]);
+				}
+		}
+		
+		for($i = 0 ; $i < $lrs ; $i++){
+			for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockR[$i]+".r"+$trs[$t]);
+			}
+		}
+		for($i = 0 ; $i < $lss ; $i++){
+			for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockS[$i]+".s"+$trs[$t]);
+			}
+		setAttr -keyable false -channelBox false ($cn+$RL[$v]+$lockS[$i]+".visibility");
+		}
+	}
+	
+	//鎖住身體參數
+	string $lockTb[] = {"_eyeboth_ctrlG","_hips_ctrlG","_hips_ctrlG1","_jaw1_ctrlG","_chest_followL","_hips_followL","_neck_followL","_head_ctrlG","_spine0IK_ctrlG1","_spine1IK_ctrlG1","_spine2IK_ctrlG1","_pelvisIK_ctrlG","_spine0IK_ctrlG","_spine1IK_ctrlG","_spine2IK_ctrlG","_chestIK_ctrlG","_chestIK_switch","_pelvisFK_ctrl","_pelvisFK_ctrlG","_spine0FK_ctrl","_spine0FK_ctrlG","_spine1FK_ctrl","_spine1FK_ctrlG","_spine2FK_ctrl","_spine2FK_ctrlG","_chestFK_ctrl","_chestFK_ctrlG","_topRotate_ctrlG","_topRotate_ctrlG1","_centerRotate_ctrlG","_centerRotate_ctrlG1","_underRotate_ctrlG","_underRotate_ctrlG1","_full"};
+	int $ltsb = size($lockTb);
+	
+	string $lockRb[] = {"_eyeboth_ctrlG","_hips_ctrlG","_hips_ctrlG1","_jaw1_ctrlG","_chest_followL","_hips_followL","_neck_followL","_head_ctrlG","_pelvisIK_ctrlG","_spine0IK_ctrlG","_spine1IK_ctrlG","_spine2IK_ctrlG","_chestIK_ctrlG","_chestIK_switch","_pelvisFK_ctrlG","_spine0FK_ctrlG","_spine1FK_ctrlG","_spine2FK_ctrlG","_chestFK_ctrlG","_topRotate_ctrlG","_topRotate_ctrlG1","_centerRotate_ctrlG","_centerRotate_ctrlG1","_underRotate_ctrlG","_underRotate_ctrlG1","_full"};
+	int $lrsb = size($lockRb);
+	
+	string $lockSb[] = {"_eyeboth_ctrl","_eyeboth_ctrlG","_hips_ctrlG","_hips_ctrlG1","_hips_ctrlS","_underRotate_ctrl","_centerRotate_ctrl","_topRotate_ctrl","_hips_ctrlC","_move_ctrl","_all_ctrl","_jaw1_ctrl","_jaw1_ctrlG","_chest_followL","_hips_followL","_neck_followL","_head_ctrlG","_head_ctrl","_spine0IK_ctrlG1","_spine1IK_ctrlG1","_spine2IK_ctrlG1","_pelvisIK_ctrl","_spine0IK_ctrl","_spine1IK_ctrl","_spine2IK_ctrl","_chestIK_ctrl","_pelvisIK_ctrlG","_spine0IK_ctrlG","_spine1IK_ctrlG","_spine2IK_ctrlG","_chestIK_ctrlG","_chestIK_switch","_hips_ctrl","_pelvisFK_ctrl","_pelvisFK_ctrlG","_spine0FK_ctrl","_spine0FK_ctrlG","_spine1FK_ctrl","_spine1FK_ctrlG","_spine2FK_ctrl","_spine2FK_ctrlG","_chestFK_ctrl","_chestFK_ctrlG","_topRotate_ctrlG","_topRotate_ctrlG1","_centerRotate_ctrlG","_centerRotate_ctrlG1","_underRotate_ctrlG","_underRotate_ctrlG1","_full"};
+	int $lssb = size($lockSb);
+	
+	string $lockVb[] = {"_eyeboth_ctrl","_eyeboth_ctrlG","_hips_ctrlG","_hips_ctrlG1","_hips_ctrlS","_underRotate_ctrl","_centerRotate_ctrl","_topRotate_ctrl","_hips_ctrlC","_move_ctrl","_jaw1_ctrl","_jaw1_ctrlG","_chest_followL","_hips_followL","_neck_followL","_head_ctrlG","_head_ctrl","_spine0IK_ctrlG1","_spine1IK_ctrlG1","_spine2IK_ctrlG1","_pelvisIK_ctrl","_spine0IK_ctrl","_spine1IK_ctrl","_spine2IK_ctrl","_chestIK_ctrl","_pelvisIK_ctrlG","_spine0IK_ctrlG","_spine1IK_ctrlG","_spine2IK_ctrlG","_chestIK_ctrlG","_chestIK_switch","_hips_ctrl","_pelvisFK_ctrl","_pelvisFK_ctrlG","_spine0FK_ctrl","_spine0FK_ctrlG","_spine1FK_ctrl","_spine1FK_ctrlG","_spine2FK_ctrl","_spine2FK_ctrlG","_chestFK_ctrl","_chestFK_ctrlG","_topRotate_ctrlG","_topRotate_ctrlG1","_centerRotate_ctrlG","_centerRotate_ctrlG1","_underRotate_ctrlG","_underRotate_ctrlG1","_full"};
+	int $lvsb = size($lockVb);
+	
+	string $hideRb[] = {"_spine0IK_ctrlG1","_spine1IK_ctrlG1","_spine2IK_ctrlG1"};
+	int $hrsb = size($hideRb);
+	
+	for($i = 0 ; $i < $ltsb ; $i++){
+		for($t = 0 ; $t < 3 ; $t++ ){
+			setAttr -lock true -keyable false -channelBox false ($cn+$lockTb[$i]+".t"+$trs[$t]) ;
+		}
+	}
+	
+	for($i = 0 ; $i < $lrsb ; $i++){
+		for($t = 0 ; $t < 3 ; $t++ ){
+			setAttr -lock true -keyable false -channelBox false ($cn+$lockRb[$i]+".r"+$trs[$t]) ;
+		}
+	}
+	
+	for($i = 0 ; $i < $lssb ; $i++){
+		for($t = 0 ; $t < 3 ; $t++ ){
+			setAttr -lock true -keyable false -channelBox false ($cn+$lockSb[$i]+".s"+$trs[$t]) ;
+		}
+	}
+	
+	for($i = 0 ; $i < $lvsb ; $i++){
+		for($t = 0 ; $t < 3 ; $t++ ){
+			setAttr -keyable false -channelBox false ($cn+$lockVb[$i]+".visibility") ;
+		}
+	}
+	
+	for($i = 0 ; $i < $hrsb ; $i++){
+		for($t = 0 ; $t < 3 ; $t++ ){
+			setAttr -keyable false -channelBox false ($cn+$hideRb[$i]+".r"+$trs[$t]) ;
+		}
+	}
+	//胸部lock
+	if(objExists ($cn+$RL[0]+"breast")){
+	string $lockB[] = {"breast_ctrl","breast_ctrlG"};
+	for($v = 0 ;$v <2 ; $v++){
+		for($i = 0 ;$i <2 ; $i++){
+		setAttr -keyable false -channelBox false ($cn+$RL[$v]+$lockB[$i]+".visibility") ;
+			for($t = 0 ;$t <3 ; $t++){
+				setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockB[$i]+".s"+$trs[$t]) ;
+				if($i == 1){
+					setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockB[$i]+".t"+$trs[$t]) ;
+					setAttr -lock true -keyable false -channelBox false ($cn+$RL[$v]+$lockB[$i]+".r"+$trs[$t]) ;
+				}
+			}
+		}
+	}
+	}
+	//脖子hide 跟lock
+	if(objExists ($cn+"_neck0")){
+		string $lockSVn[] = {"_neck0_ctrl","_neckC_ctrl","_neck0_ctrlG","_neckC_ctrlG"};
+		int $lsvsn = size($lockSVn);
+		for($i = 0 ; $i < $lsvsn ; $i++){
+			for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$lockSVn[$i]+".s"+$trs[$t]) ;
+				setAttr -keyable false -channelBox false ($cn+$lockSVn[$i]+".visibility") ;
+			}
+		}
+		
+		string $lockTRn[] = {"_neck0_ctrlG","_neckC_ctrlG"};
+		int $ltrsn = size($lockTRn);
+		for($i = 0 ; $i < $ltrsn ; $i++){
+			for($t = 0 ; $t < 3 ; $t++ ){
+				setAttr -lock true -keyable false -channelBox false ($cn+$lockTRn[$i]+".t"+$trs[$t]) ;
+				setAttr -lock true -keyable false -channelBox false ($cn+$lockTRn[$i]+".r"+$trs[$t]) ;
+			}
+		}
+		setAttr ($cn+"_neckIK_handle.visibility") 0;
+	}else{
+		string $lockSVn[] = {"_neck_ctrl","_neck_ctrlG"};
+			int $lsvsn = size($lockSVn);
+			for($i = 0 ; $i < $lsvsn ; $i++){
+				for($t = 0 ; $t < 3 ; $t++ ){
+					setAttr -lock true -keyable false -channelBox false ($cn+$lockSVn[$i]+".s"+$trs[$t]) ;
+					setAttr -keyable false -channelBox false ($cn+$lockSVn[$i]+".visibility") ;
+				}
+			}
+			
+			string $lockTRn[] = {"_neck_ctrlG"};
+			int $ltrsn = size($lockTRn);
+			for($i = 0 ; $i < $ltrsn ; $i++){
+				for($t = 0 ; $t < 3 ; $t++ ){
+					setAttr -lock true -keyable false -channelBox false ($cn+$lockTRn[$i]+".t"+$trs[$t]) ;
+					setAttr -lock true -keyable false -channelBox false ($cn+$lockTRn[$i]+".r"+$trs[$t]) ;
+				}
+			}
+	}
+	
+	//身體hide
+	string $visb[] = {"_splineIK_handle","_pelvisIK_DLS","_pelvisIK_DLE","_pelvisIK_D","_spine0IK_DLS","_spine0IK_DLE","_spine0IK_D","_spine1IK_DLS","_spine1IK_DLE","_spine1IK_D",
+	"_spine2IK_DLS","_spine2IK_DLE","_spine2IK_D","_spine0IKPL1","_spine1IKPL2","_spine2IKPL2","_spine0IKPL2","_spine1IKPL1","_spine2IKPL1","_pelvisIKAL","_spine0IKAL","_spine1IKAL","_spine2IKAL",
+	"_pelvisIKA","_spine0IKA","_spine1IKA","_spine2IKA","_chestIKA","_pelvisCJ","_spine0CJ","_spine1CJ","_spine2CJ","_chestCJ","_pelvisFK","_pelvisIK","_pelvisIKR","_splineIK_curve","_R_eye_ctrlUp","_L_eye_ctrlUp"};
+	
+	int $vsb = size($visb);
+	for($i = 0 ; $i < $vsb ; $i++){
+		setAttr ($cn+$visb[$i]+".visibility") 0;
+		}
+	
+	if(objExists ($cn+"_neck0")){
+		string $visn[] = {"_neck0_DLS","_head_DLE","_neck_D","_neckIK_curve","_neckCJ0","_neckCJ1","_headCJ"};
+		int $vsn = size($visn);
+		for($i = 0 ; $i < $vsn ; $i++){
+			setAttr ($cn+$visn[$i]+".visibility") 0;
+			}
+	}	
+	
+	
+	float $d = (sqrt (pow(($at[0] - $fat[0]),2)+pow(($at[1] - $fat[1]),2)+pow(($at[2] - $fat[2]),2)))+(sqrt (pow(($fat[0] - $wt[0]),2)+pow(($fat[1] - $wt[1]),2)+pow(($fat[2] - $wt[2]),2)));
+	float $d2 = (sqrt (pow(($ult[0] - $lt[0]),2)+pow(($ult[1] - $lt[1]),2)+pow(($ult[2] - $lt[2]),2)))+(sqrt (pow(($lt[0] - $ft[0]),2)+pow(($lt[1] - $ft[1]),2)+pow(($lt[2] - $ft[2]),2)));
+	string $sy[] = {">=","<="} ;
+	string $sjna[] = {"armIK","foreArmIK","armFK","foreArmFK","foreArm"};
+	string $sjnl[] = {"upLegIK","legIK","upLegFK","legFK","leg"};
+	
+	/* 手腳伸縮骨架連結 */
+	string $al[] = {"arm","leg"};
+	string $al2[] = {"arm","upLeg"};
+	string $hf[] = {"hand","foot"};
+	string $inyz [] = {".input1Y",".input1Z",".input2Y",".input2Z"};
+	
+	for($i=0 ; $i<4 ; $i++){
+		for($v=0 ; $v<2 ; $v++){
+			for($t=0 ; $t<2 ; $t++){
+			shadingNode -asUtility multiplyDivide -n ($cn+$RL[$v]+$al[$t]+"MD"+$i);
+				for($e=0 ; $e<2 ; $e++){
+					setAttr ($cn+$RL[$v]+$al[$t]+"MD"+$i+$inyz [$e]) 1;
+					}
+			if($i<2){
+				shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+$al[$t]+"PMA"+$i);
+				}
+			if($i<1){
+				shadingNode -asUtility condition -n ($cn+$RL[$v]+$al[$t]+"C");
+				}
+			}
+		}
+	}
+	for($v=0 ; $v<2 ; $v++){
+		for($t=0 ; $t<2 ; $t++){
+			connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+$RL[$v]+$al[$t]+"MD0.input1X");
+			if($t == 0){
+				setAttr ($cn+$RL[$v]+$al[$t]+"MD0.input2X") $d;	
+			}else{
+				setAttr ($cn+$RL[$v]+$al[$t]+"MD0.input2X") $d2;
+			}
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"MD0.outputX") ($cn+$RL[$v]+$al[$t]+"C.secondTerm");
+			setAttr ($cn+$RL[$v]+$al[$t]+"C.operation") 3;
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"DShape.distance") ($cn+$RL[$v]+$al[$t]+"C.firstTerm");
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"DShape.distance") ($cn+$RL[$v]+$al[$t]+"MD1.input1X");
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"MD0.outputX") ($cn+$RL[$v]+$al[$t]+"MD1.input2X");
+			setAttr ($cn+$RL[$v]+$al[$t]+"MD1.operation") 2;
+			setAttr ($cn+$RL[$v]+$al[$t]+"PMA0.operation") 2;
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"MD1.outputX") ($cn+$RL[$v]+$al[$t]+"PMA0.input1D[0]");
+			connectAttr -f ($cn+"_all_ctrl.scaleY") ($cn+$RL[$v]+$al[$t]+"PMA0.input1D[1]") ;
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"PMA0.output1D") ($cn+$RL[$v]+$al[$t]+"MD2.input1X");
+			connectAttr -f ($cn+$RL[$v]+$hf[$t]+"_switch.autoStretch") ($cn+$RL[$v]+$al[$t]+"MD2.input2X");
+			
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"MD2.outputX") ($cn+$RL[$v]+$al[$t]+"PMA1.input1D[0]");
+			connectAttr -f ($cn+"_all_ctrl.scaleY") ($cn+$RL[$v]+$al[$t]+"PMA1.input1D[1]") ;
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"PMA1.output1D") ($cn+$RL[$v]+$al[$t]+"MD3.input1X");
+			connectAttr -f ($cn+$RL[$v]+$hf[$t]+"_switch.stretch") ($cn+$RL[$v]+$al[$t]+"MD3.input2X");
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"MD3.outputX") ($cn+$RL[$v]+$al[$t]+"C.colorIfTrueR");
+			connectAttr -f ($cn+$RL[$v]+$hf[$t]+"_switch.stretch") ($cn+$RL[$v]+$al[$t]+"C.colorIfFalseR");
+			connectAttr -f ($cn+$RL[$v]+$al[$t]+"C.outColorR") ($cn+$RL[$v]+$al2[$t]+".scaleY");
+			
+			for($i=0 ; $i<5 ; $i++){
+				if($t == 0){
+					connectAttr -f ($cn+$RL[$v]+$al[$t]+"C.outColorR") ($cn+$RL[$v]+$sjna[$i]+".scaleY");
+				}else{
+					connectAttr -f ($cn+$RL[$v]+$al[$t]+"C.outColorR") ($cn+$RL[$v]+$sjnl[$i]+".scaleY");
+				}
+			}
+		}
+	}
+	
+	/* switch 切換連結 */	
+	for($v = 0 ; $v < 2 ; $v++ ){
+		string $aln[] = {"arm","foreArm","upLeg","leg"};
+		string $hfn[] = {"hand","hand","foot","foot"};
+		string $hfn2[] = {"hand","foot"};
+		string $swn[] = {"ikFollow","pvFollow"};
+		
+		for($i=0 ; $i<2 ; $i++){
+			shadingNode -asUtility reverse -n ($cn+$RL[$v]+$hfn2[$i]+"_FK_IKOCR");
+			connectAttr -f ($cn+$RL[$v]+$hfn2[$i]+"_switch.FK_IK") ($cn+$RL[$v]+$hfn2[$i]+"_FK_IKOCR.inputX");
+		}
+		
+		for($i=0 ; $i<4 ; $i++){
+			connectAttr -f ($cn+$RL[$v]+$hfn[$i]+"_switch.FK_IK") ($cn+$RL[$v]+$aln[$i]+"_orientConstraint1."+$cn+$RL[$v]+$aln[$i]+"IKW1");
+			connectAttr -f ($cn+$RL[$v]+$hfn[$i]+"_FK_IKOCR.outputX") ($cn+$RL[$v]+$aln[$i]+"_orientConstraint1."+$cn+$RL[$v]+$aln[$i]+"FKW0");
+		}
+		
+		for($t=0 ; $t<2 ; $t++){
+			for($i=0 ; $i<2 ; $i++){
+				shadingNode -asUtility reverse -n ($cn+$RL[$v]+$hfn2[$t]+"_"+$swn[$i]+"OCR");
+				connectAttr -f ($cn+$RL[$v]+$hfn2[$t]+"_switch."+$swn[$i]) ($cn+$RL[$v]+$hfn2[$t]+"_"+$swn[$i]+"OCR.inputX");
+			}
+		}	
+		
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.ikFollow") ($cn+$RL[$v]+"armIK_ctrlG_parentConstraint1."+$cn+$RL[$v]+"shoulder_ctrlW0");
+		connectAttr -f ($cn+$RL[$v]+"hand_ikFollowOCR.outputX") ($cn+$RL[$v]+"armIK_ctrlG_parentConstraint1."+$cn+"_fullW1");
+		
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.ikFollow") ($cn+$RL[$v]+"legIK_ctrlG_parentConstraint1."+$cn+$RL[$v]+"hips_ctrlW0");
+		connectAttr -f ($cn+$RL[$v]+"foot_ikFollowOCR.outputX") ($cn+$RL[$v]+"legIK_ctrlG_parentConstraint1."+$cn+"_fullW1");
+		
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.pvFollow") ($cn+$RL[$v]+"armIK_pvG_parentConstraint1."+$cn+$RL[$v]+"armIKLW0");
+		connectAttr -f ($cn+$RL[$v]+"hand_pvFollowOCR.outputX") ($cn+$RL[$v]+"armIK_pvG_parentConstraint1."+$cn+$RL[$v]+"armIKpvR_ctrlW1");
+		
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.pvFollow") ($cn+$RL[$v]+"legIK_pvG_parentConstraint1."+$cn+$RL[$v]+"upLegIKLW0");
+		connectAttr -f ($cn+$RL[$v]+"foot_pvFollowOCR.outputX") ($cn+$RL[$v]+"legIK_pvG_parentConstraint1."+$cn+$RL[$v]+"upLegIKpvR_ctrlW1");
+	
+		shadingNode -asUtility reverse -n ($cn+$RL[$v]+"hand_handFollowOCR");
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.handFollow") ($cn+$RL[$v]+"hand_handFollowOCR.inputX");
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.handFollow") ($cn+$RL[$v]+"hand_ctrlG1_orientConstraint1."+$cn+$RL[$v]+"wristLW0");
+		connectAttr -f ($cn+$RL[$v]+"hand_handFollowOCR.outputX") ($cn+$RL[$v]+"hand_ctrlG1_orientConstraint1."+$cn+"_fullW1");
+
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.FK_IK") ($cn+$RL[$v]+"foot_orientConstraint1."+$cn+$RL[$v]+"footIKL_medW0");
+		connectAttr -f ($cn+$RL[$v]+"foot_FK_IKOCR.outputX") ($cn+$RL[$v]+"foot_orientConstraint1."+$cn+$RL[$v]+"footFKL_medW1");
+		
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.FK_IK") ($cn+$RL[$v]+"toeBase_orientConstraint1."+$cn+$RL[$v]+"toeBaseIKW0");
+		connectAttr -f ($cn+$RL[$v]+"foot_FK_IKOCR.outputX") ($cn+$RL[$v]+"toeBase_orientConstraint1."+$cn+$RL[$v]+"toeBaseFKW1");
+		
+		//伸縮骨架,控制器顯示切換
+		string $aikv[] = {"armIK_ctrlG","armIKpvR_ctrlG","armIK_pvG"};
+		string $afkv[] = {"armFK_ctrlG","foreArmFK_ctrlG"};
+		
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"hand_FK_IKC");
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.FK_IK") ($cn+$RL[$v]+"hand_FK_IKC.firstTerm");
+		setAttr ($cn+$RL[$v]+"hand_FK_IKC.colorIfTrueG") 1;
+		setAttr ($cn+$RL[$v]+"hand_FK_IKC.colorIfFalseG") 0;
+		setAttr ($cn+$RL[$v]+"hand_FK_IKC.secondTerm") 0.5;
+		setAttr ($cn+$RL[$v]+"hand_FK_IKC.operation") 5;
+		
+		for($i = 0 ; $i < 3 ; $i++ ){
+			connectAttr -f ($cn+$RL[$v]+"hand_FK_IKC.outColorR") ($cn+$RL[$v]+$aikv[$i]+".visibility");
+		}
+		
+		for($i = 0 ; $i < 2 ; $i++ ){
+			connectAttr -f ($cn+$RL[$v]+"hand_FK_IKC.outColorG") ($cn+$RL[$v]+$afkv[$i]+".visibility");
+		}
+		
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"hand_pvFollowC");
+		connectAttr -f ($cn+$RL[$v]+"hand_switch.pvFollow") ($cn+$RL[$v]+"hand_pvFollowC.firstTerm");
+		setAttr ($cn+$RL[$v]+"hand_pvFollowC.colorIfTrueG") 1;
+		setAttr ($cn+$RL[$v]+"hand_pvFollowC.colorIfFalseG") 0;
+		setAttr ($cn+$RL[$v]+"hand_pvFollowC.secondTerm") 0.5;
+		setAttr ($cn+$RL[$v]+"hand_pvFollowC.operation") 5;
+		connectAttr -f ($cn+$RL[$v]+"hand_pvFollowC.outColorG") ($cn+$RL[$v]+"armIKpvR_ctrl.visibility");
+		
+		//腳
+		string $fikv[] = {"legIK_ctrlG","upLegIKpvR_ctrlG","legIK_pvG"};
+		string $ffkv[] = {"upLegFK_ctrlG","legFK_ctrlG","foot_ctrlG"};
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"foot_FK_IKC");
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.FK_IK") ($cn+$RL[$v]+"foot_FK_IKC.firstTerm");
+		setAttr ($cn+$RL[$v]+"foot_FK_IKC.colorIfTrueG") 1;
+		setAttr ($cn+$RL[$v]+"foot_FK_IKC.colorIfFalseG") 0;
+		setAttr ($cn+$RL[$v]+"foot_FK_IKC.secondTerm") 0.5;
+		setAttr ($cn+$RL[$v]+"foot_FK_IKC.operation") 5;
+		
+		for($i = 0 ; $i < 3 ; $i++ ){
+			connectAttr -f ($cn+$RL[$v]+"foot_FK_IKC.outColorR") ($cn+$RL[$v]+$fikv[$i]+".visibility");
+		}
+		
+		for($i = 0 ; $i < 3 ; $i++ ){
+			connectAttr -f ($cn+$RL[$v]+"foot_FK_IKC.outColorG") ($cn+$RL[$v]+$ffkv[$i]+".visibility");
+		}
+		
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"foot_pvFollowC");
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.pvFollow") ($cn+$RL[$v]+"foot_pvFollowC.firstTerm");
+		setAttr ($cn+$RL[$v]+"foot_pvFollowC.colorIfTrueG") 1;
+		setAttr ($cn+$RL[$v]+"foot_pvFollowC.colorIfFalseG") 0;
+		setAttr ($cn+$RL[$v]+"foot_pvFollowC.secondTerm") 0.5;
+		setAttr ($cn+$RL[$v]+"foot_pvFollowC.operation") 5;
+		connectAttr -f ($cn+$RL[$v]+"foot_pvFollowC.outColorG") ($cn+$RL[$v]+"upLegIKpvR_ctrl.visibility");
+		
+		//腳掌小控制器 visibility
+		string $rcv[] = {"toesEndIK_rc_ctrlG","footIK_rc_ctrlG","toeBaseIK_rcL_ctrlG","toeBaseIK_rcR_ctrlG","toesEndIK_rc_center","footIK_rc_center","toeBaseIK_rcL_center","toeBaseIK_rcR_center","footIK_ctrlG","toeBaseIK_ctrlG"};
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"footMoreC");
+		shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+"footPMA");
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.more") ($cn+$RL[$v]+"footPMA.input1D[0]");
+		connectAttr -f ($cn+$RL[$v]+"foot_switch.FK_IK") ($cn+$RL[$v]+"footPMA.input1D[1]");
+		connectAttr -f ($cn+$RL[$v]+"footPMA.output1D") ($cn+$RL[$v]+"footMoreC.firstTerm");
+		setAttr ($cn+$RL[$v]+"footMoreC.secondTerm") 1.5;
+		setAttr ($cn+$RL[$v]+"footMoreC.operation") 5;
+		for($i = 0 ; $i < 10 ; $i++ ){
+			connectAttr -f ($cn+$RL[$v]+"footMoreC.outColorR") ($cn+$RL[$v]+$rcv[$i]+".visibility");
+		}
+		//腳尖數值相加連結
+		shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+"toeBaseIKL_trPMA");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_ctrl.rotateX") ($cn+$RL[$v]+"toeBaseIKL_trPMA.input1D[0]");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.toe") ($cn+$RL[$v]+"toeBaseIKL_trPMA.input1D[1]");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIKL_trPMA.output1D") ($cn+$RL[$v]+"toeBaseIKL_tr.rotateX");
+		
+		shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+"toeBaseIKL_frPMA");
+		connectAttr -f ($cn+$RL[$v]+"footIK_ctrl.rotateX") ($cn+$RL[$v]+"toeBaseIKL_frPMA.input1D[0]");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.heel") ($cn+$RL[$v]+"toeBaseIKL_frPMA.input1D[1]");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIKL_frPMA.output1D") ($cn+$RL[$v]+"toeBaseIKL_fr.rotateX");
+		
+		//前後墊腳數值相加連結
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"tiptoeC");
+		shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+"tiptoePMA");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.tiptoe") ($cn+$RL[$v]+"tiptoePMA.input2D[0].input2Dx");
+		connectAttr -f ($cn+$RL[$v]+"toesEndIK_rc_ctrl.rotateX ") ($cn+$RL[$v]+"tiptoePMA.input2D[1].input2Dx");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.tiptoe") ($cn+$RL[$v]+"tiptoeC.firstTerm");
+		setAttr ($cn+$RL[$v]+"tiptoeC.operation") 2;
+		connectAttr -f ($cn+$RL[$v]+"tiptoePMA.output2Dx") ($cn+$RL[$v]+"tiptoeC.colorIfTrueR");
+		connectAttr -f ($cn+$RL[$v]+"toesEndIK_rc_ctrl.rotateX") ($cn+$RL[$v]+"tiptoeC.colorIfFalseR");
+		connectAttr -f ($cn+$RL[$v]+"tiptoeC.outColorR") ($cn+$RL[$v]+"toesEndIKL_rc.rotateX");
+		
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.tiptoe") ($cn+$RL[$v]+"tiptoePMA.input2D[0].input2Dy");
+		connectAttr -f ($cn+$RL[$v]+"footIK_rc_ctrl.rotateX") ($cn+$RL[$v]+"tiptoePMA.input2D[1].input2Dy");
+		connectAttr -f ($cn+$RL[$v]+"footIK_rc_ctrl.rotateX") ($cn+$RL[$v]+"tiptoeC.colorIfTrueG");
+		connectAttr -f ($cn+$RL[$v]+"tiptoePMA.output2Dy") ($cn+$RL[$v]+"tiptoeC.colorIfFalseG");
+		connectAttr -f ($cn+$RL[$v]+"tiptoeC.outColorG") ($cn+$RL[$v]+"footIKL_rc.rotateX");
+		
+		//左右墊腳數值相加連結
+		shadingNode -asUtility condition -n ($cn+$RL[$v]+"turnC");
+		shadingNode -asUtility plusMinusAverage -n ($cn+$RL[$v]+"turnPMA");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.turn") ($cn+$RL[$v]+"turnPMA.input2D[0].input2Dx");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_rcR_ctrl.rotateZ") ($cn+$RL[$v]+"turnPMA.input2D[1].input2Dx");
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.turn") ($cn+$RL[$v]+"turnC.firstTerm");
+		if($v==0){
+			setAttr ($cn+$RL[$v]+"turnC.operation") 2;
+		}else{
+			setAttr ($cn+$RL[$v]+"turnC.operation") 5;
+		}
+		connectAttr -f ($cn+$RL[$v]+"turnPMA.output2Dx") ($cn+$RL[$v]+"turnC.colorIfTrueR");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_rcR_ctrl.rotateZ") ($cn+$RL[$v]+"turnC.colorIfFalseR");
+		connectAttr -f ($cn+$RL[$v]+"turnC.outColorR") ($cn+$RL[$v]+"toeBaseIKL_rcR.rotateZ");
+		
+		connectAttr -f ($cn+$RL[$v]+"legIK_ctrl.turn") ($cn+$RL[$v]+"turnPMA.input2D[0].input2Dy");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_rcL_ctrl.rotateZ") ($cn+$RL[$v]+"turnPMA.input2D[1].input2Dy");
+		connectAttr -f ($cn+$RL[$v]+"toeBaseIK_rcL_ctrl.rotateZ") ($cn+$RL[$v]+"turnC.colorIfTrueG");
+		connectAttr -f ($cn+$RL[$v]+"turnPMA.output2Dy") ($cn+$RL[$v]+"turnC.colorIfFalseG");
+		connectAttr -f ($cn+$RL[$v]+"turnC.outColorG") ($cn+$RL[$v]+"toeBaseIKL_rcL.rotateZ");
+	}
+	
+	//spline IK
+	float $cj1[]= `xform -ws -q -t ($cn+"_pelvis")`;
+	float $cj2[]= `xform -ws -q -t ($cn+"_spine0")`;
+	float $cj3[]= `xform -ws -q -t ($cn+"_spine1")`;
+	float $cj4[]= `xform -ws -q -t ($cn+"_spine2")`;
+	float $cj5[]= `xform -ws -q -t ($cn+"_chest")`;
+	float $cjd1 = sqrt (pow(($cj1[0] - $cj2[0]),2)+pow(($cj1[1] - $cj2[1]),2)+pow(($cj1[2] - $cj2[2]),2));
+	float $cjd2 = sqrt (pow(($cj2[0] - $cj3[0]),2)+pow(($cj2[1] - $cj3[1]),2)+pow(($cj2[2] - $cj3[2]),2));
+	float $cjd3 = sqrt (pow(($cj3[0] - $cj4[0]),2)+pow(($cj3[1] - $cj4[1]),2)+pow(($cj3[2] - $cj4[2]),2));
+	float $cjd4 = sqrt (pow(($cj4[0] - $cj5[0]),2)+pow(($cj4[1] - $cj5[1]),2)+pow(($cj4[2] - $cj5[2]),2));
+	
+	/* Spline伸縮骨架連結 */
+	string $inyz[] = {".input1Y",".input1Z",".input2Y",".input2Z"};
+	for($t=0 ; $t<4 ; $t++){
+		for($i=0 ; $i<3 ; $i++){
+		shadingNode -asUtility multiplyDivide -n ($cn+$sik[$t]+"SMD"+$i);
+			for($e=0 ; $e<3 ; $e++){
+				setAttr ($cn+$sik[$t]+"SMD"+$i+$inyz [$e]) 1;
+			}
+		if($i<2){
+			shadingNode -asUtility plusMinusAverage -n ($cn+$sik[$t]+"SPMA"+$i);
+			}
+			
+		}
+	}
+	for($t=0 ; $t<4 ; $t++){
+		setAttr ($cn+$sik[$t]+"SMD1.operation") 2;
+		setAttr ($cn+$sik[$t]+"SPMA0.operation") 2;
+		connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+$sik[$t]+"SMD0.input1X");
+		connectAttr -f ($cn+$sik[$t]+"SMD0.outputX") ($cn+$sik[$t]+"SMD1.input2X");
+		connectAttr -f ($cn+$sik[$t]+"_DShape.distance") ($cn+$sik[$t]+"SMD1.input1X");
+		connectAttr -f ($cn+$sik[$t]+"SMD1.outputX") ($cn+$sik[$t]+"SPMA0.input1D[0]");
+		connectAttr -f ($cn+"_all_ctrl.scaleX") ($cn+$sik[$t]+"SPMA0.input1D[1]");
+		connectAttr -f ($cn+$sik[$t]+"SPMA0.output1D") ($cn+$sik[$t]+"SMD2.input1X");
+		connectAttr -f ($cn+"_chestIK_switch.autoStretchSpine") ($cn+$sik[$t]+"SMD2.input2X");
+		connectAttr -f ($cn+$sik[$t]+"SMD2.outputX") ($cn+$sik[$t]+"SPMA1.input1D[0]");
+		connectAttr -f ($cn+"_chestIK_switch.stretch") ($cn+$sik[$t]+"SPMA1.input1D[1]");
+		connectAttr -f ($cn+$sik[$t]+"SPMA1.output1D") ($cn+$sfk[$t]+".scaleY");
+		connectAttr -f ($cn+"_chestIK_switch.stretch") ($cn+$sik[$t]+".scaleY");
+	}
+	setAttr ($cn+"_pelvisIK"+"SMD0.input2X") $cjd1;	
+	setAttr ($cn+"_spine0IK"+"SMD0.input2X") $cjd2;	
+	setAttr ($cn+"_spine1IK"+"SMD0.input2X") $cjd3;	
+	setAttr ($cn+"_spine2IK"+"SMD0.input2X") $cjd4;	
+	
+	/* Spline ShowHide連結 */
+	shadingNode -asUtility plusMinusAverage -n ($cn+"_spineMoreSpine"+"PMA");
+	shadingNode -asUtility condition -n ($cn+"_spineMoreSpineC");
+	connectAttr -f ($cn+"_chestIK_switch.FKIK") ($cn+"_spineMoreSpine"+"PMA.input1D[0]");
+	connectAttr -f ($cn+"_chestIK_switch.moreSpine") ($cn+"_spineMoreSpine"+"PMA.input1D[1]");
+	connectAttr -f ($cn+"_spineMoreSpine"+"PMA.output1D") ($cn+"_spineMoreSpineC.firstTerm");
+	setAttr ($cn+"_spineMoreSpineC.secondTerm") 1.5;
+	setAttr ($cn+"_spineMoreSpineC.operation") 5;
+	connectAttr -f ($cn+"_spineMoreSpineC.outColorR") ($cn+"_spine0IK_ctrlG.visibility");
+	connectAttr -f ($cn+"_spineMoreSpineC.outColorR") ($cn+"_spine2IK_ctrlG.visibility");
+	
+	shadingNode -asUtility condition -n ($cn+"_spineFKIKVC");
+	connectAttr -f ($cn+"_chestIK_switch.FKIK") ($cn+"_spineFKIKVC.firstTerm");
+	setAttr ($cn+"_spineFKIKVC.secondTerm") 0.5;
+	setAttr ($cn+"_spineFKIKVC.operation") 5;
+	setAttr ($cn+"_spineFKIKVC.colorIfTrueG") 1;
+	setAttr ($cn+"_spineFKIKVC.colorIfFalseG") 0;
+	string $ikv[] = {"_chestIK","_spine1IK","_pelvisIK"};
+	for($i=0 ; $i<3 ; $i++){
+		connectAttr -f ($cn+"_spineFKIKVC.outColorR") ($cn+$ikv[$i]+"_ctrlG.visibility");
+	}
+	connectAttr -f ($cn+"_spineFKIKVC.outColorG") ($cn+"_pelvisFK_ctrlG.visibility");
+	
+	/* Spline constraint連結 */	
+	shadingNode -asUtility reverse -n ($cn+"_spinePaCR");
+	connectAttr -f ($cn+"_chestIK_switch.FKIK") ($cn+"_spinePaCR.inputX");
+	for($i=0 ; $i<5 ; $i++){
+	connectAttr -f ($cn+"_chestIK_switch.FKIK") ($cn+$sn[$i]+"_parentConstraint1."+$cn+$sn[$i]+"IKRW0");
+	connectAttr -f ($cn+"_spinePaCR.outputX") ($cn+$sn[$i]+"_parentConstraint1."+$cn+$sn[$i]+"FKW1");
+	}
+	
+	shadingNode -asUtility reverse -n ($cn+"_spineOCR");
+	connectAttr -f ($cn+"_chestIK_switch.autoTwist") ($cn+"_spineOCR.inputX");
+	for($i=0 ; $i<5 ; $i++){
+	connectAttr -f ($cn+"_chestIK_switch.autoTwist") ($cn+$sn[$i]+"IKR_orientConstraint1."+$cn+$sn[$i]+"IKAW1");
+	connectAttr -f ($cn+"_spineOCR.outputX") ($cn+$sn[$i]+"IKR_orientConstraint1."+$cn+$sn[$i]+"IKW0");
+	}
+	
+	shadingNode -asUtility reverse -n ($cn+"_spinePoCR");
+	connectAttr -f ($cn+"_chestIK_switch.autoStretchSpine") ($cn+"_spinePoCR.inputX");
+	for($i=1 ; $i<5 ; $i++){
+	connectAttr -f ($cn+"_chestIK_switch.autoStretchSpine") ($cn+$sn[$i]+"IKR_pointConstraint1."+$cn+$sn[$i]+"IK_ctrlW1");
+	connectAttr -f ($cn+"_spinePoCR.outputX") ($cn+$sn[$i]+"IKR_pointConstraint1."+$cn+$sn[$i]+"IKW0");
+	}
+	
+	/* Spline twist連結 */
+	shadingNode -asUtility plusMinusAverage -n ($cn+"_splineTwist"+"PMA");
+	setAttr ($cn+"_splineTwist"+"PMA.operation") 2;
+	connectAttr -f ($cn+"_chestIK_ctrl.twist") ($cn+"_splineTwist"+"PMA.input1D[0]");
+	connectAttr -f ($cn+"_splineIK_handle.roll") ($cn+"_splineTwist"+"PMA.input1D[1]");
+	connectAttr -f ($cn+"_splineTwist"+"PMA.output1D") ($cn+"_splineIK_handle.twist");
+	
+	//脖子連結
+	if(objExists ($cn+"_neck0")){
+		float $nt[]= `xform -ws -q -t ($cn + "_neck0")`;
+		float $ht[]= `xform -ws -q -t ($cn + "_head")`;
+		float $nhd2 = sqrt (pow(($nt[0] - $ht[0]),2)+pow(($nt[1] - $ht[1]),2)+pow(($nt[2] - $ht[2]),2));
+		string $inyz [] = {".input1Y",".input1Z",".input2Y",".input2Z"};
+	
+		for($i=0 ; $i<3 ; $i++){
+				shadingNode -asUtility multiplyDivide -n ($cn+"_neck"+"MD"+$i);
+					for($e=0 ; $e<2 ; $e++){
+						setAttr ($cn+"_neck"+"MD"+$i+$inyz [$e]) 1;
+						}
+				if($i<2){
+					shadingNode -asUtility plusMinusAverage -n ($cn+"_neck"+"PMA"+$i);
+					}
+		}
+		
+		setAttr ($cn+"_neck"+"MD1.operation") 2;
+		setAttr ($cn+"_neck"+"PMA0.operation") 2;
+		setAttr ($cn+"_neck"+"MD0.input2X") $nhd2;	
+		connectAttr -f ($cn+"_all_ctrl.scaleAll") ($cn+"_neck"+"MD0.input1X");
+		connectAttr -f ($cn+"_neck"+"MD0.outputX") ($cn+"_neck"+"MD1.input2X");
+		connectAttr -f ($cn+"_neck_DShape.distance") ($cn+"_neck"+"MD1.input1X");
+		connectAttr -f ($cn+"_neck"+"MD1.outputX") ($cn+"_neck"+"PMA0.input1D[0]");
+		connectAttr -f ($cn+"_all_ctrl.scaleX") ($cn+"_neck"+"PMA0.input1D[1]");
+		connectAttr -f ($cn+"_neck"+"PMA0.output1D") ($cn+"_neck"+"MD2.input1X");
+		connectAttr -f ($cn+"_chestIK_switch.autoStretchNeck") ($cn+"_neck"+"MD2.input2X");
+		connectAttr -f ($cn+"_neck"+"MD2.outputX") ($cn+"_neck"+"PMA1.input1D[0]");
+		connectAttr -f ($cn+"_all_ctrl.scaleX") ($cn+"_neck"+"PMA1.input1D[1]");
+		
+		for($i = 0 ; $i < $neckcount ; $i++){
+			connectAttr -f ($cn+"_neck"+"PMA1.output1D") ($cn+"_neck"+$i+".scaleY");
+		}
+		
+		shadingNode -asUtility condition -n ($cn+"_neckCdt");
+		connectAttr -f ($cn+"_chestIK_switch.moreNeck") ($cn+"_neckCdt.firstTerm");
+		connectAttr -f ($cn+"_neckCdt.outColorR") ($cn+"_neckC_ctrlG.visibility");
+	}
+	
+
+	//旋轉中心
+	string $rcn[] = {"_underRotate","_centerRotate","_topRotate"};
+	shadingNode -asUtility condition -n ($cn+"_all_ctrlC");
+	connectAttr -f ($cn+"_all_ctrl.rotateCenter") ($cn+"_all_ctrlC.firstTerm");
+	for($i = 0 ; $i < 3 ; $i++){
+		connectAttr -f ($cn+"_all_ctrlC.outColorR") ($cn+$rcn[$i]+"_ctrl.visibility");
+	}
+	
+	shadingNode -asUtility condition -n ($cn+"_hipsC");
+	connectAttr -f ($cn+"_chestIK_switch.hipsCenter") ($cn+"_hipsC.firstTerm");
+	connectAttr -f ($cn+"_hipsC.outColorR") ($cn+"_hips_ctrlC.visibility");
+
+	}else{
+	confirmDialog -title "無法產生"
+                -message "無可套用的骨架"
+                -button "ok" 
+                -defaultButton "ok" ;
+				
+	}
+	}
+}
+

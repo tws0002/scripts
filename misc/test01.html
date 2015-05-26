@@ -1,0 +1,49 @@
+
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="/assets/scripts/jquery-ui-1.11.0/jquery-ui.css">
+  <script src="/assets/scripts/jquery-2.1.1.js"></script>
+  <script src="/assets/scripts/jquery-ui-1.11.0/jquery-ui.js"></script>
+
+  <style>
+  #draggable1, #draggable2, #draggable3 { width: 150px; height: 150px; , border:0px}
+	#containment-wrapper { width: 800px; height:600px; border:1px solid #ccc; padding: 0px; align: center }
+  h3 { clear: left; }
+
+  </style>
+  <script>
+  $(function() {
+    $( "#draggable1" ).draggable({ containment: "#containment-wrapper", scroll: false, grid: [50,50] });
+    $( "#draggable1" ).resizable({ containment: "#containment-wrapper",
+      grid: 50
+	});
+
+    $( "#draggable2" ).draggable({ containment: "#containment-wrapper", scroll: false, grid: [50,50] });
+    $( "#draggable2" ).resizable({ containment: "#containment-wrapper",
+      grid: 50
+	});
+    $( "#draggable3" ).draggable({ containment: "#containment-wrapper", scroll: false, grid: [50,50] });
+    $( "#draggable3" ).resizable({ containment: "#containment-wrapper",
+      grid: 50
+	});
+  });
+
+  </script>
+</head>
+<body>
+<div id="containment-wrapper">
+ 
+<div id="draggable1" class="ui-widget-content">
+  <h3>Header:頭</h3>
+</div>
+ <div id="draggable2" class="ui-widget-content">
+  <p>Menu</p>
+</div>
+<div id="draggable3" class="ui-widget-content">
+  <p>Content</p>
+</div>
+ </div>
+
+</body>
+</html>

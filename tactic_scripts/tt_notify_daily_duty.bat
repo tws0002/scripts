@@ -1,0 +1,1 @@
+C:\Python27\python.exe "\\Art-1405260002\d\assets\scripts\tactic_scripts\tt_notify_daily_duty.py"

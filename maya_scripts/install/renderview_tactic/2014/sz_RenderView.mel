@@ -1,0 +1,3778 @@
+/*
+	RenderView Extension 1.99
+	
+	You find detailed script information in the readme file.
+	Use script at your own risk, as always.
+
+	
+	Horvátth Szabolcs
+	(szabolcs@impresszio.hu | www.impresszio.hu/szabolcs)
+	2014.12.01.
+*/
+
+
+
+// Stored render information list
+global string $dataList[];
+$dataList = {"Filename", "Frame", "Camera", "Layer", "DateTime", "Resolution", "Renderer", "Rendertime", "Sampling", "Filter", "User", "Comment"};
+if (!`optionVar -exists sz_MIT_ShowInfo`)										// Set default render info settings
+	optionVar -sv sz_MIT_ShowInfo "0_0_0_0_0_1_1_1_0_0_0_0";
+
+// Objects to render list
+global string $sz_RV_ObjectsToRenderList[];
+global int $sz_RV_ObjectsToRenderEnable;
+
+
+
+
+
+//************************************************************************************************************************     
+// Build the Maya Software and Mental Ray for Maya Render Globals menu
+global proc sz_RV_BuildGlobalsMenu() {
+	string $renderer = currentRenderer();
+	popupMenu -e -dai sz_SetMayaGlobalsMenu;
+	setParent -m sz_SetMayaGlobalsMenu;
+
+	menuItem 
+		-label "Render Selected Only"
+		-ann "Render only the currently selected objects"
+		-c ("optionVar -iv renderViewRenderSelectedObj (1-`optionVar -q renderViewRenderSelectedObj`)")
+		-cb `optionVar -q renderViewRenderSelectedObj`;
+
+
+	menuItem 
+			-ob 1 
+			-ann "Store the list of selected objects for auto-selection before rendering"
+			-c "sz_RV_ObjectsToRender_GUI";
+
+
+	if (match ("^[mM]ental", $renderer) != "" || match ("^[mM][rR]", $renderer) != "")		// Try to handle all possible mr translators
+	{
+		string $currentQuality = sz_RV_GetCurrentMRQuality();
+		if (!objExists ("miDefaultOptions"))		// Create default MR nodes
+			eval ("miCreateDefaultNodes");
+	
+	//Render Settings			
+		int $raytracing = `getAttr ($currentQuality + ".rayTracing")`;
+		menuItem 
+			-label "Raytracing"
+			-c "sz_RV_ToggleRaytracing;"
+			-cb $raytracing
+			sz_MRRaytracing;
+	
+		menuItem 
+			-label "Enable Displacement"
+			-c ("setAttr \"miDefaultOptions.displacementShaders\" " + (1-`getAttr "miDefaultOptions.displacementShaders"`))
+			-cb (`getAttr "miDefaultOptions.displacementShaders"`);
+		menuItem 
+			-label "Enable Shadows"
+			-c ("if (!`getAttr miDefaultOptions.shadowMethod`) setAttr miDefaultOptions.shadowMethod 3;else setAttr miDefaultOptions.shadowMethod 0;")
+			-cb (`getAttr "miDefaultOptions.shadowMethod"`);
+		menuItem 
+			-label "Use Default Light"
+			-c ("setAttr \"defaultRenderGlobals.enableDefaultLight\" " + (1-`getAttr "defaultRenderGlobals.enableDefaultLight"`))
+			-cb (`getAttr "defaultRenderGlobals.enableDefaultLight"`);
+		menuItem -d 1;
+	
+	//Mental Ray render quality
+		menuItem -label "Mental Ray Render Quality" -sm 1;
+		radioMenuItemCollection;
+		string $options[] = `ls -typ mentalrayOptions`;
+		int $check;
+		int $qualityMatched = 0;
+		if (size ($options) <= 1 )							// in a new scene the MR quality nodes are not present so we create them
+		{
+			catchQuiet(`eval("miCreateOtherOptionsNodesForURG")`);
+			$options = `ls -typ mentalrayOptions`;
+		}
+		for ($item in $options)
+		{
+			if ($item != "miDefaultOptions" && $item != "miContourPreset")
+			{
+				if (`optionMenuGrp -query -exists miRenderQualityMenu`)	// Use option menu's data when exists
+				{
+					global string $miRenderQualityList[];
+					int $mrQualityIndex = `optionMenuGrp -query -select miRenderQualityMenu`;
+					if ($mrQualityIndex != 1)
+						$check = ($miRenderQualityList[$mrQualityIndex-2] == $item);
+					else
+						$check = (`miNodesEqual $item "miDefaultOptions"` == "");
+				}
+				else									// In case the Globals window does not yet exists
+					$check = (`miNodesEqual $item "miDefaultOptions"` == "");
+				menuItem 
+					-l $item
+					-rb $check
+					-c ("sz_RV_ChangeMRRenderQuality " + $item);
+				$qualityMatched+= $check;
+			}
+		}
+		if ($qualityMatched == 0)
+			menuItem -l "Custom" -rb 1;
+		
+		// Handle custom quality presets
+		string $globalsNodes[] = `renderer -q -globalsNodes $renderer`;
+		string $presetArray[];
+		if (size($globalsNodes)>0)
+			$presetArray = `nodePreset -list $globalsNodes[0]`;
+		if (`size $presetArray` > 0)
+		{
+			if (!`exists "loadNodePresets"`)
+				source unifiedRenderGlobalsWindow.mel;
+			menuItem -divider 1;
+			menuItem -l "Presets" -bld 1;
+			for ($item in $presetArray)
+				menuItem -l $item -c ("loadNodePresets " + $item);	
+		}
+		setParent -m ..;
+	
+		menuItem 
+			-label "Final Gathering"
+			-en $raytracing
+			-c ("setAttr " + $currentQuality + ".finalGather (1 - `getAttr " + $currentQuality + ".finalGather`)")
+			-cb `getAttr ($currentQuality + ".finalGather")`
+			sz_MRFinalGather;
+		menuItem 
+			-label "Global Illumination"
+			-en $raytracing
+			-c ("setAttr " + $currentQuality + ".globalIllum (1 - `getAttr " + $currentQuality + ".globalIllum`)")
+			-cb `getAttr ($currentQuality + ".globalIllum")`
+			sz_MRGlobalIllum;
+		menuItem 
+			-label "Caustics"
+			-en $raytracing
+			-c ("setAttr " + $currentQuality + ".caustics (1 - `getAttr " + $currentQuality + ".caustics`)")		
+			-cb `getAttr ($currentQuality + ".caustics")`
+			sz_MRCaustics;
+	
+		menuItem -label "Motion Blur" -sm true;
+		menuItem
+			-label "Use rapid scanline (rasterizer) for Motion Blur"
+			-c ("optionVar -iv sz_RV_UseRapidWithMB (1-`optionVar -q sz_RV_UseRapidWithMB`)")
+			-cb `optionVar -q sz_RV_UseRapidWithMB`;
+		menuItem -divider 1;
+		radioMenuItemCollection;
+			menuItem
+				-label "Off"
+				-rb (`getAttr ($currentQuality + ".motionBlur")` == 0)
+				-c ("setAttr " + $currentQuality + ".motionBlur 0;if (`optionVar -q sz_RV_UseRapidWithMB`) setAttr " + $currentQuality + ".scanline 1");
+			menuItem
+				-label "Linear (Transform)"
+				-rb (`getAttr ($currentQuality + ".motionBlur")` == 1)
+				-c ("setAttr " + $currentQuality + ".motionBlur 1;if (`optionVar -q sz_RV_UseRapidWithMB`) setAttr " + $currentQuality + ".scanline 3");
+			menuItem
+				-label "Exact (Deform)"
+				-rb (`getAttr ($currentQuality + ".motionBlur")` == 2)
+				-c ("setAttr " + $currentQuality + ".motionBlur 2;if (`optionVar -q sz_RV_UseRapidWithMB`) setAttr " + $currentQuality + ".scanline 3");
+		setParent -m ..;
+		menuItem -divider 1;
+				
+		sz_RV_BuildApproxMenu;											// Approximations
+		sz_RV_BuildIBLMenu;												// Image Based Lighting
+		sz_RV_BuildCustomTextMenu;										// Custom text
+		
+		menuItem -divider 1;
+		
+		menuItem -label "Translation Verbosity" -sm true;
+			radioMenuItemCollection;
+			string $verbosityList[] = {"No", "Fatal", "Error", "Warning", "Info", "Progress", "Detailed"};
+			int $verCounter = 0;
+			for ($currentVerbosity in $verbosityList)
+			{
+				menuItem 
+					-label ($currentVerbosity + " messages") 
+					-rb (`getAttr mentalrayGlobals.exportVerbosity` == $verCounter)
+					-c ("setAttr mentalrayGlobals.exportVerbosity " + $verCounter + ";optionVar -iv v_mrRenderLogVerbosity " + $verCounter + ";");
+				$verCounter++;
+			}
+			setParent -m ..;
+		menuItem -divider 1;
+	} //MR if ends
+	
+	
+	if ($renderer == "mayaSoftware")
+	{	
+		menuItem -d 1;
+					
+	//Maya Anti-Aliasing Settings
+		string $renderGlobalsName = "unifiedRenderGlobalsWindow";
+		if (!`optionMenuGrp -q -ex qualityPresetMenu`)				// if the quality frame has not yet been created force opening the Globals
+		{
+			if (!`window -q -ex $renderGlobalsName`)
+			{
+				eval ($renderGlobalsName);
+				window -e -vis 0 $renderGlobalsName;
+			}
+		}
+		
+		// Quality menu
+		setParent -m sz_SetMayaGlobalsMenu;
+		menuItem -label "Render Quality" -sm true;
+		radioMenuItemCollection;
+		string $mayaQualitySettings [] = {"Preview Quality", "Intermediate Quality", "Production Quality", "Contrast Sensitive Production", "3D Motion Blur Production"};
+		int $q = 2;
+		for ($currentQualitySetting in $mayaQualitySettings)
+		{
+			menuItem 
+				-l $currentQualitySetting
+				-rb (`optionMenuGrp -q -sl qualityPresetMenu` == $q)
+				-c ("optionMenuGrp -edit -sl " + $q + " qualityPresetMenu;RGsetDefaultQuality");
+			$q++;
+		}
+		if (`optionMenuGrp -q -sl qualityPresetMenu` == 1)
+			menuItem 
+				-label "Custom"
+				-rb (`optionMenuGrp -q -sl qualityPresetMenu` == 1)
+				-c "optionMenuGrp -edit -sl 1 qualityPresetMenu;RGsetDefaultQuality";
+	
+		string $globalsNodes[] = `renderer -q -globalsNodes $renderer`;
+		string $presetArray[];
+		if (size($globalsNodes)>0)
+			$presetArray = `nodePreset -list $globalsNodes[0]`;
+		if (`size $presetArray` > 0)
+		{
+			menuItem -divider 1;
+			menuItem -l "Presets" -bld 1;
+			for ($item in $presetArray)
+				menuItem -l $item -c ("loadNodePresets " + $item);	
+		}
+		setParent -m ..;               
+				
+		menuItem -label "Motion Blur" -sm true;
+		radioMenuItemCollection;
+				menuItem 
+					-label "Off"
+					-rb (`getAttr "defaultRenderGlobals.motionBlur"` == 0)
+					-c "setAttr \"defaultRenderGlobals.motionBlur\" 0";
+				menuItem 
+					-label "2D"
+					-rb (`getAttr "defaultRenderGlobals.motionBlurType"` == 0 && `getAttr "defaultRenderGlobals.motionBlur"` == 1)
+					-c "setAttr \"defaultRenderGlobals.motionBlur\" 1; setAttr \"defaultRenderGlobals.motionBlurType \" 0;";
+				menuItem 
+					-label "3D"
+					-rb (`getAttr "defaultRenderGlobals.motionBlurType"` == 1 && `getAttr "defaultRenderGlobals.motionBlur"` == 1)
+					-c "setAttr \"defaultRenderGlobals.motionBlur\" 1; setAttr \"defaultRenderGlobals.motionBlurType \" 1;";
+		setParent -m ..;
+		menuItem -d 1;
+		
+	//Render Options
+		menuItem -label "Render Options" -sm 1 sz_RenderOptions;
+		
+			menuItem 
+				-l "Default Light"
+				-c ("setAttr \"defaultRenderGlobals.enableDefaultLight\" " + (1-`getAttr "defaultRenderGlobals.enableDefaultLight"`))
+				-cb (`getAttr "defaultRenderGlobals.enableDefaultLight"`);
+			menuItem 
+				-l "Enable Depth-Map Shadows"
+				-c ("setAttr \"defaultRenderGlobals.enableDepthMaps\" " + (1-`getAttr "defaultRenderGlobals.enableDepthMaps"`))
+				-cb (`getAttr "defaultRenderGlobals.enableDepthMaps"`);	
+			menuItem 
+				-l "Composite (No premultiply)"
+				-c ("setAttr \"defaultRenderGlobals.composite\" " + (1-`getAttr "defaultRenderGlobals.composite"`))
+				-cb (`getAttr "defaultRenderGlobals.composite"`);
+			menuItem 
+				-l "Render Paint Effects"
+				-c ("setAttr \"defaultRenderGlobals.enableStrokeRender\" " + (1-`getAttr "defaultRenderGlobals.enableStrokeRender"`))
+				-cb (`getAttr "defaultRenderGlobals.enableStrokeRender"`);
+			menuItem 
+				-l "Oversample Paint Effects"
+				-c ("setAttr \"defaultRenderGlobals.oversamplePaintEffects\" " + (1-`getAttr "defaultRenderGlobals.oversamplePaintEffects"`))
+				-cb (`getAttr "defaultRenderGlobals.oversamplePaintEffects"`);
+		setParent -m ..;
+	} //Maya software ends
+	
+	//Image Planes
+		menuItem -label "Image Planes" -sm 1 sz_ImagePlanes;
+		string $imagePlaneTest [] = `ls -type "imagePlane"`;
+		if (size ($imagePlaneTest) != 0)
+		{
+			string $preRenderScript = `getAttr defaultRenderGlobals.preRenderMel`;
+			menuItem 
+				-l "Turn Off Every ImagePlane When Rendering"
+				-c "sz_TurnOffEveryImagePlaneWhenRendering"
+				-cb (`match sz_ModifyEveryImagePlane $preRenderScript` != "")
+				sz_ImagePlanesAutoOff;
+	
+			menuItem 
+				-l "Turn Off Every ImagePlane"
+				-c "sz_ModifyEveryImagePlane 0";
+			menuItem -divider 1;
+			menuItem 
+				-l "Change Every ImagePlane to RGB"
+				-c "sz_ModifyEveryImagePlane 2";
+			menuItem 
+				-l "Change Every ImagePlane to RGBA"
+				-c "sz_ModifyEveryImagePlane 3";
+			menuItem 
+				-l "Change Every ImagePlane to Luminance"
+				-c "sz_ModifyEveryImagePlane 4";
+			menuItem 
+				-l "Change Every ImagePlane to Alpha"
+				-c "sz_ModifyEveryImagePlane 5";
+		}
+		else
+			menuItem 
+				-e 
+				-label "Image Planes (No image plane in scene)"
+				-en 0
+				sz_ImagePlanes;
+		setParent -m..;			
+		menuItem -d 1;
+		
+	//Select renderable camera
+		menuItem -label "Active Camera" -sm 1 sz_SelectActiveCamera;
+			radioMenuItemCollection;
+			string $cameras[] = `ls -cameras`;
+			string $camera;
+			string $currentCamera = "persp";
+			int $check;
+			
+			for ($i = 0; $i < size($cameras); $i++) 
+				if (`getAttr ($cameras[$i] + ".renderable")`) 
+					$currentCamera = $cameras[$i];
+		
+			for( $camera in $cameras)
+			{
+				string $transforms[] = `listConnections -p 1 ($camera + ".centerOfInterest")`;
+				if (`match "centerOfIllumination" $transforms[0]` == "") 		// filter cameras created by "look through"
+				{
+					string $transform[] = `listRelatives -p $camera`;
+					menuItem 
+						-l $transform[0] 
+						-c ("sz_SetCameraRenderable " + $camera)
+						-rb ($currentCamera == $camera)
+						$camera;
+				}
+			} //camera for cycle ends
+		
+		//Camera attributes
+			menuItem -divider 1;
+			menuItem 
+				-label "Save Color Channel" 
+				-cb `getAttr ($currentCamera + ".image")`
+				-c ("setAttr " + $currentCamera + ".image (1 - `getAttr " + $currentCamera + ".image`)");
+			menuItem 
+				-label "Save Alpha Channel" 
+				-cb `getAttr ($currentCamera + ".mask")`
+				-c ("setAttr " + $currentCamera + ".mask (1 - `getAttr " + $currentCamera + ".mask`)");
+			menuItem 
+				-label "Save Depth Channel"
+				-cb `getAttr ($currentCamera + ".depth")`
+				-c ("setAttr " + $currentCamera + ".depth (1 - `getAttr " + $currentCamera + ".depth`)");
+		setParent -m ..;                         
+	
+	//Image Formats
+		menuItem -divider 1;
+		menuItem -label "Image Formats" -sm 1;
+	
+		global string $gImageFormatData[];
+		global string $gUserImageFormatData[];
+		if (`size $gImageFormatData` == 0)
+			source "imageFormats.mel";
+		string $tokens[];
+		
+		menuItem -label "Default Formats" -bld 1;
+		for( $i = 0; $i < `size $gImageFormatData`; $i++ ) 
+		{
+			tokenize($gImageFormatData[$i], $tokens);
+			int $imageFormatCheck = 0;
+			if (`optionMenuGrp -q -exists resolutionMenu`)
+				$imageFormatCheck = (`optionMenuGrp -q -sl resolutionMenu` == ($i+2));
+			menuItem
+				-l `substitute "_" $tokens[0] " "`
+				-bld $imageFormatCheck
+				-c ("sz_RV_ChangeImageSize " + $tokens[1] + " " + $tokens[2] + " " + $tokens[3] + ";setAttr defaultResolution.width " + $tokens[1] + ";setAttr defaultResolution.height " + $tokens[2] + ";");
+		}
+		if (exists("userImageFormats.mel") && size($gUserImageFormatData) == 0) 
+		{
+			// Yes, we need the eval here, to avoid doing the source until we know whether the file actually exists
+			eval("source userImageFormats");
+		}
+				
+		if (`size $gUserImageFormatData` != 0)
+		{
+			menuItem -label "User Defined Formats" -bld 1;
+			for ( $i = 0; $i < `size $gUserImageFormatData`; $i++ ) 
+			{	
+				tokenize($gUserImageFormatData[$i], $tokens);
+				menuItem
+					-l `substitute "_" $tokens[0] " "`
+					-c ("sz_RV_ChangeImageSize " + $tokens[1] + " " + $tokens[2] + " " + $tokens[3] + ";setAttr defaultResolution.width " + $tokens[1] + ";setAttr defaultResolution.height " + $tokens[2] + ";");
+			}
+		}
+		setParent -m ..;
+	setParent -m ..;
+}
+
+
+global proc sz_RV_createApproximation (string $approxType, int $assign) {
+	string $selection[] = `ls -sl`;
+	string $approxNode = eval ("miCreate" + $approxType + "ApproxNode");
+	if ($assign)
+	{
+		select -r $selection;
+		sz_RV_AssignMRApprox $approxType $approxNode attach;
+		select -r $approxNode;
+	}
+	if(!isAttributeEditorVisible())
+		openAEWindow;
+}
+
+
+
+// Builds approximation submenu and menuitems
+global proc sz_RV_BuildApproxMenu() {
+	menuItem 
+		-label "Create, Assign and Edit Approximations"
+		-sm true -allowOptionBoxes 1 -tearOff 1
+		sz_MRApprox;
+
+	string $selectedNurbs [] = `ls -sl -dag -type "nurbsSurface"`;
+	string $selectedPoly [] = `ls -sl -dag -type "mesh"`;
+	string $approximationTypes[] = {"Subdiv", "Displace", "Surface"};
+
+	for ($approxType in $approximationTypes)
+	{
+		string $approximations[];
+		$approximations = `ls -type ("mentalray" + $approxType + "Approx")`;
+		int $enable = 0;
+		string $shapeToCheck;
+		if ($approxType == "Surface")
+		{
+			$enable = (`size $selectedNurbs` != 0);
+			$shapeToCheck = $selectedNurbs[0];
+		}
+		else if ($approxType == "Displace")
+		{
+			$enable = (`size $selectedPoly` != 0 || `size $selectedNurbs` != 0);
+			$shapeToCheck = ($selectedPoly[0] != "" ? $selectedPoly[0] : $selectedNurbs[0]);
+		}
+		else if ($approxType == "Subdiv")
+		{
+			$enable = (`size $selectedPoly` != 0);
+			$shapeToCheck = $selectedPoly[0];
+		}
+
+		if (size ($approximations))
+		{
+			menuItem -label ($approxType + " Approximations:") -bld 1;
+			for ($approx in $approximations)
+			{
+				int $appMatch = 0;
+				if ($enable)							// In case something is selected
+				{
+					string $assignedApprox = sz_RV_getApproxNodeForShape ($shapeToCheck, $approxType);
+					$appMatch = ($assignedApprox == $approx);
+				}
+
+				menuItem
+					-label ("     " + $approx)
+					-sm 1
+					-bld $appMatch;
+					menuItem 
+						-label "<- Select node for editing" 
+						-bld 1
+						-c ("select " + $approx + ";showEditor " + $approx);
+					menuItem -divider 1;
+					menuItem 
+						-label "Assign to selected objects"
+						-en $enable
+						-c ("sz_RV_AssignMRApprox " + $approxType + " " + $approx + " \"attach\"");
+					menuItem 
+						-label "Detach from selected objects"
+						-en $enable
+						-c ("sz_RV_AssignMRApprox " + $approxType + " " + $approx + " \"detach\"");
+					menuItem 
+						-label "Select all connected objects"
+						-c ("sz_RV_AssignMRApprox " + $approxType + " " + $approx + " \"selectConnected\"");
+					menuItem -divider 1;
+					menuItem 
+						-label "Delete approximation"
+						-c ("if (`confirmDialog -t \"Delete approximation node\" -ma \"center\" -m \"Sure to delete approximation node " + $approx + "?\" -b \"Yes\" -b \"No\"` == \"Yes\") {delete " + $approx + ";print \"Approx node " + $approx + " deleted\"\n;}");
+				setParent -m ..;
+			}
+		}
+
+		menuItem 
+			-label ("Create New " + $approxType + " Approximation")
+			-ann "Create a new approximation node"
+			-c ("sz_RV_createApproximation " + $approxType + " 0");
+		menuItem 
+			-ob 1
+			-en $enable
+			-ann "Create approximation and assign the newly created node to the selected objects"
+			-c ("sz_RV_createApproximation " + $approxType + " 1");
+
+		if (`size $approximations` > 0)
+		{
+			menuItem -divider 1;
+			menuItem 
+				-label ("Remove " + $approxType + " Approximations from selection")
+				-ann "Remove the approximation type from all selected objects"
+				-c ("sz_RV_AssignMRApprox " + $approxType + " \"\" \"detachAll\"");
+			menuItem 
+				-label ("Show all " + $approxType + " Approximations in spreadsheet")
+				-c ("select -r `ls -type mentalray" + $approxType + "Approx`;SpreadSheetWindow;");
+		}
+		menuItem -divider 1;
+		menuItem -divider 1;
+	} // approx type for ends
+
+	menuItem -label "Open the Approximation Editor" -c "mentalrayApproxEditor";
+	setParent -m ..; 		
+}
+
+
+
+// Builds custom text submenu and menuitems
+global proc sz_RV_BuildCustomTextMenu () {
+	string $textConnections[] = {"", "Render", "Cameras", "Root", "Scene", "Options", "Lights"};
+	menuItem 
+		-label "Custom Text"
+		-sm true -allowOptionBoxes 1 -tearOff 1
+		sz_MRCustomText;
+	string $customTextNodes [] = `ls -type "mentalrayText"`;
+	
+	menuItem -label "Connected text nodes:" -bld 1;	
+	int $counter;
+	for ($type in $textConnections)
+	{
+		if (`attributeExists ("miText" + $type) "mentalrayGlobals"`)
+		{
+			string $current[] = `listConnections ("mentalrayGlobals.miText" + $type)`;
+			if (size($current))
+			{
+				menuItem 
+						-l (($type == "" ? "Global" : $type) + ": " + $current[0])
+						-ann ("Edit " + $current[0])
+						-sm 1;
+				
+				menuItem 
+					-label "<- Select node for editing" 
+					-bld 1
+					-c ("select " + $current[0] + ";showEditor " + $current[0]);
+
+				menuItem -divider 1;
+				
+				menuItem 
+					-l "Disconnect node"
+					-ann "Disconnect text node from current connection"
+					-c ("disconnectAttr " + $current[0] + ".message mentalrayGlobals.miText" + $type + ";print \"Text node " + $type + " disconnected from " + ($type == "" ? "Global" : $type) + "\"\n");
+
+				$counter++;
+				
+				setParent -m ..;
+			}
+		}
+	}
+	if (!$counter)
+		menuItem -label "(None)";
+	menuItem -divider 1;
+	for ($currText in $customTextNodes)
+	{
+		menuItem 
+				-label $currText
+				-c ("select " + $currText + ";showEditor " + $currText)
+				-sm true -allowOptionBoxes 1;
+		menuItem 
+				-label "<- Select node for editing" 
+				-bld 1
+				-ann ("Select node " + $currText + " for editing")
+				-c ("select " + $currText + ";showEditor " + $currText);
+		menuItem -divider 1;
+		for ($type in $textConnections)
+		{
+			if (`attributeExists ("miText" + $type) "mentalrayGlobals"`)
+			{
+				int $connected = 0;
+				string $currentConn[] = `listConnections -p 1 $currText`;
+				for ($curr in $currentConn)
+					if (`match ("miText" + $type + "$") $curr` != "" && `match "mentalrayGlobals" $curr` != "")
+						$connected = 1;
+				menuItem 
+					-l ("Connect to " + ($type == "" ? "Global" : $type) + " text")
+					-bld $connected
+					-ann ("Connect the selected text node to " + ($type == "" ? "Global" : $type) + " text")
+					-c ("connectAttr -f " + $currText + ".message mentalrayGlobals.miText" + $type + ";print \"Text node " + $currText + " connected to " + ($type == "" ? "Global" : $type) + "\"\n");
+				menuItem 
+					-ob 1 
+					-en $connected
+					-ann "Disconnect text node from current connection"
+					-c ("disconnectAttr " + $currText + ".message mentalrayGlobals.miText" + $type + ";print \"Text node " + $currText + " disconnected from " + ($type == "" ? "Global" : $type) + "\"\n");
+			}
+		}
+		menuItem -divider 1;
+		menuItem -divider 1;
+		menuItem 
+			-label "Delete custom text node"
+			-ann "Remove the node from the scene"
+			-c ("if (`confirmDialog -t \"Delete custom text\" -ma \"center\" -m \"Sure to delete custom text node " + $currText + "?\" -b \"Yes\" -b \"No\"` == \"Yes\") {delete " + $currText + ";print \"Text node " + $currText + " removed\"\n;}");
+		setParent -m ..;
+		
+	}
+	menuItem -divider 1;
+	menuItem 
+			-label "Create new custom text node"
+			-bld 1
+			-ann "Creates a new custom text node that can be connected later"
+			-c "createNode mentalrayText";
+	setParent -m ..;
+}
+
+
+global proc sz_RV_BuildIBLMenu () {
+	if (!exists ("miCreateIbl"))
+	{
+		float $baseMayaVersion = getApplicationVersionAsFloat();						// Maya 2009 moved the miCreateIbl command to a different mel file
+		string $scriptToSource = ($baseMayaVersion >= 2009 ? "createMentalRayIndirectLightingTab.mel" : "createMentalRayGlobalsTab.mel");
+		eval("source " + $scriptToSource);
+	}
+	
+	menuItem 
+		-label "Image Based Lighting"
+		-sm true -allowOptionBoxes 1 -tearOff 1
+		sz_MRIBL;
+	string $iblNodes[] = `ls -type mentalrayIblShape`;
+	if (size ($iblNodes))
+	{
+		menuItem -bld 1 -l "IBL Node:";
+		for ($curr in $iblNodes)
+			menuItem 
+					-l $curr 
+					-ann "Select IBL node"
+					-c ("select " + $curr + ";showEditor " + $curr + ";");
+		menuItem -divider 1;
+	}
+	menuItem 
+			-bld 1 -l "Create new IBL Node" 
+			-ann "Create an IBL node and remove the old one. There can be only one!"
+			-c "miCreateIbl";
+	setParent -m ..;
+}
+
+
+
+//************************************************************************************************************************
+// Returns the current MR render quality node
+global proc string sz_RV_GetCurrentMRQuality () {
+	string $currentQuality[];
+	if (`pluginInfo -q -l "Mayatomr"`)
+	{
+		if (!`objExists mentalrayGlobals`)
+			eval ("miCreateDefaultNodes");
+		$currentQuality = `listConnections mentalrayGlobals.options`;
+	}
+	return ($currentQuality[0]);
+}
+
+
+
+//************************************************************************************************************************     
+//Process to change the render image size and device aspect.
+global proc sz_RV_ChangeImageSize (int $width, int $height, float $deviceAspect) {
+	setAttr defaultResolution.width $width;
+	setAttr defaultResolution.height $height;
+	setAttr defaultResolution.deviceAspectRatio $deviceAspect;
+	
+	switch (`currentRenderer`)
+	{
+		case "mayaSoftware":
+			updateMayaSoftwareResolution;
+			break;
+		case "mayaHardware":
+			setAttr hardwareRenderGlobals.resolutionX $width;
+			setAttr hardwareRenderGlobals.resolutionY $height;
+			break;
+		case "mayaVector":
+			updateMayaVectorResolution;
+			break;
+		case "mentalRay":
+			setAttr miDefaultFramebuffer.width $width;
+			setAttr miDefaultFramebuffer.height $height;
+			setAttr miDefaultFramebuffer.deviceAspectRatio $deviceAspect;
+			break;
+	}
+}
+
+
+global proc string sz_RV_getApproxNodeForShape (string $shape, string $approxType) {
+	string $attrName;
+	if ($approxType == "Surface")
+		$attrName = "misa";
+	if ($approxType == "Displace")
+		$attrName = "mida";
+	if ($approxType == "Subdiv")
+		$attrName =  "miva";
+	if (!attributeExists ($attrName, $shape))
+		return "";
+	string $destination[] = `listConnections ($shape + ".mi" + $approxType + "Approx")`;
+	if (size($destination))
+		return $destination[0];
+	return "";
+}
+
+
+// Attach / detach Mental Ray approximations to selected objects
+global proc sz_RV_AssignMRApprox (string $approxType, string $approx, string $mode) {
+	string $selection[];
+	string $node;
+
+	if ($mode == "selectConnected")
+	{
+		string $connections[] = `listConnections ($approx + ".message")`;
+		select -r $connections;
+		select -d "mentalrayItemsList";
+		print (size(ls("-sl")) + " objects selected\n");
+		return;
+	}
+	
+	if ($approxType == "Surface")
+		$selection = `ls -sl -dag -type "nurbsSurface"`;
+	if ($approxType == "Displace")
+		$selection = `ls -sl -dag -g`;
+	if ($approxType == "Subdiv")
+		$selection = `ls -sl -dag -type "mesh"`;	
+
+	for ($node in $selection)
+	{
+		if ($mode == "attach")
+		{
+			if ($approxType == "Surface")
+				createAttr $node "misa";
+			if ($approxType == "Displace")
+				createAttr $node "mida";
+			if ($approxType == "Subdiv")
+				createAttr $node "miva";	
+	
+			connectAttr -f ($approx + ".message") ($node + ".mi" + $approxType + "Approx");
+			miInfo("Assigned " + $approx + " to " + $node); 
+		}
+		else if ($mode == "detach")
+		{
+			if (isConnected (($approx + ".message"), ($node + ".mi" + $approxType + "Approx")))
+			{
+				disconnectAttr ($approx + ".message") ($node + ".mi" + $approxType + "Approx");
+				miInfo("Detached " + $approx + " from " + $node); 
+			}	
+		}
+		else if ($mode == "detachAll")
+		{
+			string $approxNode = sz_RV_getApproxNodeForShape($node, $approxType);
+			if ($approxNode != "")
+			{
+				disconnectAttr ($approxNode + ".message") ($node + ".mi" + $approxType + "Approx");
+				miInfo("Detached " + $approxType + " from " + $node); 
+			}
+		}
+	}
+}
+
+
+
+//************************************************************************************************************************     
+//Set only the specified camera renderable
+global proc sz_SetCameraRenderable (string $renderableCamera) {
+	string $cameras[] = `ls -cameras`;
+	string $camera;
+	for( $camera in $cameras)
+		setAttr ($camera + ".renderable") ($camera == $renderableCamera);
+}
+
+
+
+//************************************************************************************************************************     
+// Update some of the Render Quality Settings of Mental Ray when a different preset is choosed.
+// Comment the lines that start with setAttr if you don't like this behaviour.
+global proc sz_RV_ChangeMRRenderQuality (string $quality) {
+	string $currentQuality = `sz_RV_GetCurrentMRQuality`;
+	if ($currentQuality == "")
+	{	
+		connectAttr -f "Preview.message" "mentalrayGlobals.options";
+		$currentQuality = "Preview";
+	}
+	
+	if ($currentQuality != "PreviewImrRayTracyOn" && $currentQuality != "PreviewImrRayTracyOff")
+	{
+		setAttr ($quality + ".rayTracing") `getAttr ($currentQuality + ".rayTracing")`;
+		setAttr ($quality + ".finalGather") `getAttr ($currentQuality + ".finalGather")`;
+		setAttr ($quality + ".finalGatherRebuild") `getAttr ($currentQuality + ".finalGatherRebuild")`;
+		setAttr ($quality + ".finalGatherFast") `getAttr ($currentQuality + ".finalGatherFast")`;
+		setAttr -type "string" ($quality + ".finalGatherFilename") `getAttr ($currentQuality + ".finalGatherFilename")`;
+		setAttr ($quality + ".caustics") `getAttr ($currentQuality + ".caustics")`;
+		setAttr ($quality + ".globalIllum") `getAttr ($currentQuality + ".globalIllum")`;
+		setAttr ($quality + ".motionBlur") `getAttr ($currentQuality + ".motionBlur")`;
+	}
+	copyNode $quality miDefaultOptions; 
+}
+
+
+proc int sz_isCameraStereo (string $camera) {
+	string $connections[] = `listConnections ($camera + ".horizontalFilmOffset")`;
+	if (size ($connections) && nodeType ($connections[0]) == "stereoRigTransform")
+		return 1;
+	return 0;
+}
+
+//************************************************************************************************************************
+// Return every camera (that is not connected to a light) as a parented menuitem. (Filters out the cameras created by `look through`.)
+global proc sz_FindCameras(string $state) {
+	float $baseMayaVersion = getApplicationVersionAsFloat();
+	switch ($state)
+	{
+		case "snapshot":
+			popupMenu -e -dai SnapshotCameraMenu;
+			setParent -m SnapshotCameraMenu;
+		break;
+		case "render":
+			popupMenu -e -dai RenderCameraMenu;
+			setParent -m RenderCameraMenu;
+		break;
+		case "ipr":
+			popupMenu -e -dai IprCameraMenu;
+			setParent -m IprCameraMenu;
+		break;
+	}
+
+	string $renderViewName = getRenderWindowPanel();
+	string $currentRenderCamera = `renderWindowEditor -q -currentCamera $renderViewName`;
+	string $perspCameras[] = `listCameras -perspective`;
+	for( $camera in $perspCameras)
+	{
+		string $transforms[] = `listConnections -p 1 -scn 1 ($camera + ".centerOfInterest")`;
+		if (match ("centerOfIllumination", $transforms[0]) == "" && nodeType ($camera) != "stereoRigCamera" && !sz_isCameraStereo($camera))
+		{       
+			menuItem 
+	        		-l $camera 
+					-cb ($currentRenderCamera == $camera)
+					-c ("sz_RV_RenderCamera " + $camera + " " + $state)
+					("sz_RVCamera" + substitute ("|", $camera, "_"));
+		}
+	}
+	menuItem -divider true;	
+
+	if ($baseMayaVersion >=2009)																		// Stereo camera rigs
+	{
+		string $stereoCameras[] = `ls -type "stereoRigCamera"`;
+		for ($c in $stereoCameras)
+		{
+			string $transform[] = `listRelatives -p $c`;
+			menuItem 
+					-l $transform[0] 
+					-cb ($currentRenderCamera == $c)
+					-c ("sz_RV_RenderCamera " + $transform[0] + " " + $state);
+			menuItem -sm 1 -l ($transform[0] + " Rig");
+				string $connections[] = `listConnections ($transform[0] + ".filmBackOutputLeft")`;
+				menuItem 
+						-l "Stereo Camera Left" 
+						-cb ($currentRenderCamera == $connections[0])
+						-c ("sz_RV_RenderCamera " + $connections[0] + " " + $state);
+				menuItem 
+						-l ($transform[0] + " (center)") 
+						-cb ($currentRenderCamera == $c)
+						-c ("sz_RV_RenderCamera " + $c + " " + $state);
+				$connections = `listConnections ($transform[0] + ".filmBackOutputRight")`;
+				menuItem 
+						-l "Stereo Camera Right" 
+						-cb ($currentRenderCamera == $connections[0])
+						-c ("sz_RV_RenderCamera " + $connections[0] + " " + $state);
+				setParent -m ..;
+		}
+		if (size ($stereoCameras))
+			menuItem -divider true;	
+	}
+	
+	string $ortoCameras[] = `listCameras -orthographic`;
+	for( $camera in $ortoCameras)
+	{
+		string $transforms[] = `listConnections -p 1 -scn 1 ($camera + ".centerOfInterest")`;
+		if (`match "centerOfIllumination" $transforms[0]` == "") 
+		{       
+			menuItem 
+	        		-l $camera
+					-cb ($currentRenderCamera == $camera)
+					-c ("sz_RV_RenderCamera " + $camera + " " + $state)
+					("sz_RVCamera" + substitute ("|", $camera, "_"));
+		}
+	}
+	
+	if ($state == "ipr")
+	{
+		string $renderer = currentRenderer();
+		//If an IPR session is currently open than add the "close ipr" menuitem to the list
+		if (`iprEngine -query -exists defaultIprEngine` == 1)	
+		{
+			string $iprImageName[] = `iprEngine -q -iprImage defaultIprEngine`;
+			if (size($iprImageName) > 0 && $iprImageName[0] != "")
+			{
+		 		menuItem -divider 1;
+				menuItem -l "Close current IPR session" -c ("stopIprRendering " + $renderViewName);
+			}
+		}
+		if ($renderer == "mentalRay")
+		{
+			if(`mentalrayIsRunningImr`)
+			{
+				menuItem -divider 1;
+				menuItem -l "Close current IPR session" -c ("stopIprRendering " + $renderViewName);
+			}
+		
+			if (`objExists PreviewImrRayTracyOff`)
+				mentalrayImrPreset;
+			menuItem -divider 1;
+			int $raytracingState = getSelectedIMRPreset();
+			menuItem -label "Raytrace as set in Render Globals" -bld ($raytracingState == 2) -c "changeImrPreset 2";
+			menuItem -label "Enable Raytracing" -bld ($raytracingState == 1) -c "changeImrPreset 1";
+			menuItem -label "Disable Raytracing" -bld ($raytracingState == 0) -c "changeImrPreset 0";
+		}
+	}
+	setParent ..;
+}    
+
+
+
+//************************************************************************************************************************     
+//The render command
+global proc sz_RV_RenderCamera( string $cameraName, string $state) {
+	global string $sz_RV_ObjectsToRenderList[];
+	global int $sz_RV_ObjectsToRenderEnable;
+	string $selection[];
+	
+	string $renderer = currentRenderer();
+	string $renderViewName = getRenderWindowPanel();
+	int $renderSelected = `optionVar -q renderViewRenderSelectedObj`;
+
+	renderWindowEditor -e -currentCamera $cameraName $renderViewName;					// Set current camera
+		
+	if ($renderSelected && $sz_RV_ObjectsToRenderEnable && size ($sz_RV_ObjectsToRenderList))		// In case we only render selected objects
+	{
+		$selection = `ls -sl`;
+		sz_RV_ObjectsToRender_Select;
+	}
+	
+	if ($renderer == "mayaVector" && $state != "renderPrevious" && $state != "snapshot")	// MayaVector uses the transform node to define the camera
+	{
+		if ($state == "renderRegion")
+		{
+			warning "Current Renderer: Maya Vector Renderer does not support render region";
+			return;
+		}
+		string $transforms [] = `listRelatives -p $cameraName`;
+		$cameraName = $transforms [0];
+	}
+	
+	if ($state == "snapshot")
+		renderWindowRenderCamera( "snapshot", $renderViewName, $cameraName);
+	if ($state == "ipr")
+		renderWindowRenderCamera( "iprRender", "", $cameraName);
+	if ($state == "render" || $state == "renderPrevious" || $state == "renderRegion")
+	{
+		float $startTime = `timerX`;
+		if ($state == "render")
+			renderWindowRenderCamera( "render", $renderViewName, $cameraName);
+		if ($state == "renderPrevious")
+			renderWindowRender ("redoPreviousRender", $renderViewName);
+		if ($state == "renderRegion")
+			eval("renderWindowRenderRegion " + $renderViewName);
+	}
+	
+	sz_MIT_Commands updateImageInfo;											// Update image info line
+	if(`renderWindowEditor -q -nbImages $renderViewName` > 0)
+		intScrollBar -e -v -1 scrollBar;
+	
+	if ($renderSelected && $sz_RV_ObjectsToRenderEnable)
+		select -r $selection;
+}
+
+
+
+
+//************************************************************************************************************************
+// Query the test resolution
+global proc int[] sz_GetTestResolution () {
+	int $res[];
+	string $globals[] = `ls -renderGlobals`;
+	string $connect[] = `listConnections ($globals[0] + ".resolution")`;
+	int $testRes = `optionVar -query renderViewTestResolution`;
+	
+	float $previewMultipliers[] = {1.0, 1.0, 0.1, 0.25, 0.5, 0.75, 1.1, 1.25, 1.5};
+	
+	if( size($connect[0]) > 0 )
+	{
+		$res[0] = `getAttr ($connect[0] + ".width" )` * $previewMultipliers[$testRes];
+		$res[1] = `getAttr ($connect[0] + ".height" )` * $previewMultipliers[$testRes];
+	}
+	$res[2] = `getAttr ($connect[0] + ".width" )`;		
+	$res[3] = `getAttr ($connect[0] + ".height" )`;		
+	return $res;				
+}
+
+
+proc string sz_RV_getExtension() {
+	float $baseMayaVersion = getApplicationVersionAsFloat();
+	string $extension = "png";
+	if ($baseMayaVersion < 2011)
+		$extension = (`about -windows` ? "bmp" : "xpm");
+	return $extension;
+}
+
+
+//************************************************************************************************************************
+//Build the Preview Resolution Menu
+global proc sz_RV_BuildPreviewResolutionMenu() {
+	int $res[] = sz_GetTestResolution();
+	string $extension = sz_RV_getExtension();
+	setParent -m PreviewResolutionMenu;
+	popupMenu -e -dai PreviewResolutionMenu;
+	radioMenuItemCollection -p PreviewResolutionMenu sz_RV_PreviewResCollection;
+	int $previewSizes[] = {1, 5, 4, 3, 2, 6, 7, 8};									// Store preview size index values as items in an array
+
+	menuItem -l ("150%    " + ($res[2]*1.5) + " x " + ($res[3]*1.5)) -c ("setTestResolutionVar(" + $previewSizes[7] + ");iconTextButton -e -i1 (\"sz_rvResolution150." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*1.5));
+	menuItem -l ("125%    " + ($res[2]*1.25) + " x " + ($res[3]*1.25)) -c ("setTestResolutionVar(" + $previewSizes[6] + ");iconTextButton -e -i1 (\"sz_rvResolution125." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*1.25));
+	menuItem -l ("110%    " + ($res[2]*1.1) + " x " + ($res[3]*1.1)) -c ("setTestResolutionVar(" + $previewSizes[5] + ");iconTextButton -e -i1 (\"sz_rvResolution110." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*1.1));
+	menuItem -divider 1;
+
+	menuItem -l ("100%    " + $res[2] + " x " + $res[3]) -c ("setTestResolutionVar(" + $previewSizes[0] + ");iconTextButton -e -i1 (\"sz_rvResolution." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == $res[2]);
+	menuItem -divider 1;
+	menuItem -l ("75%      " + ($res[2]*0.75) + " x " + ($res[3]*0.75)) -c ("setTestResolutionVar(" + $previewSizes[1] + ");iconTextButton -e -i1 (\"sz_rvResolution75." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*0.75));
+	menuItem -l ("50%      " + ($res[2]*0.5) + " x " + ($res[3]*0.5)) -c ("setTestResolutionVar(" + $previewSizes[2] + ");iconTextButton -e -i1 (\"sz_rvResolution50." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*0.5));
+	menuItem -l ("25%      " + ($res[2]*0.25) + " x " + ($res[3]*0.25)) -c ("setTestResolutionVar(" + $previewSizes[3] + ");iconTextButton -e -i1 (\"sz_rvResolution25." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*0.25));
+	menuItem -l ("10%      " + ($res[2]*0.1) + " x " + ($res[3]*0.1)) -c ("setTestResolutionVar(" + $previewSizes[4] + ");iconTextButton -e -i1 (\"sz_rvResolution10." + $extension + "\") PreviewResolutionButton;") -rb ($res[0] == (int)($res[2]*0.1));
+}
+
+
+
+//************************************************************************************************************************
+//Build the Channel Display Menu
+global proc sz_RV_BuildChannelDisplayMenu() {
+	int $res[] = `sz_GetTestResolution`;
+	string $extension = sz_RV_getExtension();
+	string $defaultIconExtension = (getApplicationVersionAsFloat() >= 2011 ? "png" : "xpm");
+	string $renderViewName = getRenderWindowPanel();
+	string $buttonName = "rvAllPlanesButton";
+	setParent -m ChannelDisplayMenu;
+	popupMenu -e -dai ChannelDisplayMenu;
+		menuItem -l "RGB Channels" -c ("renderWindowEditor -edit -displayStyle \"color\" -scaleRed 1 -scaleGreen 1 -scaleBlue 1 " + $renderViewName + ";iconTextButton -e -i1 \"rvAllPlanes." + $defaultIconExtension + "\" " + $buttonName + ";");
+		menuItem -l "Alpha" -c ("renderWindowEditor -edit -displayStyle \"mask\" " + $renderViewName + ";iconTextButton -e -i1 \"rvMaskPlane." + $defaultIconExtension + "\" " + $buttonName + ";");
+		menuItem -l "Red" -c ("renderWindowEditor -edit -displayStyle \"color\" -scaleRed 1 -scaleGreen -1000 -scaleBlue -1000 " + $renderViewName + ";iconTextButton -e -i1 (\"sz_rvRedChannel." + $extension + "\") " + $buttonName + ";");
+		menuItem -l "Green" -c ("renderWindowEditor -edit -displayStyle \"color\" -scaleRed -1000 -scaleGreen 1 -scaleBlue -1000 " + $renderViewName + ";iconTextButton -e -i1 (\"sz_rvGreenChannel." + $extension + "\") " + $buttonName + ";");
+		menuItem -l "Blue" -c ("renderWindowEditor -edit -displayStyle \"color\" -scaleRed -1000 -scaleGreen -1000 -scaleBlue 1 " + $renderViewName + ";iconTextButton -e -i1 (\"sz_rvBlueChannel." + $extension + "\") " + $buttonName + ";");
+		menuItem -l "Luminance" -c ("renderWindowEditor -edit -displayStyle \"lum\" " + $renderViewName + ";iconTextButton -e -i1 (\"sz_rvLumChannel." + $extension + "\") " + $buttonName + ";");
+}
+
+
+
+//************************************************************************************************************************
+//Toggles between Color and Alpha display mode. (When another mode is is used toggle to color.)
+global proc sz_RV_ChannelDisplayToggle() {
+	string $defaultIconExtension = (getApplicationVersionAsFloat() >= 2011 ? "png" : "xpm");
+	string $renderViewName = getRenderWindowPanel();
+	string $buttonName = "rvAllPlanesButton";
+	if (`iconTextButton -q -i1 $buttonName` == ("rvAllPlanes." + $defaultIconExtension))
+	{
+		renderWindowEditor -edit -displayStyle "mask" $renderViewName;
+		iconTextButton -e -i1 ("rvMaskPlane." + $defaultIconExtension) $buttonName;
+	}
+	else
+	{
+		renderWindowEditor -edit -displayStyle "color" -scaleRed 1 -scaleGreen 1 -scaleBlue 1 $renderViewName;
+		iconTextButton -e -i1 ("rvAllPlanes." + $defaultIconExtension) $buttonName;
+	}
+}
+
+
+
+//************************************************************************************************************************
+//Toggle raytracing on/off for the current renderer
+global proc sz_RV_ToggleRaytracing() {
+	int $raytrace;
+	string $renderer = currentRenderer();
+	string $extension = sz_RV_getExtension();
+	
+	string $currentQuality = `sz_RV_GetCurrentMRQuality`;
+	if (match ("^[mM]ental", $renderer) != "" || match ("^[mM][rR]", $renderer) != "")
+		$raytrace = `getAttr ($currentQuality + ".rayTracing")`;
+	else
+		$raytrace = `getAttr defaultRenderQuality.enableRaytracing`;
+	//toggle icon
+	if( $raytrace == 0 )
+		iconTextButton -e -i1 ("RT_on." + $extension) -annotation "Set Ray Tracing Off" rtButton;
+	else 
+		iconTextButton -e -i1 ("RT_off." + $extension) -annotation "Set Ray Tracing On" rtButton;
+
+	//toggle state		
+	if (match ("^[mM]ental", $renderer) != "" || match ("^[mM][rR]", $renderer) != "")
+		setAttr ($currentQuality + ".rayTracing") (1-$raytrace);
+	else
+		setAttr "defaultRenderQuality.enableRaytracing" (1-$raytrace);
+}
+
+
+
+//************************************************************************************************************************     
+//Set every ImagePlane in the scene to the selected mode.
+global proc sz_ModifyEveryImagePlane (int $value) {
+	string $imagePlaneList[] = `ls -type "imagePlane"`;
+	for ($imagePlane in $imagePlaneList)
+		setAttr ($imagePlane + ".displayMode") $value;
+}
+
+
+
+//************************************************************************************************************************     
+//Turn off every ImagePlane in the scene file while rendering.
+global proc sz_TurnOffEveryImagePlaneWhenRendering() {
+	string $preRenderScript = `getAttr defaultRenderGlobals.preRenderMel`;
+	string $postRenderScript = `getAttr defaultRenderGlobals.postRenderMel`;
+	if (`match sz_ModifyEveryImagePlane $preRenderScript` == "")
+	{
+		//checking proper string end ";"	
+		if ($preRenderScript != ""	)
+		{
+			int $renderStringSize = `size $preRenderScript`;
+			if (`substring $preRenderScript $renderStringSize $renderStringSize` != ";")
+				$preRenderScript = ($preRenderScript + ";");
+		}
+		if ($postRenderScript != "")
+		{
+			$renderStringSize = `size $postRenderScript`;
+			if (`substring $postRenderScript $renderStringSize $renderStringSize` != ";")
+				$postRenderScript = ($postRenderScript + ";");
+		}
+		setAttr defaultRenderGlobals.preRenderMel -type "string" ($preRenderScript + "sz_ModifyEveryImagePlane 0;");
+		setAttr defaultRenderGlobals.postRenderMel -type "string" ($postRenderScript + "sz_ModifyEveryImagePlane 2;");
+	}
+	else
+	{
+		setAttr defaultRenderGlobals.preRenderMel -type "string" (`substitute "sz_ModifyEveryImagePlane 0;" $preRenderScript ""`);
+		setAttr defaultRenderGlobals.postRenderMel -type "string" (`substitute "sz_ModifyEveryImagePlane 2;" $postRenderScript ""`);
+	}
+}
+
+
+
+
+
+//*********************************************************************************************
+// Set mental ray sampling contrast values
+global proc sz_RV_SetMRSampleContrast (float $value, string $mode) {
+	string $currentQuality = `sz_RV_GetCurrentMRQuality`;
+	string $channels[] = {"R", "G", "B", "A"};
+	
+	for ($currentChannel in $channels)
+		setAttr ($currentQuality + "." + $mode + $currentChannel) (`getAttr ($currentQuality + "." + $mode + $currentChannel)` * $value);
+}
+
+
+//*********************************************************************************************
+// Mental Ray quality marking menu
+global proc sz_RV_QualityMarkingMenu () {
+	string $currentQuality = sz_RV_GetCurrentMRQuality();
+	popupMenu -e -dai rvQualityMarkingMenu;
+	string $renderer = currentRenderer();
+	if (match ("^[mM]ental", $renderer) != "" || match ("^[mM][rR]", $renderer) != "")
+	{
+		if (`getAttr ($currentQuality + ".scanline")` != 3)					// Scanline or raytrace only
+		{
+			int $currentMinSamples = `getAttr ($currentQuality + ".minSamples")`;
+			int $currentMaxSamples = `getAttr ($currentQuality + ".maxSamples")`;
+
+			int $minSamplesArray[] = {-3, -2, -1, 0, 1, 2};
+			int $maxSamplesArray[] = {-1, 0, 1, 2, 3, 4};
+			int $sample;
+		
+			float $contrastSamples = ((`getAttr ($currentQuality + ".contrastR")` + `getAttr ($currentQuality + ".contrastG")` + `getAttr ($currentQuality + ".contrastB")`) / 3);
+			$contrastSamples = (`trunc (1000 * $contrastSamples)`)/1000;
+		
+			menuItem -p rvQualityMarkingMenu -rp "W" -l ("Sample Contrast / 2 = " + ($contrastSamples / 2)) -c "sz_RV_SetMRSampleContrast 0.5 contrast";
+			menuItem -p rvQualityMarkingMenu -rp "E" -l ("Sample Contrast * 2 = " + ($contrastSamples * 2)) -c "sz_RV_SetMRSampleContrast 2 contrast";
+
+			menuItem -p rvQualityMarkingMenu -rp "N" -sm 1 -l "Min Samples";
+			radioMenuItemCollection;
+			for ($sample in $minSamplesArray)
+				menuItem -l $sample -rb ($sample == $currentMinSamples) 
+					-c ("if (`optionMenuGrp -q -exists miSampleModeCtrl`) optionMenuGrp -e -select 3 miSampleModeCtrl;setAttr " + $currentQuality + ".minSamples " + $sample + ";");
+				setParent -menu;	
+				
+			menuItem -p rvQualityMarkingMenu -rp "S" -sm 1 -l "Max Samples";
+			radioMenuItemCollection;
+			for ($sample in $maxSamplesArray)
+				menuItem -l $sample -rb ($sample == $currentMaxSamples) 
+					-c ("if (`optionMenuGrp -q -exists miSampleModeCtrl`) optionMenuGrp -e -select 3 miSampleModeCtrl;setAttr " + $currentQuality + ".maxSamples " + $sample + ";");
+				setParent -menu;			
+
+			menuItem -p rvQualityMarkingMenu -rp "NW" -sm 1 -l "Sampling Presets";
+			radioMenuItemCollection;
+			menuItem -bld 1 -l "Adaptive:";
+			for ($i = 0; $i < 4; $i++)
+				menuItem -l ("Min: " + (($i-2) >= 0 ? " " : "") + ($i-2) + " Max: " + ($i >= 0 ? " " : "") + $i)
+					-bld ($currentMinSamples == ($i-2) && $currentMaxSamples == $i)
+					-c ("if (`optionMenuGrp -q -exists miSampleModeCtrl`) optionMenuGrp -e -select 3 miSampleModeCtrl;setAttr " + $currentQuality + ".minSamples " + ($i-2) + ";setAttr " + $currentQuality + ".maxSamples " + $i + ";");
+			menuItem -d 1;
+			menuItem -bld 1 -l "Fixed:";
+			for ($i = 1; $i < size($minSamplesArray); $i++)
+				menuItem -l ("Samples: " + ($minSamplesArray[$i] >= 0 ? " " : "") + $minSamplesArray[$i])
+					-bld ($currentMinSamples == $minSamplesArray[$i] && $currentMaxSamples == $minSamplesArray[$i])
+					-c ("if (`optionMenuGrp -q -exists miSampleModeCtrl`) optionMenuGrp -e -select 3 miSampleModeCtrl;setAttr " + $currentQuality + ".minSamples " + $minSamplesArray[$i] + ";setAttr " + $currentQuality + ".maxSamples " + $minSamplesArray[$i] + ";");
+			setParent -menu;	
+
+			menuItem -p rvQualityMarkingMenu -bld 1 -l ("Current:  Min: " + `getAttr ($currentQuality + ".minSamples")` + "  Max: " + `getAttr ($currentQuality + ".maxSamples")` + "  Contrast: " + $contrastSamples);
+		}
+		else													// Rapid scanline
+		{
+			menuItem -p rvQualityMarkingMenu -rp "N" -sm 1 -l "Visibility Samples (Samples collect)";
+			radioMenuItemCollection;
+			for ($i = 0; $i < 9; $i++)
+				menuItem -l $i -rb ($i == `getAttr ($currentQuality + ".rapidSamplesCollect")`) 
+					-c ("setAttr " + $currentQuality + ".rapidSamplesCollect " + $i);
+				setParent -menu;	
+			menuItem -p rvQualityMarkingMenu -rp "S" -sm 1 -l "Shading quality (Shading samples)";
+			radioMenuItemCollection;
+			for ($i = 0; $i < 5; $i++)
+				menuItem -l $i -rb ($i == `getAttr ($currentQuality + ".rapidSamplesShading")`) 
+					-c ("setAttr " + $currentQuality + ".rapidSamplesShading " + $i);
+				setParent -menu;			
+
+			menuItem -p rvQualityMarkingMenu -bld 1 -l ("Current:  Vis. samples: " + `getAttr ($currentQuality + ".rapidSamplesCollect")` + "  Shading quality: " + `getAttr ($currentQuality + ".rapidSamplesShading")`);
+		}
+	
+		float $timeContrast = ((`getAttr ($currentQuality + ".timeContrastR")` + `getAttr ($currentQuality + ".timeContrastG")` + `getAttr ($currentQuality + ".timeContrastB")`) / 3);
+		$timeContrast = (`trunc (1000 * $timeContrast)`)/1000;	
+		menuItem -p rvQualityMarkingMenu -rp "SE" -sm 1 -l "Motion Blur Contrast";
+			menuItem -l ("Time Contrast / 2 = " + ($timeContrast*0.5)) -c "sz_RV_SetMRSampleContrast 0.5 timeContrast";
+			menuItem -l ("Time Contrast now = " + $timeContrast) -bld 1;
+			menuItem -l ("Time Contrast * 2 = " + ($timeContrast*2)) -c "sz_RV_SetMRSampleContrast 2 timeContrast";
+		setParent -menu;
+		
+		int $fgRays = `getAttr ($currentQuality + ".finalGatherRays")`;
+		float $pointDensity = sz_Round(getAttr ($currentQuality + ".finalGatherPresampleDensity"), 2);
+		menuItem -p rvQualityMarkingMenu -rp "SW" -sm 1 -l ("Final Gather (Rays: " + $fgRays + " Density: " + $pointDensity + ")");
+			if (`getAttr ($currentQuality + ".finalGather")`)
+				menuItem -l ("Disable FG") -c ("setAttr " + $currentQuality + ".finalGather 0") ;
+			else
+				menuItem -l ("Enable FG") -c ("setAttr " + $currentQuality + ".finalGather 1") ;
+			menuItem -d 1;
+			menuItem -l ("FG Rays / 4 = " + `trunc ($fgRays*0.25)`) -c ("setAttr " + $currentQuality + ".finalGatherRays " + ($fgRays*0.25));
+			menuItem -l ("FG Rays / 2 = " + `trunc ($fgRays*0.5)`) -c ("setAttr " + $currentQuality + ".finalGatherRays " + ($fgRays*0.5));
+			menuItem -l ("FG Rays now = " + $fgRays) -bld 1;
+			menuItem -l ("FG Rays * 2 = " + ($fgRays*2)) -c ("setAttr " + $currentQuality + ".finalGatherRays " + ($fgRays*2));
+			menuItem -l ("FG Rays * 4 = " + ($fgRays*4)) -c ("setAttr " + $currentQuality + ".finalGatherRays " + ($fgRays*4));
+			menuItem -l ("FG Rays * 10 = " + ($fgRays*10)) -c ("setAttr " + $currentQuality + ".finalGatherRays " + ($fgRays*10));
+			
+			menuItem -d 1;
+			
+			for ($i = 1; $i < 10; $i++) {
+				float $densityValue = ($i * 0.2);
+				menuItem 
+						-l ("Density: " + $densityValue) 
+						-bld ($pointDensity == $densityValue)
+						-c ("setAttr " + $currentQuality + ".finalGatherPresampleDensity " + $densityValue);
+			}
+		setParent -menu;
+
+		menuItem -p rvQualityMarkingMenu -rp "NE" -sm 1 -l "Scanline Mode";
+		string $modes[] = {"Off", "On", "OpenGL", "Rapid"};
+		radioMenuItemCollection;
+		for ($i = 0; $i < size($modes); $i++)
+			menuItem -l $modes[$i] -rb (`getAttr ($currentQuality + ".scanline")` == $i) -c ("setAttr " + $currentQuality + ".scanline " + $i);
+		setParent -menu;
+	}
+	setParent -m ..;
+}
+
+
+
+
+
+
+
+//************************************************************************************************************************
+//Scripts that are used by the framestore utilities.
+//************************************************************************************************************************
+
+//************************************************************************************************************************
+// Build the framestore menu.
+global proc sz_RV_BuildFrameStoreMenu() {
+	string $fileName = `getAttr defaultRenderGlobals.imageFilePrefix`;
+	if ($fileName == "")
+		$fileName = `file -q -ns`;
+	if ($fileName == "")	
+		$fileName = "untitled";
+
+	popupMenu -e -dai frameStoreMenu;
+	setParent -menu "frameStoreMenu";
+	menuItem -l "Set render-info display..." -c "sz_MIT_ShowInfoGUI" ;
+	menuItem -l "Open the mayaImageTool window..." -c "sz_MIT_GUI";
+	menuItem -l "Auto-open the mayaImageTool window" -cb (`optionVar -exists "sz_MIT_AutoOpen"`) -c "sz_MIT_Commands autoOpen";
+	menuItem -d 1;
+	menuItem -l "Add Note To Rendered Image..." -c "sz_RV_AddNotesGUI";
+	menuItem -d 1;
+	menuItem -l "Load previously saved images from disk" -sm 1 -pmc ("sz_RV_AddFrameStoreSubMenu load sz_RV_LoadImages") sz_RV_LoadImages;
+	setParent -m ..;
+	menuItem -l ("Save kept images to disk: " + $fileName) -c ("sz_RV_Framestore save 0 none");
+	menuItem -ob 1 -c ("sz_RV_Framestore save 1 none");
+	menuItem -l "Remove all images from RenderView" -c ("sz_RV_Framestore erase 0 none");
+	menuItem -d 1;
+	menuItem -l "Delete previously saved images from disk" -sm 1 -pmc ("sz_RV_AddFrameStoreSubMenu delete sz_RV_DeleteImages") sz_RV_DeleteImages;
+}
+
+
+
+proc string[] sz_RV_GetImageSequences () {
+	string $sequences [];
+	string $projectDirectory = `workspace -q -rd`;
+	string $imagesDir = `workspace -q -fileRuleEntry "images"`;
+	string $files[] = `getFileList -filespec "framestore_*.tif" -folder ($projectDirectory + $imagesDir + "/")`;
+	string $testName;
+	string $baseName;
+	for ($currentFile in $files)
+	{
+		$baseName = `substring $currentFile 12 (size($currentFile)-7)`;
+		if ($baseName != $testName)
+			$sequences[size ($sequences)] = $baseName;
+		$testName = $baseName;
+	}
+	return $sequences;
+}
+	
+proc int[] getFileDate (string $path) {return (python ( "import os;import time;time.localtime(os.path.getmtime('" + $path  + "'));"));}	
+	
+proc string sz_RV_GetSequenceInfo (string $imageName) {
+	string $projectDirectory = `workspace -q -rd`;
+	string $imagesDir = `workspace -q -fileRuleEntry "images"`;
+	string $files[] = `getFileList -filespec ("framestore_" + $imageName + "_*.tif") -folder ($projectDirectory + "/" + $imagesDir + "/")`;
+	int $fileDate[] = getFileDate($projectDirectory + "/" + $imagesDir + "/" + $files[0]);
+	return ("(" + `size $files` + " image(s)   " + $fileDate[0] + "/" + $fileDate[1] + "/" + $fileDate[2] + "  " + $fileDate[3] + ":" + $fileDate[4] + ")");
+}
+
+
+
+// Build the framestore load/delete submenu.
+global proc sz_RV_AddFrameStoreSubMenu (string $mode, string $parent) {
+	string $files[] = sz_RV_GetImageSequences();
+	setParent -menu $parent;
+	if (size ($files))
+	{
+		for ($currentFile in $files)
+		{
+			string $dataString = ($currentFile + " " + sz_RV_GetSequenceInfo ($currentFile));
+			menuItem 
+					-l $dataString
+					-ann $dataString
+					-c ("sz_RV_Framestore " + $mode + " 0 " + $currentFile);
+		}
+	}
+	else
+		menuItem -l "No framestore images saved";
+}
+
+
+
+//************************************************************************************************************************
+// Framestore procedures for reading / writing / erasing / deleting images.
+global proc sz_RV_Framestore (string $mode, int $dialog, string $images) {
+	global string $sz_MIT_RenderInfo[];
+	string $renderViewName = getRenderWindowPanel();
+	string $projectDirectory = `workspace -q -rd`;
+	string $imagesDir = `workspace -q -fileRuleEntry "images"`;
+	string $fileName = `getAttr defaultRenderGlobals.imageFilePrefix`;
+	if ($fileName == "")
+		$fileName = `file -q -ns`;
+	if ($fileName == "")	
+		$fileName = "untitled";
+	
+	if ($dialog == 1)	//Image name dialog
+	{
+		string $result = `promptDialog
+						-title "Image name"
+						-message ("Enter image name to " + $mode + ":\nframestore_")
+						-messageAlign "center"
+						-text $fileName
+						-button "OK" -button "Cancel" 
+						-defaultButton "OK" -cancelButton "Cancel" -dismissString "Cancel"`;
+		if ($result == "OK")
+			$fileName = `promptDialog -q`;
+		else
+		{
+			print "No image name defined...";
+			return;
+		}
+	}
+	if ($images != "none")
+		$fileName = $images;
+	string $images = ($projectDirectory + $imagesDir + "/" + "framestore_" + $fileName);
+	string $currentImages;
+	
+	if ($mode == "save")
+	{
+		int $outfiletype = `getAttr defaultRenderGlobals.outf`;
+		setAttr defaultRenderGlobals.outf 3;
+		tearOffPanel "Render View" "renderWindowPanel" true;
+		int $index  = `renderWindowEditor -q -nim $renderViewName`;
+		
+		if ($index != 0)
+		{
+			if (`file -q -ex ($images + "_01.tif")` == 1 )		//Overwrite check
+			{
+				$result = `confirmDialog 
+							-title "Confirm overwrite" 
+							-message "Images already exist on the disk.\nDo you want to overwrite them?"
+			    				-button "Yes" -button "No" 
+			    				-defaultButton "Yes" -cancelButton "No" -dismissString "No"`;
+				if ($result == "No")
+				{
+					print "Cancel: Files exist on disk...";	
+					return;
+				}
+			}
+			for ($i=0; $i< ($index) ; $i++)		//Write images
+			{
+				renderWindowEditor -edit -displayImage ($index-($i+1)) $renderViewName;
+				$currentImages = ($images + "_");
+				if ($i+1 < 10)
+					$currentImages = ($currentImages + "0");
+				print ("Saving Image: " + $currentImages + ($i+1) + ".tif\n");
+				float $baseMayaVersion = getApplicationVersionAsFloat();
+				if ($baseMayaVersion >= 2011)
+					renderWindowEditor -edit -writeImage ($currentImages + ($i+1) + ".tif") $renderViewName;
+				else
+					renderWindowSaveImageCallback $renderViewName ($currentImages + ($i+1) + ".tif") "tiff";
+				sz_RV_FramestoreWriteInfo ($currentImages + ($i+1));
+			}
+			setAttr defaultRenderGlobals.outf $outfiletype;
+			renderWindowRefreshMenu("file", $renderViewName);
+			sz_MIT_Commands updateImageInfo;
+		}
+		else
+			print "No image stored in the RenderView\n";
+	}
+	if ($mode == "load")
+	{
+		tearOffPanel "Render View" "renderWindowPanel" true;
+		for ($i=1; $i< 50 ; $i++) 
+		{
+			if (`file -q -ex ($images + "_" + $i + ".tif")` == 1  || `file -q -ex ($images + "_0" + $i + ".tif")` == 1 ) 
+			{	
+				if ($i < 10)
+					$currentImages = ($images + "_0");
+				print ("Loading Image: " + $currentImages + ($i) + ".tif\n");
+				renderWindowLoadImageCallback $renderViewName ($currentImages + $i + ".tif") "image";
+				sz_RV_FramestoreLoadInfo ($currentImages + $i);
+				renderWindowEditor -e -si $renderViewName;
+				renderWindowRefreshLayout $renderViewName;
+			}
+			else 
+				break;
+		}
+		renderWindowRefreshMenu("file", $renderViewName);
+		renderWindowEditor -edit -realSize $renderViewName;
+		if (`window -q -exists sz_MIT_Window`)
+			sz_MIT_Commands refreshImageNames;
+		sz_MIT_Commands updateImageInfo;		
+	}
+	if ($mode == "erase")
+	{
+		int $sz_MIT_Exists = `window -q -exists sz_MIT_Window`;
+		if ($sz_MIT_Exists) deleteUI sz_MIT_Window;
+
+		renderWindowEditor -edit -removeAllImages $renderViewName;
+		renderWindowRefreshMenu("file", $renderViewName);
+		renderWindowRefreshLayout($renderViewName);
+		string $firstLine = $sz_MIT_RenderInfo[0];
+		clear $sz_MIT_RenderInfo;
+		$sz_MIT_RenderInfo[0] = $firstLine;
+
+		if ($sz_MIT_Exists) sz_MIT_GUI;
+		sz_MIT_Commands updateImageInfo;
+	
+	}
+	
+	if ($mode == "delete")
+	{
+		string $files[] = `getFileList -folder ($projectDirectory + $imagesDir + "/") -filespec ("framestore_" + $fileName + "_??.*")`;
+		for ($currentFile in $files)
+		{
+			sysFile -delete ($projectDirectory + $imagesDir + "/" + $currentFile);
+			print ("Image deleted from disk: " + $currentFile + "\n");
+		}
+	}
+}
+
+
+
+global proc sz_RV_FramestoreWriteInfo (string $file) {
+	global string $sz_MIT_RenderInfo[];
+	global string $dataList [];
+	string $mit_tokenChar = "\\";
+	string $buffer[];
+	string $renderViewName = getRenderWindowPanel();
+	tokenize $sz_MIT_RenderInfo[(int)(`renderWindowEditor -q -di $renderViewName`+1)] $mit_tokenChar $buffer;
+	$fileId = `fopen ($file + ".info") "w"`;
+	for ($i = 0; $i < `size $dataList`; $i++)
+		fprint $fileId (`sz_ExtendString ($dataList[$i] + ":") 18` + $buffer[$i] + "\n");
+	fclose $fileId;
+	print ("\tInfo file saved for image\n");
+}
+
+
+
+global proc sz_RV_FramestoreLoadInfo (string $file) {
+	global string $sz_MIT_RenderInfo[];
+	string $mit_tokenChar = "\\";
+	string $buffer[];
+	string $info;
+	
+	if (`file -q -exists ($file + ".info")`)
+	{
+		$fileId = `fopen ($file + ".info") "r"`;
+		string $nextLine = `fgetline $fileId`;
+		while ( size( $nextLine ) > 0 ) 
+		{
+			tokenize (substitute(match ("[a-z]:  ", $nextLine), $nextLine, "|"), "|", $buffer);
+				$info+= strip (substring ($buffer[1], 1, (size($buffer[1])-1)) + $mit_tokenChar);
+			$nextLine = `fgetline $fileId`;
+		}
+		fclose $fileId;
+		print ("\tInfo file loaded for image\n");
+	}
+	else
+		print ("\tNo info file saved for image\n");
+	
+	$sz_MIT_RenderInfo[0] = $info;
+	for ($i = `size $sz_MIT_RenderInfo`; $i > 0; $i--)
+		$sz_MIT_RenderInfo[$i] = $sz_MIT_RenderInfo[$i-1];	
+}
+
+
+
+
+
+
+/*
+	The mayaImageTool is an interface for storing and organizing information 
+	about images rendered in Maya. It looks a bit like Pixar's IT.
+*/
+
+
+global proc sz_MIT_GUI () {
+	global string $sz_MIT_RenderInfo[];
+	if (!`window -q -exists sz_MIT_Window`)
+	{
+		window -title "mIT - Maya Image Tool" -in "mIT" -wh 225 440 sz_MIT_Window;
+		string $form = `formLayout -numberOfDivisions 100`;
+
+		string $buttonA = `button -l "Set A" -c "sz_MIT_SwapABCommands \"setA\"" sz_MIT_ButtonA`;
+		string $buttonB = `button -l "Set B" -en 0 -c "sz_MIT_SwapABCommands \"setB\"" sz_MIT_ButtonB`;
+		string $buttonSwap = `button -l "Swap A/B" -en 0 -c "sz_MIT_SwapABCommands \"swap\"" sz_MIT_ButtonSwap`;
+
+		string $paneLayout = `paneLayout -cn horizontal2 sz_MIT_Layout`;
+		textScrollList 
+				-sc "sz_MIT_Commands updateImageInfo"
+				-dkc "sz_MIT_Commands deleteImage"
+				-dcc "sz_MIT_Commands rename"
+				-annotation "Click on an image to view details below, right click for commands"
+				-ams 1
+				sz_MIT_List;
+		popupMenu -b 3 -aob 1 -pmc "sz_MIT_BuildMenu" sz_MIT_ListMenu;
+		textScrollList 
+				-dcc "sz_MIT_Commands addComment"
+				-annotation "Double click to add comment"
+				-font "smallFixedWidthFont"
+				sz_MIT_Info;
+
+		formLayout -edit
+		    -attachControl	$paneLayout		"top"		5 $buttonA
+		    -attachForm		$paneLayout		"left"	5
+		    -attachForm		$paneLayout		"bottom"	5
+		    -attachForm		$paneLayout		"right"	5
+
+		    -attachForm		$buttonA 		"top"		5
+		    -attachForm		$buttonA		"left"	5
+		    -attachNone		$buttonA		"bottom"
+		    -attachPosition	$buttonA		"right"	5 33
+
+		    -attachForm		$buttonB		"top"		5
+		    -attachControl	$buttonB		"left"	5 $buttonA
+		    -attachNone		$buttonB		"bottom"
+		    -attachPosition	$buttonB		"right"	5 66
+
+		    -attachForm		$buttonSwap		"top"		5
+		    -attachControl	$buttonSwap		"left"	5 $buttonB
+		    -attachNone		$buttonSwap 	"bottom"
+		    -attachForm		$buttonSwap		"right"	5
+		    
+		$form;
+
+	}
+	
+	sz_MIT_Commands refreshImageNames;
+	sz_MIT_Commands updateImageInfo;
+	showWindow sz_MIT_Window;
+}
+
+
+
+global int $sz_MIT_ImageA = -2;
+global int $sz_MIT_ImageB = -2;
+global proc sz_MIT_SwapABCommands (string $mode) {
+	global int $sz_MIT_ImageA;
+	global int $sz_MIT_ImageB;
+
+	string $renderViewName = getRenderWindowPanel();		
+	int $currentImage = `renderWindowEditor -q -di $renderViewName`;
+	if ($mode == "setA")
+	{
+		$sz_MIT_ImageA = $currentImage;
+		print ("Image A set: index " + $currentImage + "\n");
+		button -e -ann $currentImage sz_MIT_ButtonA;
+		button -e -en 1 sz_MIT_ButtonB;
+	}
+	else if ($mode == "setB")
+	{
+		$sz_MIT_ImageB = $currentImage;
+		print ("Image B set: index " + $currentImage + "\n");
+		button -e -ann $currentImage sz_MIT_ButtonB;
+	}
+	if ($sz_MIT_ImageA > -2 && $sz_MIT_ImageB > -2)			// Enable swap button if A and B are stored
+		button -e -en 1 sz_MIT_ButtonSwap;
+
+	if ($mode == "swap" && $sz_MIT_ImageA > -2 && $sz_MIT_ImageB > -2 && $sz_MIT_ImageA != $sz_MIT_ImageB)
+	{
+		int $imageToDisplay = ($currentImage == $sz_MIT_ImageA ? $sz_MIT_ImageB : $sz_MIT_ImageA);
+		print ("Swap image " + ($imageToDisplay == $sz_MIT_ImageA ? "B->A" : "A->B") + "\n");
+		
+		renderWindowEditor -e -di $imageToDisplay $renderViewName;
+		textScrollList -e -da sz_MIT_List;
+		if (`textScrollList -q -numberOfItems sz_MIT_List` >= ($imageToDisplay + 2))
+			textScrollList -e -sii ($imageToDisplay + 2) sz_MIT_List;
+		sz_MIT_Commands updateImageInfo;
+	}
+}
+
+
+
+//*************************************************************************************
+/*
+	Store the render-related information of the current frame (and the older ones)
+	in a global array variable called $sz_MIT_RenderInfo.
+*/	
+global proc sz_MIT_StoreCurrentInformation (float $startTime, string $renderMode) {
+	global string $sz_MIT_RenderInfo[];
+	global string $dataList [];
+	string $mit_tokenChar = "\\";
+	
+	string $renderViewName = getRenderWindowPanel();
+	string $imageName = `getAttr defaultRenderGlobals.imageFilePrefix`;
+	if ($imageName == "") $imageName = `file -q -ns`;
+	float $currentFrame = `currentTime -q`;
+	string $camera = `renderWindowEditor -q -currentCamera $renderViewName`;
+	int $date[] = `sz_CurrentTime`;
+	string $dateString = ($date[0] + "/" + $date[1] + "/" + $date[2] + " " + $date[3] + ":" + `sz_Pad $date[4] 2`);
+	int $testResolution[] = `sz_GetTestResolution`;
+	string $renderer = currentRenderer();
+	float $renderTime = `timerX -startTime $startTime`;
+	string $timeString;
+	if ($renderTime >= 60)
+	{
+		int $min = $renderTime/60;
+		$timeString = ($min + " min " + fmod (ceil($renderTime), 60) + " sec");
+	}
+	else
+		$timeString = ($renderTime + " sec");
+	if ($renderMode == "renderRegion")
+		$timeString +=  " (region)";
+	
+	string $rendQual[];
+	int $minShadingSamples;
+	int $maxShadingSamples;
+	float $sampleContrast;
+	int $filterType = 0;
+	float $filterWidth = 0;
+	float $filterHeight = 0;
+	string $samplingString = "-";
+	
+	switch ($renderer)
+	{
+		case "mayaSoftware":
+				$rendQual = `listConnections defaultRenderGlobals.qual`;
+				$minShadingSamples = `getAttr ($rendQual[0] + ".shadingSamples")`;
+				$maxShadingSamples = `getAttr ($rendQual[0] + ".maxShadingSamples")`;
+				$sampleContrast = ((`getAttr ($rendQual[0] + ".redThreshold")` + `getAttr ($rendQual[0] + ".greenThreshold")` + `getAttr ($rendQual[0] + ".blueThreshold")`)/3);
+				$filterType = `getAttr ($rendQual[0] + ".pixelFilterType")`;
+				$filterWidth = `getAttr ($rendQual[0] + ".pixelFilterWidthX")`;
+				$filterHeight = `getAttr ($rendQual[0] + ".pixelFilterWidthY")`;
+				$samplingString = ($minShadingSamples + "/" + $maxShadingSamples); 
+			break;
+		case "mentalRay":
+		case "mental":
+		case "mrStandalone":
+				$rendQual[0] = sz_RV_GetCurrentMRQuality();
+				if (`getAttr ($rendQual[0] + ".scanline")` != 3)
+				{
+					$minShadingSamples = `getAttr ($rendQual[0] + ".minSamples")`;
+					$maxShadingSamples = `getAttr ($rendQual[0] + ".maxSamples")`;
+					$sampleContrast = ((`getAttr ($rendQual[0] + ".contrastR")` + `getAttr ($rendQual[0] + ".contrastG")` + `getAttr ($rendQual[0] + ".contrastB")`)/3);				
+					$samplingString = ($minShadingSamples + "/" + $maxShadingSamples + " cont:" + `sz_Round $sampleContrast 2`);
+				}
+				else
+				{
+					$minShadingSamples = `getAttr ($rendQual[0] + ".rapidSamplesCollect")`;
+					$maxShadingSamples = `getAttr ($rendQual[0] + ".rapidSamplesShading")`;
+					$samplingString = ("Rapid " + $minShadingSamples + "/" + $maxShadingSamples);
+				}
+				$filterType = `getAttr ($rendQual[0] + ".filter")`;
+				$filterWidth = `getAttr ($rendQual[0] + ".filterWidth")`;
+				$filterHeight = `getAttr ($rendQual[0] + ".filterHeight")`;
+			break;
+		case "mayaHardware":
+				$minShadingSamples = `getAttr "hardwareRenderGlobals.numberOfSamples"`;
+				$maxShadingSamples = `getAttr "hardwareRenderGlobals.numberOfSamples"`;
+				$samplingString = ($minShadingSamples + "/" + $maxShadingSamples); 
+			break;
+	}
+	
+	string $user = (`about -os` == "nt" ? getenv ("user") : system("whoami"));
+	if (match ("\\\\", $user) != "") $user = substitute("\\\\", $user, "@");			// Handle domain users
+	string $userName = ($user != "" ? $user : "Unknown");
+
+	string $currentLayer = `editRenderLayerGlobals -q -currentRenderLayer`;
+	if ($currentLayer == "defaultRenderLayer") $currentLayer = "masterLayer";
+	$sz_MIT_RenderInfo[0] = ($imageName + $mit_tokenChar + 
+		`sz_Pad $currentFrame 4` + $mit_tokenChar + 
+		$camera + $mit_tokenChar + 
+		$currentLayer + $mit_tokenChar + 
+		$dateString + $mit_tokenChar + 
+		$testResolution[0] + "x" + $testResolution[1] + $mit_tokenChar + 
+		$renderer + $mit_tokenChar + 
+		$timeString + $mit_tokenChar + 
+		$samplingString + $mit_tokenChar + 
+		"type:" + $filterType + " w:" + `sz_Round $filterWidth 2` + " h:" + `sz_Round $filterHeight 2` + $mit_tokenChar +
+		$userName);
+
+	if (`window -q -exists sz_MIT_Window`)
+	{
+		sz_MIT_Commands refreshImageNames;
+		textScrollList -e -da -sii 1 sz_MIT_List;	
+	}
+	if (`optionVar -exists "sz_MIT_AutoOpen"`)
+		sz_MIT_GUI;
+}
+
+
+
+
+// Right-click menu for the mIT window
+global proc sz_MIT_BuildMenu () {
+	popupMenu -e -dai sz_MIT_ListMenu;
+	setParent -m sz_MIT_ListMenu;
+		menuItem -label "Rename image" -ann "Rename the selected image" -c "sz_MIT_Commands rename";
+		menuItem -label "Delete image" -c "sz_MIT_Commands deleteImage";
+		menuItem -label "Save selected images" -c "sz_MIT_Commands saveImages";
+		menuItem -label "Save information about images" -c "sz_MIT_Commands saveInfo";
+		menuItem -label "Add image from disk" -c "sz_MIT_Commands addImage";
+		menuItem -label "Render current information on the image" -c "sz_MIT_Commands addNoteToImages";
+}
+
+
+//*************************************************************************************
+
+global proc sz_MIT_Commands (string $mode) {
+	global string $sz_MIT_RenderInfo[];
+	global string $dataList [];
+	string $mit_tokenChar = "\\";
+	string $buffer[];
+	string $name[];
+	int $index[];
+	string $renderViewName = getRenderWindowPanel();
+	
+	if (`window -q -exists sz_MIT_Window`)						// get selected items from mIT if it exists
+	{
+		$name = `textScrollList -q -si sz_MIT_List`;
+		$index = `textScrollList -q -sii sz_MIT_List`;
+		if ($index[0] == 0) 								// there is nothing selected so use "current image" by default
+			$index[0] = (`renderWindowEditor -q -di $renderViewName` + 2);
+	}
+	else
+		$index[0] = (`renderWindowEditor -q -di $renderViewName` + 2);		// update index based on the renderView position
+	
+	switch ($mode) 
+	{
+		case "refreshImageNames":
+			tokenize $sz_MIT_RenderInfo[0] $mit_tokenChar $buffer;
+			textScrollList -e -ra -append ("Current image: " + $buffer[0] + "." + $buffer[1]) sz_MIT_List;
+			for ($i = 1; $i < (`renderWindowEditor -q -nim $renderViewName`+1); $i++)
+			{
+				tokenize $sz_MIT_RenderInfo[$i] $mit_tokenChar $buffer;
+				textScrollList -e -append ($buffer[0] + "." + $buffer[1]) sz_MIT_List;
+			}
+			textScrollList -e -sii $index[0] sz_MIT_List;
+			break;
+		case "updateImageInfo":
+			if (`renderWindowEditor -q -nim $renderViewName` > -1)
+			{
+				tokenize $sz_MIT_RenderInfo[($index[0]-1)] $mit_tokenChar $buffer;
+				if (`window -q -exists sz_MIT_Window`)				// update mIT info
+				{
+					textScrollList -e -ra sz_MIT_Info;
+					for ($i = 0; $i < (`size $dataList`-1); $i++)
+						textScrollList -e -append (`sz_ExtendString ($dataList[$i] + ":") 12` + $buffer[$i]) sz_MIT_Info;
+					textScrollList -e -append ($dataList[$i] + ": ") -append $buffer[$i] sz_MIT_Info;
+				}
+			// Update image
+				if (`renderWindowEditor -q -nim $renderViewName`)		// update scrollbar after render to show current image
+				{
+					intScrollBar -e -v ($index[0]-2) scrollBar;
+					renderWindowEditor -e -displayImage ($index[0]-2) $renderViewName;
+				}
+					
+			// Update caption
+				string $currentInfo = `optionVar -q sz_MIT_ShowInfo`;
+				if (match ("1", $currentInfo) == "")				// Don't update if nothing is active
+					return;
+				string $infoBuffer[];
+				tokenize $currentInfo "_" $infoBuffer;
+				string $text;
+				int $i = 0;
+				for ($currentItem in $dataList)
+				{
+					if ($infoBuffer[$i] == 1)
+						$text += ($currentItem + ": " + (($buffer[$i] != "") ? $buffer[$i]: "-") + "   "); 
+					$i++;
+				}
+				renderWindowEditor -e -cap $text $renderViewName;
+			}
+			break;
+		case "keepImage":
+			int $i;
+			for ($i = size ($sz_MIT_RenderInfo); $i > 0; $i--)
+				$sz_MIT_RenderInfo[$i] = $sz_MIT_RenderInfo[$i-1];
+			if (`window -q -exists sz_MIT_Window`)
+				sz_MIT_Commands refreshImageNames;
+			sz_MIT_MRLog_keepImageLog;						// Keep mr log file
+			break;
+		case "deleteImage":
+			int $doDelete = 1;
+			if (`window -q -exists sz_MIT_Window`)				// only display dialog when the mIT window exists
+				$doDelete = (`confirmDialog -t "Remove image" -ma "center" -m ("Remove image from the RenderView?") -button "Yes" -button "No" -defaultButton "Yes"` == "Yes");
+	
+			int $currentIndex = $index[0];
+			if ($currentIndex != 1 && $doDelete)			// current image check
+			{
+				tokenize $sz_MIT_RenderInfo[$currentIndex-1] $mit_tokenChar $buffer;
+				renderWindowEditor -e -displayImage ($currentIndex-2) $renderViewName;
+				renderWindowEditor -e -removeImage $renderViewName;
+				renderWindowRefreshMenu("file", $renderViewName);
+				renderWindowRefreshLayout($renderViewName);					
+				int $images  = `renderWindowEditor -q -nim $renderViewName`;
+				string $tempList[] = $sz_MIT_RenderInfo;
+				clear $sz_MIT_RenderInfo;
+				for ($i = 0; $i< $images+2; $i++)			// re-fill the array one by one
+				{
+					if ($i != ($currentIndex-1))
+						$sz_MIT_RenderInfo[size ($sz_MIT_RenderInfo)] = $tempList[$i];
+				}
+				if (`window -q -exists sz_MIT_Window`)
+				{
+					textScrollList -e -removeIndexedItem $currentIndex sz_MIT_List;
+					textScrollList -e -da -sii ($currentIndex-1) sz_MIT_List;
+				}
+				sz_MIT_MRLog_deleteImageLog ($currentIndex-2);	// Delete mr log file for given image
+			}
+			else
+				warning "The current image can not be deleted";
+			sz_MIT_Commands updateImageInfo;
+			break;
+		case "rename":
+			tokenize $sz_MIT_RenderInfo[($index[0]-1)] $mit_tokenChar $buffer;
+			string $result = `promptDialog
+						-title "Rename image"
+						-message "Enter new name for this image:"
+						-tx $buffer[0]
+						-button "OK" -button "Cancel"
+						-defaultButton "OK" -cancelButton "Cancel"
+						-dismissString "Cancel"`;
+			if ($result == "OK")
+			{
+				string $newName = `promptDialog -query -text`;
+				$sz_MIT_RenderInfo[($index[0]-1)] = `substitute $buffer[0] $sz_MIT_RenderInfo[($index[0]-1)] $newName`;
+				sz_MIT_Commands updateImageInfo;
+				if ($index[0] == 1)
+					textScrollList -e -rii $index[0] -ap $index[0] ("Current image: " + $newName + "." + $buffer[1]) sz_MIT_List;
+				else
+					textScrollList -e -rii $index[0] -ap $index[0] ($newName + "." + $buffer[1]) sz_MIT_List;
+			}
+			break;
+		case "addComment":
+			tokenize $sz_MIT_RenderInfo[($index[0]-1)] $mit_tokenChar $buffer;
+			string $oldComment = $buffer[(`size $dataList`)-1];
+			string $result = `promptDialog
+						-title "User comment"
+						-message "Enter comment for this image:"
+						-tx $oldComment
+						-button "OK" -button "Cancel"
+						-defaultButton "OK" -cancelButton "Cancel"
+						-dismissString "Cancel"`;
+			if ($result == "OK")
+			{
+				string $comment = `promptDialog -query -text`;
+				if ($oldComment == "")
+					$sz_MIT_RenderInfo[($index[0]-1)] = ($sz_MIT_RenderInfo[($index[0]-1)] + $mit_tokenChar + $comment);
+				else
+					$sz_MIT_RenderInfo[($index[0]-1)] = `substitute $oldComment $sz_MIT_RenderInfo[($index[0]-1)] $comment`;
+				sz_MIT_Commands updateImageInfo;
+			}
+			break;
+		case "saveImages":
+			string $imagesDir = (`workspace -q -rd` + `workspace -q -fileRuleEntry "images"` + "/");
+			int $outfiletype = `getAttr defaultRenderGlobals.outf`;
+			setAttr defaultRenderGlobals.outf 3;				// use tiff
+			for ($currentIndex in $index)
+			{
+				tokenize $sz_MIT_RenderInfo[$currentIndex-1] $mit_tokenChar $buffer;
+				renderWindowEditor -e -displayImage ($currentIndex-2) $renderViewName;
+				renderWindowSaveImageCallback $renderViewName ($imagesDir + $buffer[0] + "." + $buffer[1] + ".tif") "tiff";
+			}
+			setAttr defaultRenderGlobals.outf $outfiletype; 
+			if (`confirmDialog -t "Save image info" -ma "center" -m ("Save image info too?") -button "Yes" -button "No" -defaultButton "Yes"` == "Yes")
+				sz_MIT_Commands saveInfo;
+			break;
+		case "saveInfo":
+			string $imagesDir = (`workspace -q -rd` + "/" + `workspace -q -fileRuleEntry "images"` + "/");
+			string $writeMode = "yes";
+			for ($currentIndex in $index)
+			{
+				tokenize $sz_MIT_RenderInfo[$currentIndex-1] $mit_tokenChar $buffer;
+				$infoFileName = ($imagesDir + $buffer[0] + "." + $buffer[1] + ".info");
+				if (`file -q -exists $infoFileName` && $writeMode != "All")
+				{
+					$writeMode = `confirmDialog -t "Overwrite dialog" -ma "center" -m ("Info file exists: \n" + $infoFileName + "\n Overwrite?") -button "Yes" -button "All" -button "No" -button "Cancel"`;
+					if ($writeMode == "Cancel")
+					{
+						print "Cancel...\n";
+						return;
+					}
+				}
+				if ($writeMode != "No")
+				{
+		    			$fileId = `fopen $infoFileName "w"`;
+					for ($i = 0; $i < `size $dataList`; $i++)
+						fprint $fileId (`sz_ExtendString ($dataList[$i] + ":") 18` + $buffer[$i] + "\n");
+		    			fclose $fileId;
+	    			}
+			}
+			print ("Render information saved for " + `size $index` + " images\n");
+			break;
+			
+		case "addImage":
+				renderWindowMenuCommand loadImage $renderViewName;
+				$sz_MIT_RenderInfo[0] = ("Loaded form disk " + $mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar + 
+								$mit_tokenChar);	
+			break;
+		
+		case "addNoteToImages":
+				tokenize $sz_MIT_RenderInfo[($index[0]-1)] $mit_tokenChar $buffer;
+				string $data = $sz_MIT_RenderInfo[($index[0]-1)];
+				if (`renderWindowEditor -q -displayImage $renderViewName` >= 0)		// In case the image is not the first in the list
+				{
+					if (`confirmDialog -title "Add notes error" -message "You can only add notes to the last rendered image. Reorder selected frame?" -button "OK" -button "Cancel" -defaultButton "OK"` == "Cancel")
+					{
+						print "Cancel...\n";
+						return;
+					}
+					else
+					{
+						string $tempImage = (`internalVar -userTmpDir` + "temp.iff");
+						string $currentImage = (`internalVar -userTmpDir` + "temp_current.iff");
+						if ($tempImage == "temp.iff")
+						{
+							print "No user temp directory defined...\n";
+							return;
+						}
+						renderWindowEditor -e -wi $tempImage $renderViewName;
+						int $windowExists = `window -q -exists sz_MIT_Window`;
+						if ($windowExists) deleteUI sz_MIT_Window;
+						sz_MIT_Commands deleteImage;
+						renderWindowEditor -e -di -1 $renderViewName;
+						renderWindowEditor -e -wi $currentImage $renderViewName;
+						renderWindowEditor -e -li $tempImage $renderViewName;
+						$sz_MIT_RenderInfo[0] = $data;
+						catch (`sysFile -delete $tempImage`);
+						renderWindowEditor -e -di -1 $renderViewName;
+						if ($windowExists) sz_MIT_GUI;
+					}
+				}
+	
+				string $resBuffer[];
+				tokenize $buffer[4] "x" $resBuffer;					// Get image's resolution from the data stored
+				int $resX = $resBuffer[0];
+				int $resY = $resBuffer[1];
+				int $origTestRes = `optionVar -query renderViewTestResolution`;
+				int $origResX = `getAttr defaultResolution.width`;
+				int $origResY = `getAttr defaultResolution.height`;
+				if ($resX > 0 && $resX > 0)						// Update maya resolution if stored image resolution data is valid
+				{
+					setAttr defaultResolution.width $resX;
+					setAttr defaultResolution.height $resY;
+					setTestResolutionVar(1);
+				}
+				string $currentInfo = `optionVar -q sz_MIT_ShowInfo`;
+				string $infoBuffer[];
+				tokenize $currentInfo "_" $infoBuffer;
+				string $text;
+				int $i = 0;
+				for ($currentItem in $dataList)
+				{
+					if ($infoBuffer[$i] == 1)
+						$text += ($currentItem + ": " + (($buffer[$i] != "") ? $buffer[$i]: "-") + "   "); 
+					$i++;
+				}
+				sz_RV_AddNotes $text 0;
+				renderWindowMenuCommand keepImageInRenderView $renderViewName;
+				sz_MIT_Commands updateImageInfo;
+				
+				setAttr defaultResolution.width $origResX;
+				setAttr defaultResolution.height $origResY;
+				setTestResolutionVar $origTestRes;
+			break;
+			
+		case "autoOpen":
+			if (`optionVar -exists "sz_MIT_AutoOpen"`)
+				optionVar -rm "sz_MIT_AutoOpen";
+			else
+				optionVar -iv "sz_MIT_AutoOpen" 1;
+			break;
+
+		case "stepToImageFrame":
+			string $renderViewName = getRenderWindowPanel();
+			int $imageIndex = (`renderWindowEditor -q -di $renderViewName` + 1);
+			tokenize $sz_MIT_RenderInfo[$imageIndex] $mit_tokenChar $buffer;
+			if ($buffer[1] == "")
+			{
+				warning "No rendered image or valid data";
+				return;
+			}
+			currentTime $buffer[1];
+			print ("Time set to frame: " + $buffer[1] + "\n");
+			break;
+	}
+}
+
+
+//*******************************************************************************************
+//	Set the preferences for the render information dispayed at the bottom of the renderView
+
+global proc sz_MIT_ShowInfoSetup (string $mode) {
+	global string $dataList [];
+	int $i = 1;
+	string $text;
+	for ($currentItem in $dataList)
+	{
+		int $value = `checkBox -q -v ("sz_MIT_Info" + $i)`;
+		$i++;
+		$text += ($value + "_");
+	}	
+	optionVar -sv sz_MIT_ShowInfo $text;
+	if ($mode == "doAndClose")
+		deleteUI sz_MIT_ShowInfoGUI;
+	print ("Render-info display setup updated...\n");
+	sz_MIT_Commands updateImageInfo;
+	}
+	
+	
+	global proc sz_MIT_ShowInfoGUI () {
+	global string $dataList [];
+	string $currentInfo = `optionVar -q sz_MIT_ShowInfo`;
+	string $buffer[];
+	if ($currentInfo != "")
+		tokenize $currentInfo "_" $buffer;
+	if (`window -q -exists sz_MIT_ShowInfoGUI`)
+		deleteUI sz_MIT_ShowInfoGUI;
+	window 
+		-title "Show Info in RenderView"
+		-wh 250 270 -mnb 0 -mxb 0
+		sz_MIT_ShowInfoGUI;
+	frameLayout -labelVisible 0 -labelAlign "top" -borderStyle "in";
+	formLayout sz_MIT_ShowInfoForm;
+	columnLayout -adjustableColumn 1 sz_MIT_ShowInfoColumn;
+	int $i = 1;
+	for ($currentItem in $dataList)
+	{
+		checkBox -align "left" -label $currentItem -v ((int)$buffer[$i-1]) ("sz_MIT_Info" + $i);
+		$i++;
+	}
+	separator -style "none" -h 5;
+	separator -style "single";
+	setParent ..;
+	button 
+			-label "Set values" 
+			-annotation "Apply settings and close window"
+			-c "sz_MIT_ShowInfoSetup doAndClose"
+			sz_MIT_ShowInfoButton;
+	button 
+			-label "Apply"
+			-annotation "Apply settings"
+			-c "sz_MIT_ShowInfoSetup apply"
+			sz_MIT_ShowInfoButton2;
+	formLayout -edit
+	    	-attachForm		sz_MIT_ShowInfoColumn   "top"    5
+	    	-attachForm		sz_MIT_ShowInfoColumn   "left"   5
+	    	-attachControl	sz_MIT_ShowInfoColumn	"bottom" 5 "sz_MIT_ShowInfoButton"
+	    	-attachForm		sz_MIT_ShowInfoColumn   "right"  5
+	
+		-attachForm		sz_MIT_ShowInfoButton	"left"   5
+		-attachForm		sz_MIT_ShowInfoButton	"bottom" 5
+		-attachPosition sz_MIT_ShowInfoButton     "right"  2 50
+	
+		-attachPosition	sz_MIT_ShowInfoButton2	"left"   2 50
+		-attachForm		sz_MIT_ShowInfoButton2	"bottom" 5
+		-attachForm		sz_MIT_ShowInfoButton2	"right"  5	
+		sz_MIT_ShowInfoForm;
+	showWindow;
+}
+
+
+
+
+
+//************************************************************************************************************************
+// The GUI for adding notes
+global proc sz_RV_AddNotesGUI () {
+	global string $dataList[];
+	global string $sz_MIT_RenderInfo[];
+	string $mit_tokenChar = "\\";
+	int $keepImage = 0;
+	string $renderViewName = getRenderWindowPanel();
+	if (`renderWindowEditor -q -displayImage $renderViewName` >= 0)		// In case the image is not the first in the list
+	{
+		if (`confirmDialog -title "Add notes error" -message "You can only add notes to the last rendered image. Reorder selected frame?" -button "OK" -button "Cancel" -defaultButton "OK"` == "Cancel")
+		{
+			print "Cancel...";
+			return;
+		}
+		else
+		{
+			string $tempImage = (`internalVar -userTmpDir` + "temp.iff");
+			string $currentImage = (`internalVar -userTmpDir` + "temp_current.iff");
+			if ($tempImage == "temp.iff")
+			{
+				print "No user temp directory defined...";
+				return;
+			}
+			renderWindowEditor -e -wi $tempImage $renderViewName;
+			renderWindowEditor -e -ri $renderViewName;
+			renderWindowEditor -e -di -1 $renderViewName;
+			renderWindowEditor -e -wi $currentImage $renderViewName;
+			renderWindowEditor -e -li $tempImage $renderViewName;
+			catch (`sysFile -delete $tempImage`);
+			renderWindowEditor -e -di -1 $renderViewName;
+			$keepImage = 1;
+		}
+	}
+	
+	if (`windowPref -exists sz_RVAddnote`)
+		windowPref -remove sz_RVAddnote;
+	if (`window -q -exists sz_RVAddnote`)
+		deleteUI sz_RVAddnote;
+	
+	string $settings = `optionVar -q sz_MIT_ShowInfo`;
+	string $values[];
+	tokenize $settings "_" $values;
+	
+	string $buffer[];
+	tokenize $sz_MIT_RenderInfo[0] $mit_tokenChar $buffer;
+	string $currentComment = ($buffer[(size ($dataList)-1)]);
+	
+	window -title "Add Note" -width 320 -height 260 sz_RVAddnote;
+	frameLayout -labelVisible 0 -labelAlign "top" -borderStyle "in";
+	formLayout sz_RVAddNotesLayout ;
+	text -label "The note will cover the lower 3% of the image" sz_RVWarningText ;
+	text -label "Comment:" sz_RVNoteText;
+	textField -width 225 -tx $currentComment sz_RVNoteTextfield;
+	
+	string $rowColumnLayout = `rowColumnLayout -nc 3`;
+	for ($i = 0; $i < size($dataList); $i++)
+		checkBox -label $dataList[$i] -v ($values[$i] == "1")  ("sz_RVAdd" + $dataList[$i] + "CB");
+	setParent ..;
+	
+	colorSliderGrp -label "Background" -cw3 75 60 120 -rgb 0 0 0 sz_RVNoteBackroundColor;
+	colorSliderGrp -label "Text" -cw3 75 60 120 -rgb 1 1 1 sz_RVNoteTextColor;
+	
+	button 
+		-label "Add note to image"
+		-c ("sz_RV_AddNotes \"\" " + $keepImage)
+		sz_RVAddNoteButton;
+	
+	formLayout 
+		-e
+		-af sz_RVWarningText "left" 45
+		-af sz_RVWarningText "top" 10
+	
+		-ac $rowColumnLayout "top" 5 sz_RVWarningText
+		-af $rowColumnLayout "left" 15
+		-af $rowColumnLayout "right" 15
+	
+		-af sz_RVNoteText "left" 15
+		-ac sz_RVNoteText "top" 5 $rowColumnLayout
+		
+		-af sz_RVNoteTextfield "left" 65
+		-af sz_RVNoteTextfield "right" 15
+		-ac sz_RVNoteTextfield "top" 5 $rowColumnLayout
+	
+		-af sz_RVNoteBackroundColor "left" 15
+		-af sz_RVNoteBackroundColor "right" 15
+		-ac sz_RVNoteBackroundColor "top" 15 sz_RVNoteText 
+	
+		-af sz_RVNoteTextColor "left" 15
+		-af sz_RVNoteTextColor "right" 15
+		-ac sz_RVNoteTextColor "top" 5 sz_RVNoteBackroundColor
+	
+		-af sz_RVAddNoteButton "left" 10
+		-af sz_RVAddNoteButton "right" 10
+		-ac sz_RVAddNoteButton "top" 10 sz_RVNoteTextColor
+	
+		sz_RVAddNotesLayout;
+	showWindow ;
+}
+
+
+
+
+//************************************************************************************************************************
+global proc sz_RV_AddNotes (string $text, int $keepImage) {
+	global string $sz_MIT_RenderInfo[];
+	global string $dataList[];
+	string $mit_tokenChar = "\\";
+	string $rendQual[];
+	float $textColor[] = {1, 1, 1};
+	float $backgroundColor[] = {0, 0, 0};
+	
+	string $renderViewName = getRenderWindowPanel();
+	string $renderer = currentRenderer();
+	if ($renderer != "mayaSoftware")
+		setAttr "defaultRenderGlobals.currentRenderer" -type "string" "mayaSoftware";
+	string $noteString = "";
+	string $oldRenderData = $sz_MIT_RenderInfo[0];
+	if (`window -q -exists sz_RVAddnote`)									// override values from GUI
+	{
+		string $customComment = `textField -q -tx sz_RVNoteTextfield`;
+		$textColor = `colorSliderGrp -q -rgb sz_RVNoteTextColor`;
+		$backgroundColor = `colorSliderGrp -q -rgb sz_RVNoteBackroundColor`;
+	
+		string $settings = `optionVar -q sz_MIT_ShowInfo`;
+		string $values[];
+		tokenize $settings "_" $values;
+		string $buffer[];
+		tokenize $sz_MIT_RenderInfo[0] $mit_tokenChar $buffer;
+		
+		int $numberOfItems;
+		for ($i = 0; $i < size ($dataList); $i++)
+		{
+			if (`checkBox -q -v ("sz_RVAdd" + $dataList[$i] + "CB")` == 1)
+			{
+				if ($i != size($dataList)-1)								// User comment
+					$noteString += (" " + $dataList[$i] + ": " + $buffer[$i] + " ");
+				else												// If only the comment is rendered don't add "comment: "
+					$noteString += ($numberOfItems == 0 ? $customComment : (" " + $dataList[$i] + ": " + $customComment + " "));
+				$numberOfItems++;
+			}
+		}
+		$text = $noteString;
+		deleteUI sz_RVAddnote;
+	}
+	
+	
+	// store selection and render region to reset later
+	string $selection[] = `ls -sl`;
+	int $renderRegion[];
+	$renderRegion[0] = `getAttr defaultRenderGlobals.left`;
+	$renderRegion[1] = `getAttr defaultRenderGlobals.rght`;
+	$renderRegion[2] = `getAttr defaultRenderGlobals.bot`;
+	$renderRegion[3] = `getAttr defaultRenderGlobals.top`;
+	
+	//create text and camera setup 
+	int $resolution[] = `sz_GetTestResolution`;
+	string $camera[] = `camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.41732 -horizontalFilmOffset 0 -verticalFilmAperture 0.94488 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.01 -farClipPlane 1000 -orthographic 0 -orthographicWidth 30`;
+	if ($resolution[0] < 512)
+		move -r -os -wd 0 41.8 125 $camera[0];
+	if ($resolution[0] >= 512 && $resolution[0] < 1024)	
+		move -r -os -wd 0 67.25 200 $camera[0];
+	if ($resolution[0] >= 1024)	
+		move -r -os -wd 0 94.5 280 $camera[0];
+	
+	// Create shader, SG, text geometry
+	string $shader = `shadingNode -n "noteShader" -asShader surfaceShader`;
+	string $SG = `sets -renderable true -noSurfaceShader true -empty -name ($shader + "SG")`;
+	connectAttr -f ($shader + ".outColor") ($SG + ".surfaceShader");
+	string $curves[] = `textCurves -ch 0 -f "Arial|h-12|w700|c0" -t $text -n "textCurves"`;
+	string $surface[] = `planarSrf -ch 1 -d 3 -ko 0 -tol 0.01 -rn 0 -po 0`;
+	xform -cp $surface[0];
+	float $pivotPosition[] = `xform -q -ws -rp $surface[0]`;
+	move -r -os -wd (-1 * $pivotPosition[0]) 0 0 $surface[0];
+	
+	// setup colours
+	setAttr ($shader + ".outColor") -type double3 $textColor[0] $textColor[1] $textColor[2];
+	setAttr ($shader + ".outMatteOpacity") -type double3 0 0 0;
+	setAttr ($camera[0] + ".backgroundColor") -type double3 $backgroundColor[0] $backgroundColor[1] $backgroundColor[2];
+	hyperShade -assign $SG;
+	
+	
+	// set render settings
+	int $renderAll = `optionVar -q renderViewRenderSelectedObj`; 
+	setAttr defaultRenderGlobals.left 0;
+	setAttr defaultRenderGlobals.rght 9999;
+	setAttr defaultRenderGlobals.bot 0;
+	
+	if ($resolution[0] < 512)									// different image resolutions require text size modifications
+		setAttr defaultRenderGlobals.top ($resolution[1] * 0.05);
+	if ($resolution[0] >= 512 && $resolution[0] < 1024)	
+		setAttr defaultRenderGlobals.top ($resolution[1] * 0.035);
+	if ($resolution[0] >= 1024)	
+		setAttr defaultRenderGlobals.top ($resolution[1] * 0.025);
+	
+	optionVar -iv renderViewRenderSelectedObj 1;
+	
+	select $surface;
+	string $rendQual[] = `listConnections defaultRenderGlobals.qual`;
+	setAttr ($rendQual[0] + ".edgeAntiAliasing") 1;						// Edge anitialias
+	int $edgeQuality = `getAttr ($rendQual[0] + ".edgeAntiAliasing")`;
+	string $currentCamera = `renderWindowEditor -q -currentCamera $renderViewName`; 	// Store current camera
+	renderWindowRenderCamera( "renderRegion", $renderViewName, $camera[0]); 		// Do render
+	
+	//Reset values, delete stuff
+	optionVar -iv renderViewRenderSelectedObj $renderAll;
+	
+	setAttr ($rendQual[0] + ".edgeAntiAliasing") $edgeQuality;
+	renderWindowEditor -e -currentCamera $currentCamera $renderViewName;
+	if ($renderer != "mayaSoftware")
+		setAttr "defaultRenderGlobals.currentRenderer" -type "string" $renderer;
+	setAttr defaultRenderGlobals.left $renderRegion[0];
+	setAttr defaultRenderGlobals.rght $renderRegion[1];
+	setAttr defaultRenderGlobals.bot $renderRegion[2];
+	setAttr defaultRenderGlobals.top $renderRegion[3];
+	
+	select $selection;
+	delete $surface;
+	delete $curves;
+	delete $camera;
+	delete $shader;
+	delete $SG;
+	
+	$sz_MIT_RenderInfo[0] = $oldRenderData;							// Restore old render information.
+	sz_MIT_Commands updateImageInfo;								// and update the caption too.
+	if ($keepImage)
+	{
+		string $currentImage = (`internalVar -userTmpDir` + "temp_current.iff");
+		renderWindowEditor -e -si $renderViewName;
+		renderWindowEditor -e -li $currentImage $renderViewName;
+		catch (`sysFile -delete $currentImage`);
+	}
+}
+
+
+
+
+
+
+//*******************************************************************************
+//RENDER UTILITIES
+
+
+//Build menu
+global proc sz_RV_BuildRenderUtilitiesMenu (string $mode) {
+	
+	if ($mode == "menu")
+	{
+		menu 
+			-label "Utilities"
+			-tearOff 1
+			-aob 1
+			sz_RenderUtilities;
+	}
+	else
+	{
+		setParent -menu ..;
+		menuItem 
+			-subMenu true 
+			-aob 1
+			-label "Utilities";
+	}		
+	menuItem
+		-label "Render Multiple Frames..."
+		-c "sz_RV_RenderMultipleFramesGUI";
+	menuItem
+		-label "Dispay Mental Ray Tesselation"
+		-annotation "Renders the tesselated wireframe of the selected object(s)"
+		-c "sz_RV_DisplayMRTesselation";		
+	menuItem
+		-ob 1
+		-c "sz_RV_DisplayMRTesselationGUI";
+	setParent -menu ..;
+	if ($mode == "popup")
+	{
+		menuItem -divider 1;
+
+		string $renderer = currentRenderer();
+		if (match ("^[mM]ental", $renderer) != "" || match ("^[mM][rR]", $renderer) != "")
+		{
+			menuItem 
+					-label "Show mental ray render log..."
+					-enable (`optionVar -q sz_MIT_MRLog_useLog` == 1)
+					-annotation "Displays the render log file for the current image"
+					-c "sz_MIT_MRLog_showLog"
+					sz_MIT_MRLog_menuItem;
+			menuItem 
+					-ob 1 
+					-ann "MR Log Settings"
+					-c "sz_MIT_MRLog_settingsWindow";
+			menuItem -divider 1;
+		}
+
+		menuItem 
+				-label "Set Render-info display..."
+				-annotation "Choose the type of information you'd like to display in the RenderView"
+				-c "sz_MIT_ShowInfoGUI";
+				
+		menuItem 
+				-label "Add comment to image..."
+				-annotation "Add custom information to the currently displayed image"
+				-c "sz_MIT_Commands addComment";
+
+		menuItem
+				-label "Set current frame to match image"
+				-annotation "Sets the current frame to the frame of the currently displayed image"
+				-c "sz_MIT_Commands stepToImageFrame";
+	}
+}
+
+
+
+
+// Multiple frames GUI
+global proc sz_RV_RenderMultipleFramesGUI () {
+	if (!`window -ex sz_RV_RenderMultipleFrames`)
+	{
+		window 
+			-title "Render Multiple Frames"
+			-in "Render Mult Frames"
+			-w 400 -h 510
+			-retain
+			sz_RV_RenderMultipleFrames;
+		
+		string $form = `formLayout -numberOfDivisions 20`;
+		string $frameList = `textScrollList 
+							-allowMultiSelection true
+							-showIndexedItem 4
+							-dcc "sz_RV_RenderMultipleFrames selectRenderCamera"
+							-dkc "sz_RV_RenderMultipleFrames remove"
+							-annotation "Double click on a frame to define a different camera. Frames without a specific camera use the camera of the previous frame."
+							frameList`;
+		string $startButton = `button
+							-l "Start Renders"
+							-annotation "Start the rendering using the settings."
+							-c ("sz_RV_RenderMultipleFrames render")`;
+		string $column = `columnLayout -adjustableColumn true`;
+		
+			button
+				-l "Add a frame"
+				-annotation "Adds a specific frame to the list "
+				-c ("sz_RV_RenderMultipleFrames add");
+			button
+				-l "Add current frame"
+				-annotation "Adds the current frame to the list "
+				-c ("sz_RV_RenderMultipleFrames addCurrent");		
+			button
+				-l "Remove selected frame(s)"
+				-annotation "Removes every selected entry from the list "
+				-c ("sz_RV_RenderMultipleFrames remove");
+			button
+				-l "Create Sequence"
+				-annotation "Creates a sequence of frames using start / end / step settings "
+				-c ("sz_RV_RenderMultipleFrames sequence");
+			text -l "";
+			button
+				-l "Move selection up"
+				-annotation "Moves the selected frame(s) up in the list. (Similar frames in the list might cause problems)"
+				-c ("sz_RV_RenderMultipleFramesMove up");
+			button
+				-l "Move selection down"
+				-annotation "Moves the selected frame(s) down in the list. (Similar frames in the list might cause problems)"
+				-c ("sz_RV_RenderMultipleFramesMove down");
+			text -l "";
+			button
+				-l "Memorize Frames"
+				-annotation "Store the list in Maya for future use. Memorizing a list erases the previous one. (The list is stored using an optionVar)"
+				-c ("sz_RV_RenderMultipleFrames store");
+			button
+				-en `optionVar -exists sz_RV_RenderMultipleFrames`
+				-l "Restore Frames" 
+				-annotation "Reloads the previously stored list. The current list will get overwritten."
+				-c ("sz_RV_RenderMultipleFrames restore")
+				sz_RMFRestoreButton;
+			button
+				-en `optionVar -exists sz_RV_RenderMultipleFrames`
+				-l "Delete Stored List"
+				-annotation "Removes the stored list from Maya"
+				-c ("optionVar -rm sz_RV_RenderMultipleFrames; button -e -en 0 sz_RMFRestoreButton; button -e -en 0 sz_RMFClearButton;")
+				sz_RMFClearButton;;
+			text -l "";
+			text -l "";
+			checkBox 
+				-label "Render only selected region of images"
+				-align "left"
+				-annotation "When ON than only the selected region of the image is rendered for every frame "
+				sz_RMFRegionRender;
+			checkBox 
+				-label "Save images to disk"
+				-onc "textField -e -en 1 sz_RMFImageName;button -e -en 1 sz_RMFDirectoryButton;checkBox -e -en 1 sz_RMFAutoOverwrite;"
+				-ofc "textField -e -en 0 sz_RMFImageName;button -e -en 0 sz_RMFDirectoryButton;checkBox -e -en 0 sz_RMFAutoOverwrite;"
+				-align "left"
+				-annotation "When ON the files are saved to disk, when OFF the files are kept in the Render View "
+				sz_RMFSaveImages;
+			checkBox 
+				-label "Automatic overwrite"
+				-en 0
+				-v 1
+				-align "left"
+				-annotation "When ON the existing files on disk are automaticaly overwritten"
+				sz_RMFAutoOverwrite;			
+			button
+				-en 0
+				-l "Choose images directory"
+				-c ("sz_RV_RenderMultipleFrames chooseDirectory")
+				-annotation "Select the directory where the rendered files will be saved "
+				sz_RMFDirectoryButton;;		
+			text 
+				-l "Image Directory"
+				-align "left";
+			textField
+				-en 0
+				-tx (`workspace -q -rd` + `workspace -q -pp -renderTypeEntry "images"`)
+				sz_RMFImageDirectory;		
+			text 
+				-l "Image Name"
+				-align "left";
+			textField
+				-en 0
+				-tx "ImageName"
+				-annotation "You can write the name of the rendered images here."
+				sz_RMFImageName;
+		
+			formLayout 
+		    		-edit
+		    		-attachForm     $frameList     "top"    5
+		    		-attachForm     $frameList     "left"   5
+		    		-attachControl  $frameList     "bottom" 5 $startButton
+		    		-attachPosition $frameList     "right"  5 8
+					-attachNone     $startButton     "top"
+					-attachForm     $startButton     "left"   5
+					-attachForm     $startButton     "bottom" 5
+					-attachForm     $startButton     "right"  5
+					-attachForm     $column "top"    5
+					-attachPosition $column "left"   0 8
+					-attachControl  $column "bottom" 5 $startButton
+					-attachForm     $column "right"  5
+					$form;
+	}
+	showWindow sz_RV_RenderMultipleFrames;
+}
+
+
+// Multiple frames main procedures
+global proc sz_RV_RenderMultipleFrames (string $mode) {
+	global string $gDefaultFileBrowserDir;
+	string $renderViewName = getRenderWindowPanel();
+	if ($mode == "add")
+	{
+		string $result = `promptDialog
+				-title "Add frames to render"
+				-message "Enter frame number you add to the list"
+				-button "Add"
+				-button "Cancel"
+				-defaultButton "Add"
+				-cancelButton "Cancel"`;
+		if ($result == "Add")
+			textScrollList -e -append `promptDialog -q` frameList;
+	}
+	
+	if ($mode == "addCurrent")
+		textScrollList -e -append `currentTime -q` frameList;
+	
+	if ($mode == "remove")
+	{
+		string $selectedFrames [] = `textScrollList -q -si frameList`;
+		for ($i = 0; $i < `size $selectedFrames`; $i++)
+			textScrollList -e -ri $selectedFrames [$i] frameList;
+	}
+	
+	if ($mode == "render")
+	{
+		float $baseMayaVersion = getApplicationVersionAsFloat();
+		string $renderer = currentRenderer();
+		int $resolution[] = `sz_GetTestResolution`;
+
+		string $framesToRender [] = `textScrollList -q -ai frameList`;
+		string $camera;
+		string $cameraTransform[];
+		float $frameNumber;
+		float $currentFrame = `currentTime -q`;
+		int $imageFormat = `getAttr defaultRenderGlobals.outf`;
+		setAttr defaultRenderGlobals.outf 3;
+		
+		trace ("****************************\nRendering " + `size $framesToRender` + " frames...");
+		progressWindow
+				-max `size $framesToRender`
+				-title "Rendering multiple frames"
+				-isInterruptable true;
+		evalDeferred -lp "progressWindow -endProgress";
+		
+		for ($i = 0; $i < `size $framesToRender`; $i++)
+		{
+			if ( `progressWindow -query -isCancelled` )  break;
+			progressWindow -e -status ("Rendering frame: " + match ("[0-9]*", $framesToRender[$i]) + " (" + ($i+1) + " of " + `size $framesToRender` + ")");
+			
+			$startTime = `timerX`;
+			if (`match "Shape" $framesToRender[$i]` != "")
+			{
+				string $buffer[];
+				tokenize $framesToRender[$i] "()" $buffer;
+				$frameNumber = $buffer[0];
+				$camera = $buffer[1];
+				$cameraTransform = `listRelatives -p $camera`;
+				currentTime $frameNumber;
+				print ("Rendering frame: " + $frameNumber + "\tUsing camera: " + $camera);
+				trace ("Rendering frame: " + $frameNumber + "\tUsing camera: " + $camera);
+				if (`checkBox -q -v sz_RMFRegionRender` == 0)
+					renderWindowRenderCamera( "render", $renderViewName, $cameraTransform[0]);
+				else
+					renderWindowRenderCamera( "renderRegion", $renderViewName, $cameraTransform[0]);
+			}
+			else
+			{
+				$frameNumber = $framesToRender[$i];
+				print ("\nRendering frame: " + $frameNumber + "\tUsing previous camera");
+				trace ("Rendering frame: " + $frameNumber + "\tUsing previous camera");
+				currentTime $frameNumber;
+				if (`checkBox -q -v sz_RMFRegionRender` == 0)
+					renderWindowRender redoPreviousRender $renderViewName;
+				else
+					renderWindowRenderRegion $renderViewName;
+			}
+			sz_MIT_StoreCurrentInformation $startTime (`checkBox -q -v sz_RMFRegionRender` == 0 ? "fullFrame" : "renderRegion");
+			
+			if (`checkBox -q -v sz_RMFSaveImages` == 0)					// Keep image in the framestore
+				renderWindowMenuCommand keepImageInRenderView $renderViewName; 
+			else												// Save images to disk
+			{
+				string $imageName = `textField -q -tx sz_RMFImageName`;
+				string $imageDir;
+				$imageDir = `textField -q -tx sz_RMFImageDirectory`;
+				string $frameSize = $frameNumber;
+				string $padding = "";
+				for ($j = 0; $j < (`getAttr defaultRenderGlobals.extensionPadding` - `size $frameSize`); $j++)
+					$padding = ($padding + "0");
+				string $fullImageName = ($imageDir + "/" + $imageName + "." + $padding + $frameNumber);
+			// delete existing frame				
+				if (`checkBox -q -v sz_RMFAutoOverwrite` == 1 && `file -q -exists ($fullImageName + ".tif")` == 1) 
+					sysFile -delete ($fullImageName + ".tif");
+				if ($baseMayaVersion >= 2011)
+					renderWindowEditor -edit -writeImage $fullImageName $renderViewName;
+				else
+					renderWindowSaveImageCallback $renderViewName $fullImageName "image";
+				
+			}
+			progressWindow -edit -step 1;
+		}
+		trace ("Rendering finished\n****************************");
+		progressWindow -endProgress;
+		setAttr defaultRenderGlobals.outf $imageFormat;
+		currentTime $currentFrame;
+		sz_MIT_Commands updateImageInfo;
+	}
+	
+	if ($mode == "sequence")
+	{
+		if (`window -ex sz_RV_RenderMultipleFramesSequence`)
+			deleteUI sz_RV_RenderMultipleFramesSequence;
+		window 
+			-title "Create Sequence"
+			-s 0
+			sz_RV_RenderMultipleFramesSequence;
+		columnLayout
+			-adj 1;
+		floatSliderGrp 
+			-label "Start Frame: " 
+			-field true
+			-minValue 0 -maxValue 1000
+			-fieldMinValue -9999 -fieldMaxValue 9999
+			-value `getAttr defaultRenderGlobals.startFrame` 
+			-cat 1 "right" 0 
+			-pre 0
+			sz_RMF_startFrame;
+			
+		floatSliderGrp 
+			-label "End Frame: " 
+			-field true
+			-minValue 0 -maxValue 1000
+			-fieldMinValue -9999 -fieldMaxValue 9999
+			-value `getAttr defaultRenderGlobals.endFrame` 
+			-cat 1 "right" 0 
+			-pre 0
+			sz_RMF_endFrame;
+
+		floatSliderGrp 
+			-label "Step Count: " 
+			-field true
+			-minValue 0 -maxValue 50
+			-fieldMinValue 0 -fieldMaxValue 9999
+			-value 5 
+			-cat 1 "right" 0 
+			-pre 0
+			sz_RMF_stepCount;
+		button
+			-label "Create Sequence"
+			-c "sz_RV_RenderMultipleFrames createFrameSequence";
+
+		showWindow;
+	}		
+
+	if ($mode == "createFrameSequence")
+	{
+		float $startFrame = `floatSliderGrp -q -v sz_RMF_startFrame`;
+		float $endFrame = `floatSliderGrp -q -v sz_RMF_endFrame`;
+		float $stepCount = `floatSliderGrp -q -v sz_RMF_stepCount`;
+		if ($stepCount == 0)
+		{
+			warning "Frame step value 0 is invalid!";
+			return;
+		}
+		
+		for ($i = $startFrame; $i <= $endFrame; $i+=$stepCount)
+			textScrollList -e -append $i frameList;	
+		if ($i != $endFrame && $i != ($endFrame + $stepCount))
+			textScrollList -e -append $endFrame frameList;	
+		deleteUI sz_RV_RenderMultipleFramesSequence;
+	}
+
+	if ($mode == "store")
+	{
+		string $frames [] = `textScrollList -q -ai frameList`;
+		string $string = "";
+		for ($i = 0; $i < `size $frames`; $i++)
+			$string += ("|" + $frames[$i]);
+		optionVar -sv "sz_RV_RenderMultipleFrames" $string;
+		button -e -en 1 sz_RMFRestoreButton;
+		button -e -en 1 sz_RMFClearButton;
+	}
+	if ($mode == "restore")
+	{
+		string $string = `optionVar -q sz_RV_RenderMultipleFrames`;
+		string $buffer[];
+		tokenize $string "|" $buffer;
+		textScrollList -e -ra frameList;
+		for ($i = 0; $i < `size $buffer`; $i++)
+			textScrollList -e -append $buffer[$i] frameList;
+	}
+
+	if ($mode == "chooseDirectory")
+	{
+		$gDefaultFileBrowserDir = `textField -q -tx sz_RMFImageDirectory`;
+		fileBrowser ("sz_RV_RenderMultipleFramesChooseDir","Choose Image Directory", "Bfolder", 4);
+	}
+
+	if ($mode == "selectRenderCamera")
+	{	
+		string $cameras[] = `ls -cameras`;
+		string $camera;
+		
+		if (`window -ex sz_RV_RenderMultipleFramesCamera`)
+			deleteUI sz_RV_RenderMultipleFramesCamera;
+
+		window 
+			-title "Set camera for frame"
+			-wh 230 115
+			sz_RV_RenderMultipleFramesCamera;
+		frameLayout -labelVisible 0 -labelAlign "top" -borderStyle "etchedIn" -mh 7 -mw 7;
+
+		string $form = `formLayout`;
+		optionMenu 
+			-label "Camera:     "
+			sz_RV_CameraList;
+		menuItem -label "Use previous camera";
+		for ($camera in $cameras)
+			menuItem -label $camera;
+		button
+			-l "Set camera for current frame"
+			-c ("sz_RV_RenderMultipleFrames defineCamera")
+			sz_RV_DefineCameraButton;
+
+		formLayout -edit
+		    	-attachForm		sz_RV_CameraList   "top"    3
+		    	-attachForm		sz_RV_CameraList   "left"   3
+		    	-attachForm		sz_RV_CameraList   "right"  3
+		
+			-attachControl	sz_RV_DefineCameraButton	"top"	10 sz_RV_CameraList
+			-attachForm		sz_RV_DefineCameraButton	"left"   3
+			-attachForm		sz_RV_DefineCameraButton	"bottom" 3
+			-attachForm		sz_RV_DefineCameraButton	"right"  3	
+			$form;
+		showWindow;
+	}
+
+	if ($mode == "defineCamera")
+	{
+		int $frameIndex[] = `textScrollList -q -sii frameList`;
+		string $camera = `optionMenu -q -v sz_RV_CameraList`;
+		string $selectedFrames [] = `textScrollList -q -si frameList`;
+		float $frame = $selectedFrames [0];
+		
+		textScrollList -e -ri $selectedFrames [0] frameList;
+		if (match ("Use previous", $camera) == "")
+			textScrollList -e -ap $frameIndex[0] ($frame + " (" + $camera + ")") frameList;
+		else
+			textScrollList -e -ap $frameIndex[0] $frame frameList;
+		deleteUI sz_RV_RenderMultipleFramesCamera;
+	}
+}
+
+global proc sz_RV_RenderMultipleFramesChooseDir (string $sDirName, string $sDirType) { 
+	textField 
+		-edit
+		-tx ($sDirName)
+		sz_RMFImageDirectory;
+}
+
+
+//Process to reorder frames
+global proc sz_RV_RenderMultipleFramesMove (string $mode) {
+	int $frameIndex[] = `textScrollList -q -sii frameList`;
+	int $currentFrameIndex;
+	int $indexCounter = 0;
+	string $selectedFrames [] = `textScrollList -q -si frameList`;
+	string $currentFrame;
+
+	for ($currentFrame in $selectedFrames)
+	{
+		$currentFrameIndex = $frameIndex[$indexCounter];
+		string $frame = $currentFrame;
+	
+		if ($mode == "up" && $currentFrameIndex != 1)
+		{
+			textScrollList -e -ri $frame frameList;
+			textScrollList -e -ap ($currentFrameIndex-1) $frame frameList;
+			textScrollList -e -si $frame frameList;
+		}
+		
+		if ($mode == "down")
+		{
+			textScrollList -e -ri $frame frameList;
+			textScrollList -e -ap ($currentFrameIndex+1) $frame frameList;
+			textScrollList -e -si $frame frameList;
+		}
+		
+		$indexCounter += 1;
+	}
+}
+
+
+
+
+//*******************************************************************************
+// The user interface of the Display MR Tesselation utility
+global proc sz_RV_DisplayMRTesselationGUI () {
+	if (`window -q -exists sz_RVDisplayApprox`)
+		deleteUI sz_RVDisplayApprox;
+	window 
+		-title "Display Mental Ray Tesselation"
+		-s 0
+		-width 320
+		-height 175
+		sz_RVDisplayApprox;
+	formLayout sz_RVDisplayApproxLayout;
+	
+	floatSliderGrp 
+		-label "Wireframe Width" -field true 
+		-cw3 110 60 80 -w 320 -pre 2 
+		-minValue 0.001 -maxValue 2
+	    	-value 1
+		sz_RVContourWidth;
+	
+	colorSliderGrp -label "Wireframe Color" -cw3 110 60 120 -w 320 -rgb 1 1 1 sz_RVApproxWireColor;
+	colorSliderGrp -label "Background Color" -cw3 110 60 120 -w 320 -rgb 0 0 0 sz_RVApproxBackroundColor;
+	checkBox -label "Render selected region only" -v 0 sz_RVApproxRegionChecbox;
+	
+	button 
+		-width 280
+		-label "Render Tesselation"
+		-c "sz_RV_DisplayMRTesselation"
+		sz_RVDisplayApproxButton;
+	
+	formLayout 
+		-e
+		-af sz_RVContourWidth "left" 8 
+		-af sz_RVContourWidth "top" 10
+		-af sz_RVApproxWireColor "left" 10
+		-af sz_RVApproxWireColor "top" 36	
+		-af sz_RVApproxBackroundColor "left" 10
+		-af sz_RVApproxBackroundColor "top" 62		
+		-af sz_RVApproxRegionChecbox "left" 103
+		-af sz_RVApproxRegionChecbox "top" 95	
+		-af sz_RVDisplayApproxButton "left" 20
+		-af sz_RVDisplayApproxButton "top" 115
+		sz_RVDisplayApproxLayout;
+	showWindow;
+}
+
+
+
+global proc sz_RV_DisplayMRTesselation () {
+	string $selection[] = `ls -sl`;
+	string $geometrySelection[] = `ls -sl -dag -g`;
+	if(!`size $geometrySelection`)
+	{
+		warning "Select at least one object please!\n";
+		return;
+	}
+	
+	string $renderer = currentRenderer();
+	if ($renderer != "mentalRay")
+	{
+		print "Setting renderer to Mental Ray for tesselation rendering\n";
+		setAttr defaultRenderGlobals.currentRenderer -type "string" "mentalRay";
+	}
+	string $currentQuality = sz_RV_GetCurrentMRQuality();
+	float $wireframeWidth = 1;											// default values, these are overriden by the GUI
+	float $wireColor[] = {1, 1, 1};
+	float $backgroundColor[] = {0, 0, 0};
+	int $renderRegion = 0;
+	if (`window -q -exists sz_RVDisplayApprox`)
+	{
+		$wireframeWidth = `floatSliderGrp -q -v sz_RVContourWidth`;
+		$wireColor = `colorSliderGrp -q -rgb sz_RVApproxWireColor`;
+		$backgroundColor = `colorSliderGrp -q -rgb sz_RVApproxBackroundColor`;
+		$renderRegion = `checkBox -q -v sz_RVApproxRegionChecbox`;
+	}
+	
+	// Store current settings
+	int $renderSelected = `getAttr "mentalrayGlobals.renderableObjects"`;
+	int $minSamples = `getAttr ($currentQuality + ".minSamples")`;
+	int $maxSamples = `getAttr ($currentQuality + ".maxSamples")`;
+	int $contourEnable = `getAttr "miDefaultFramebuffer.contourEnable"`;
+	int $contourClearImage = `getAttr "miDefaultFramebuffer.contourClearImage"`;
+	int $contourPriIdx = `getAttr "miDefaultOptions.contourPriIdx"`;
+	float $currentBackgroundColor[] = `getAttr "miDefaultFramebuffer.contourClearColor"`;
+	
+	
+	// Set contour settings
+	string $SGs[];
+	for ($curr in $geometrySelection)
+	{
+		string $shadingGroups[] = `listConnections -destination 1 -source 0 -plugs 0 -type "shadingEngine" $curr`;
+		$SGs = stringArrayCatenate ($SGs, $shadingGroups);
+	}
+	$SGs = stringArrayRemoveDuplicates ($SGs);
+	for ($SG in $SGs)
+	{
+		setAttr ($SG + ".miContourEnable") 1;
+		setAttr ($SG + ".miContourColor") -type double3 $wireColor[0] $wireColor[1] $wireColor[2];
+		setAttr ($SG + ".miContourRelativeWidth") 0;	
+		setAttr ($SG + ".miContourWidth") $wireframeWidth;
+	}
+	
+	setAttr "miDefaultFramebuffer.contourEnable" 1;
+	setAttr "miDefaultFramebuffer.contourClearImage" 1;
+	setAttr "miDefaultOptions.contourPriIdx" 1;
+	setAttr "miDefaultFramebuffer.contourClearColor" -type double3 $backgroundColor[0] $backgroundColor[1] $backgroundColor[2];
+	setAttr "mentalrayGlobals.renderableObjects" 1;
+	setAttr ($currentQuality + ".minSamples") 0;
+	setAttr ($currentQuality + ".maxSamples") 0;
+	
+	sz_RV_RenderCamera null ($renderRegion == 1 ? "renderRegion" : "renderPrevious");
+	
+	// Reset stuff
+	for ($SG in $SGs)
+		setAttr ($SG + ".miContourEnable") 0;
+	
+	setAttr "miDefaultFramebuffer.contourEnable" $contourEnable;
+	setAttr "miDefaultFramebuffer.contourClearImage" $contourClearImage;
+	setAttr "miDefaultOptions.contourPriIdx" $contourPriIdx;
+	setAttr "mentalrayGlobals.renderableObjects" $renderSelected;
+	setAttr ($currentQuality + ".minSamples") $minSamples;
+	setAttr ($currentQuality + ".maxSamples") $maxSamples;
+	setCurrentRenderer $renderer;
+}
+
+
+
+
+//*******************************************************************************
+// Objects to render
+global proc sz_RV_ObjectsToRender_GUI () {
+	global string $sz_RV_ObjectsToRenderList[];
+	global int $sz_RV_ObjectsToRenderEnable;
+	if (`window -q -exists sz_RV_SelectedObjects`)
+		deleteUI sz_RV_SelectedObjects;
+	window 
+		-title "Objects to render"
+		-w 185
+		sz_RV_SelectedObjects;
+	columnLayout -adjustableColumn 1;
+	
+	button 
+		-l "Store selection to render"
+		-ann "Store the list of currently selected objects, that you'd like to see when rendering using \"Selected objects only\"."
+		-c "sz_RV_ObjectsToRender_Store";
+	button 
+		-l "Select stored objects"
+		-en (size($sz_RV_ObjectsToRenderList))
+		-c "sz_RV_ObjectsToRender_Select"
+		-ann "Select the stored objects to easily check the content."
+		sz_RV_ObjectsToRender_SelectButton;
+	checkBox 
+		-align "left"
+		-l "Override selection"
+		-v $sz_RV_ObjectsToRenderEnable
+		-en (size($sz_RV_ObjectsToRenderList))
+		-onc "$sz_RV_ObjectsToRenderEnable = 1;print \"Objects to render enabled\\n\""
+		-ofc "$sz_RV_ObjectsToRenderEnable = 0;print \"Objects to render disabled\\n\""
+		-ann "Enable automatic object selection when rendering using \"Selected objects only\""
+		sz_RV_ObjectsToRender_Enable;;
+	textField 
+		-en 0 
+		-tx (size($sz_RV_ObjectsToRenderList) + " object selected for rendering")
+		sz_RV_ObjectsToRender_InfoLine;
+	showWindow;
+}
+
+
+
+global proc sz_RV_ObjectsToRender_Store () {
+	global string $sz_RV_ObjectsToRenderList[];
+	global int $sz_RV_ObjectsToRenderEnable;	
+	$sz_RV_ObjectsToRenderList = `ls -sl -tr`;
+	if (size ($sz_RV_ObjectsToRenderList))
+	{
+		button -e -en 1 sz_RV_ObjectsToRender_SelectButton;
+		checkBox -e -en 1 -v 1 sz_RV_ObjectsToRender_Enable;
+		$sz_RV_ObjectsToRenderEnable = 1;
+	}
+	textField 
+		-e 
+		-tx (size($sz_RV_ObjectsToRenderList) + " object selected for rendering") 
+		sz_RV_ObjectsToRender_InfoLine;
+}
+
+
+
+global proc sz_RV_ObjectsToRender_Select () {
+	global string $sz_RV_ObjectsToRenderList[];
+	if (size($sz_RV_ObjectsToRenderList))
+	{
+		select -cl;
+		for ($curr in $sz_RV_ObjectsToRenderList)
+		{
+			if (objExists ($curr))
+				select -add $curr;
+			else
+				print ("Object " + $curr + " does not exist anymore.\n");
+		}
+	}
+}
+
+
+global string $sz_MIT_MRLog;
+global proc sz_MIT_MRLog_updateSearchResult () {
+	global string $sz_MIT_MRLog;
+	string $searchLines;
+	string $buffer[];
+	tokenize $sz_MIT_MRLog "\n" $buffer;
+	string $searchString = `textField -q -tx sz_MIT_MRLog_searchTextField`;
+	if ($searchString == "")
+	{
+		scrollField -e -text $sz_MIT_MRLog sz_MIT_MRLog_showLogSearchText;
+		return;
+	}
+	$searchString = tolower ($searchString);
+	for ($line in $buffer)
+		if (match ($searchString, tolower($line)) != "")
+			$searchLines+=($line + "\n");
+	if (strip ($searchLines) == "")
+		$searchLines = ("Nothing matches the search expression: " + $searchString);
+	scrollField -e -text $searchLines sz_MIT_MRLog_showLogSearchText;
+}
+
+
+global proc sz_MIT_MRLog_keepImageLog () {
+	string $tempDir = `internalVar -userTmpDir`;
+	if ($tempDir == "")
+	{
+		warning ("TMPDIR environment variable is not defined.");
+		return;
+	}
+	string $renderLogFile = ($tempDir + "/mentalray.log");
+	string $renderViewName = getRenderWindowPanel();	
+	int $storedImages = `renderWindowEditor -q -nim $renderViewName`;
+	if ($storedImages)
+	{
+		for ($i = $storedImages; $i > 0; $i--)
+		{
+			string $logName = ($tempDir + "/mentalray_" + ($i-1) + ".log");
+			if (`file -q -exists $logName`)
+				sysFile -copy ($tempDir + "/mentalray_" + $i + ".log") ($tempDir + "/mentalray_" + ($i-1) + ".log");
+		}
+	}
+	if (`file -q -exists $renderLogFile`)
+		sysFile -copy ($tempDir + "/mentalray_0.log") $renderLogFile;
+}
+
+
+
+// Deletes the mr render log file for the current image (and renames the rest for proper indexing)
+global proc sz_MIT_MRLog_deleteImageLog (int $imageIndex) {
+	string $renderViewName = getRenderWindowPanel();
+	int $storedImages = `renderWindowEditor -q -nim $renderViewName`;
+	string $tempDir = `internalVar -userTmpDir`;
+	if ($tempDir == "")
+		return;
+	string $renderLogFile = ($tempDir + "/mentalray_" + $imageIndex + ".log");
+	if (`file -q -exists $renderLogFile`)					// Delete the log file
+		sysFile -delete $renderLogFile;
+	
+	for ($i = $imageIndex; $i < ($storedImages); $i++)		// Rename the following files
+	{
+		sysFile -rename ($tempDir + "/mentalray_" + $i + ".log") ($tempDir + "/mentalray_" + ($i+1) + ".log");
+	}
+	
+}
+
+
+
+// Opens the MentalRay render log for the current image in the render view
+global proc sz_MIT_MRLog_showLog () {
+	global string $sz_MIT_MRLog;
+	string $renderViewName = getRenderWindowPanel();
+	int $selectedImage = `renderWindowEditor -q -di $renderViewName`;
+	string $renderLogFile = (`internalVar -userTmpDir` + "/mentalray" + ($selectedImage == -1 ? "" : ("_" + $selectedImage)) + ".log");
+	if (!`file -q -exists $renderLogFile`)
+	{
+		warning ("No stored mental ray log file.");
+		return;
+	}
+	string $errorLines, $warningLines;
+	int $errorLineCount, $warningLineCount;
+
+	int $logSize = sz_GetFileSize($renderLogFile);
+	if ($logSize > 1000000)
+	{
+		if (`confirmDialog -title "Show Mental Ray Log" -message ("Log file is " + $logSize + " bytes, displaying it might take a while. Do so?") -button "Yes" -button "No" -defaultButton "Yes" -cancelButton "No" -dismissString "No"` != "Yes")
+		{
+			warning "mr log display cancelled";
+			return;
+		}
+	}
+
+	string $text;
+ 	$fileId = `fopen $renderLogFile "r"`;
+ 	string $nextLine = `fgetline $fileId`;
+ 	while ( size( $nextLine ) > 0 ) 
+ 	{
+ 		if (strip ($nextLine) != "" && match ("error", $nextLine) != "")
+ 		{
+ 			$errorLines += $nextLine;
+ 			$errorLineCount++;
+ 		}
+ 		if (strip ($nextLine) != "" && match ("warn", $nextLine) != "")
+ 		{
+ 			$warningLines += $nextLine;
+ 			$warningLineCount++;
+ 		}
+ 		
+ 		$text += $nextLine;
+ 		$nextLine = `fgetline $fileId`;
+ 	}			
+	fclose $fileId;
+	$sz_MIT_MRLog = $text;
+	
+	if (!`window -q -exists sz_mentalRayLogWindow`)
+	{
+		window 
+			-wh 1050 520
+			-t "Mental Ray Render Log"
+			-iconName "mr render log" 
+			sz_mentalRayLogWindow;
+
+		string $form = `formLayout -numberOfDivisions 100`;
+		button -l "Reload" -c "sz_MIT_MRLog_showLog" sz_MIT_MRLog_refresh;
+		string $tabs = `tabLayout -innerMarginWidth 5 -innerMarginHeight 5 -childResizable 1`;
+
+	 	formLayout -edit
+	 		-attachForm		$tabs     "top"    5
+	 		-attachForm		$tabs     "left"   5
+	 		-attachControl	$tabs     "bottom" 5 sz_MIT_MRLog_refresh
+	 		-attachForm		$tabs     "right"  5
+
+	 		-attachNone	sz_MIT_MRLog_refresh     "top"
+	 		-attachForm	sz_MIT_MRLog_refresh     "left"   5
+	 		-attachForm	sz_MIT_MRLog_refresh     "bottom" 5
+	 		-attachForm	sz_MIT_MRLog_refresh     "right"  5	 		
+	 		
+	 	$form;
+
+		string $mrOutputForm = `formLayout -numberOfDivisions 100`;
+			scrollField -wordWrap 0 -editable 0 sz_MIT_MRLog_showLogText;
+		 	formLayout -edit
+		 		-attachForm	sz_MIT_MRLog_showLogText     "top"    5
+		 		-attachForm	sz_MIT_MRLog_showLogText     "left"   5
+		 		-attachForm	sz_MIT_MRLog_showLogText     "bottom" 5
+		 		-attachForm	sz_MIT_MRLog_showLogText     "right"  5
+		 	$mrOutputForm;			
+		setParent ..;
+
+		string $mrErrorForm = `formLayout -numberOfDivisions 100`;
+			scrollField -wordWrap 0 -editable 0 sz_MIT_MRLog_showLogErrorText;
+		 	formLayout -edit
+		 		-attachForm	sz_MIT_MRLog_showLogErrorText     "top"    5
+		 		-attachForm	sz_MIT_MRLog_showLogErrorText     "left"   5
+		 		-attachForm	sz_MIT_MRLog_showLogErrorText     "bottom" 5
+		 		-attachForm	sz_MIT_MRLog_showLogErrorText     "right"  5
+		 	$mrErrorForm;			
+		setParent ..;
+
+		string $mrWarningForm = `formLayout -numberOfDivisions 100`;
+			scrollField -wordWrap 0 -editable 0 sz_MIT_MRLog_showLogWarningText;
+		 	formLayout -edit
+		 		-attachForm	sz_MIT_MRLog_showLogWarningText     "top"    5
+		 		-attachForm	sz_MIT_MRLog_showLogWarningText     "left"   5
+		 		-attachForm	sz_MIT_MRLog_showLogWarningText     "bottom" 5
+		 		-attachForm	sz_MIT_MRLog_showLogWarningText     "right"  5
+		 	$mrWarningForm;			
+		setParent ..;
+
+		string $mrSearchForm = `formLayout -numberOfDivisions 100`;
+
+			textField -ec "sz_MIT_MRLog_updateSearchResult" -cc "sz_MIT_MRLog_updateSearchResult" sz_MIT_MRLog_searchTextField;			
+			popupMenu -pmc "sz_MIT_MRLog_buildSearchList sz_MIT_MRLog_searchTextPresets" sz_MIT_MRLog_searchTextPresets;
+			
+			scrollField -wordWrap 0 -editable 0 sz_MIT_MRLog_showLogSearchText;
+		 	formLayout -edit
+		 		-attachForm		sz_MIT_MRLog_searchTextField     "top"    5
+		 		-attachForm		sz_MIT_MRLog_searchTextField     "left"   5
+		 		-attachNone		sz_MIT_MRLog_searchTextField     "bottom"
+		 		-attachForm		sz_MIT_MRLog_searchTextField     "right"  5
+
+		 		-attachControl	sz_MIT_MRLog_showLogSearchText     "top"    5 sz_MIT_MRLog_searchTextField
+		 		-attachForm		sz_MIT_MRLog_showLogSearchText     "left"   5
+		 		-attachForm		sz_MIT_MRLog_showLogSearchText     "bottom" 5
+		 		-attachForm		sz_MIT_MRLog_showLogSearchText     "right"  5
+		 	$mrSearchForm;			
+		setParent ..;
+
+	 	tabLayout -edit -tabLabel $mrOutputForm "Output" -tabLabel $mrErrorForm ("Error (" + $errorLineCount + ")") -tabLabel $mrWarningForm ("Warning (" + $warningLineCount + ")") -tabLabel $mrSearchForm "Search" $tabs;
+ 	}
+	
+	scrollField -e -text $text sz_MIT_MRLog_showLogText;
+	if (`textField -q -tx sz_MIT_MRLog_searchTextField` != "")		// Update with filtered text when search is active
+		sz_MIT_MRLog_updateSearchResult;
+	else											// Otherwise use unfiltered content
+		scrollField -e -text $text sz_MIT_MRLog_showLogSearchText;
+	scrollField -e -text $errorLines sz_MIT_MRLog_showLogErrorText;
+	scrollField -e -text $warningLines sz_MIT_MRLog_showLogWarningText;
+	showWindow sz_mentalRayLogWindow;
+}
+
+
+
+// Simple GUI to set mr render log settings
+global proc sz_MIT_MRLog_settingsWindow () {
+	if (`window -q -exists sz_MIT_MRLog_settingsWindow`)
+		deleteUI sz_MIT_MRLog_settingsWindow;
+	window -title "Mental Ray log" -wh 180 55 sz_MIT_MRLog_settingsWindow;
+	columnLayout;
+	checkBox 
+		-l "Store mental ray log"
+		-v (`optionVar -q sz_MIT_MRLog_useLog`)
+		-onc "optionVar -iv sz_MIT_MRLog_useLog 1;if (`menuItem -q -exists sz_MIT_MRLog_menuItem`) menuItem -e -en 1 sz_MIT_MRLog_menuItem;"
+		-ofc "optionVar -iv sz_MIT_MRLog_useLog 0;if (`menuItem -q -exists sz_MIT_MRLog_menuItem`) menuItem -e -en 0 sz_MIT_MRLog_menuItem;";
+	showWindow;
+}
+
+
+global proc sz_MIT_MRLog_buildSearchList (string $parent) {
+	popupMenu -e -dai $parent;	
+	setParent -m $parent;
+	if (`optionVar -as sz_MIT_MRLog_searchStrings`)
+	{
+		menuItem -l "Filter Presets:" -bld 1;
+		string $items[] = `optionVar -q sz_MIT_MRLog_searchStrings`;
+		for ($c in $items)
+			menuItem -l $c -c ("textField -e -tx \"" + $c + "\" sz_MIT_MRLog_searchTextField;sz_MIT_MRLog_updateSearchResult;");
+		menuItem -divider 1;
+	}
+	menuItem 
+			-l "Add new preset..."
+			-ann "Store a given text as a log filter preset"
+			-c "sz_MIT_MRLog_addNewSearchPreset";
+	menuItem
+			-l "Remove existing..."
+			-ann "Remove a stored log filter preset"
+			-c "sz_MIT_MRLog_removeSearchPreset";
+}
+
+
+global proc sz_MIT_MRLog_addNewSearchPreset () {
+	string $currentFilter = `textField -q -tx sz_MIT_MRLog_searchTextField`;
+	string $result = `promptDialog
+					    -title "MRLog Search Presets"
+					    -message "New search preset:"
+					    -tx $currentFilter
+					    -button "OK" -button "Cancel"
+					    -defaultButton "OK" -cancelButton "Cancel"
+					    -dismissString "Cancel"`;
+	
+	string $newItem = `promptDialog -query -text`;
+	if ($result == "OK" && $newItem != "")
+	{
+		optionVar -sva sz_MIT_MRLog_searchStrings $newItem;
+		print ("New MRLog search preset \"" + $newItem + "\" added.\n");
+	}
+}
+
+
+global proc sz_MIT_MRLog_removeSearchPreset () {
+	string $currentFilter = `textField -q -tx sz_MIT_MRLog_searchTextField`;
+	string $result = `promptDialog
+					    -title "MRLog Search Presets"
+					    -message "Remove search preset:"
+					    -tx $currentFilter
+					    -button "OK" -button "Cancel"
+					    -defaultButton "OK" -cancelButton "Cancel"
+					    -dismissString "Cancel"`;
+	
+	string $itemToRemove = `promptDialog -query -text`;
+	if ($result == "OK" && $itemToRemove != "")
+	{
+		string $currentItems[] = `optionVar -q sz_MIT_MRLog_searchStrings`;
+		optionVar -clearArray sz_MIT_MRLog_searchStrings;
+		for ($c in $currentItems)
+		{
+			if ($c != $itemToRemove)
+				optionVar -sva sz_MIT_MRLog_searchStrings $c;
+			else
+				print ("MRLog search preset \"" + $c + "\" removed.\n");
+		}
+		if (`optionVar -as sz_MIT_MRLog_searchStrings` == 0)		// Remove empty optionVar
+			optionVar -rm sz_MIT_MRLog_searchStrings;
+	}
+}
+
+
+
+global proc sz_RV_ResizeRenderViewWindow() {
+	global int $renderViewResolutions[];
+
+	// If the window isn't up.. exit..
+	if (!`window -q -ex renderViewWindow`)
+	{
+		warning "Can't resize the RenderView when used inside a panel.";
+		return;
+	}
+	
+	int   $width	= `getAttr "defaultResolution.width"`;
+	int   $height	= `getAttr "defaultResolution.height"`;
+	float $scale	= (((float)$renderViewResolutions[(int)`optionVar -q renderViewTestResolution`]/100));
+
+	$width	= $width  * $scale;
+	$height	= $height * $scale;
+
+	int $border = 60;  // Add a bit of a border.
+
+	window -e -w ($width + $border) -h ($height + ($border*2)) renderViewWindow;
+	string $renderViewName = getRenderWindowPanel();
+	renderWindowEditor -edit -realSize $renderViewName; // 1:1 the image
+}
+
+
+
+
+//*****************************************************************************************
+// Additional helper procedures used by the scripts.
+
+/*                                                                                      
+	Queries the current time and returns the values in an integer array in the following format: year month day hour minute.
+*/
+global proc int[] sz_CurrentTime () {
+	string $buffer_date[];
+	string $buffer_time[];
+	int $currentTime [];
+
+	tokenize ((string)about ("-cd"), "/", $buffer_date);
+	for ($i = 0; $i < 3; $i++) $currentTime [$i] = $buffer_date[$i];
+	tokenize ((string)about ("-ct"), ":", $buffer_time);
+	for ($i = 0; $i < 2; $i++) $currentTime [($i+3)] = $buffer_time[$i];
+
+	return $currentTime;
+}
+
+
+
+global proc int sz_GetFileSize (string $file) {
+	int $fileSize = python ("import os;os.path.getsize(\""+$file+"\");");
+	return $fileSize;
+}
+
+
+
+global proc string sz_Pad (float $value, int $digits) {
+	string $text = $value;
+	int $currentDigits = `size $text`;
+	string $pad;
+	if ($currentDigits >= $digits)
+		return $text;
+	else
+	{
+		for ($i = 0; $i< ($digits-$currentDigits); $i++)
+			$pad+= "0";	
+		return ($pad + $text);
+	}
+}
+
+
+// Extend the length of a string by adding empty characters
+global proc string sz_ExtendString (string $text, int $digits) {
+	int $currentDigits = `size $text`;
+	string $pad;
+	if ($currentDigits >= $digits)
+		return $text;
+	else
+	{
+		for ($i = 0; $i< ($digits-$currentDigits); $i++)
+			$pad+= " ";	
+		return ($text + $pad);
+	}
+}
+
+
+
+global proc float sz_Round (float $value, int $fractions){
+	float $roundedValue = floor (($value * pow(10, $fractions)) + 0.5) / pow(10, $fractions);
+	return $roundedValue;
+}
+
+
+
+
+
+// Standard Alias processes. They have to be set to global to let us use them in the scripts.
+//*********************************************************************************************
+// Process used for the approximation assignment
+global proc createAttr(string $node, string $attr)
+{
+	if (!size(`listAttr -sn -st $attr $node`)) 
+	{
+		string $longName;
+		switch ($attr) 
+		{
+			case "mida":
+				$longName = "miDisplaceApprox";
+				break;
+			case "misa":
+				$longName = "miSurfaceApprox";
+				break;
+			case "mitca":
+				$longName = "miTrimCurveApprox";
+				break;
+			case "miva":
+				$longName = "miSubdivApprox";
+				break;
+		}
+		addAttr -ln $longName -sn $attr -at message $node;
+	}
+}
+
+
+
+// Description:  This procedure compares two MR preset nodes (except contours).
+//          If they are the same, return "", indicating that there
+//          is nothing different between the two.
+//          Otherwise, return the name of the first attribute we found
+//          where the values of the two nodes are different.
+//
+global proc string miNodesEqual(string $node1, string $node2)
+{
+	string $attributes[] = `listAttr $node1`;
+	int $numOfAttrs = size($attributes);
+
+	// Check if all the attributes have the same value.
+	// Note the first four attributes are general node attributes,
+	// so we do not compare them.
+	//
+	for ($i = 4; $i < $numOfAttrs; $i++) {
+		// Skip suppressed attributes:
+		//      userFrameBuffer*
+		//
+		if (size(`match "userFrameBuffer" $attributes[$i]`))
+			continue;   // skip this attribute.
+		if (size(`match "*[cC]ontour*" $attributes[$i]`))
+			continue;   // skip contour attribute.
+
+		if (! miAttrsEqual($node1, $node2, $attributes[$i]))
+			return $attributes[$i];
+		}
+
+	return "";
+}
+
+
+
+// Compare one atribute on two MR preset nodes
+global proc int miAttrsEqual(string $node1, string $node2, string $attr)
+{
+	// Check if it is special attributes which needs to be compared
+	// using special methods.
+	//
+	if ($attr == "approx"		||
+	    $attr == "displaceApprox"	||
+	    $attr == "contourContrast"	||
+	    $attr == "contourStore"	||
+	    $attr == "frameBufferList"	||
+	    $attr == "stateShader"	||
+	    $attr == "stateShaderList"	) {
+
+		// Since contourContrast and contourStore are now readable
+		// to allow layer adjustments (bug 231985), we should only
+		// compare the attributes that are on the source side of
+		// the connection.
+		//
+		string $list1[] =
+		`listConnections -p true -s true -d false ($node1+"."+ $attr)`;
+		string $list2[] =
+		`listConnections -p true -s true -d false ($node2+"."+ $attr)`;
+		if (size($list1) != size($list2))
+			return false;
+		else if ($list1[0] != $list2[0])
+			return false;
+		}
+	else if ($attr == "finalGatherMergeFiles") {
+		int $isEqual = isStringArrayAttrEqual(
+				$node1, $node2, "finalGatherMergeFiles");
+		if (!$isEqual)
+			return false;
+		}
+	else
+	if ($attr == "luminance"	||	// vector/color attributes
+	    $attr == "causticScale"	||
+	    $attr == "globalIllumScale"	||
+	    $attr == "photonVolumeScale"||
+	    $attr == "finalGatherScale"	||
+	    $attr == "finalGatherBounceScale"	||
+	    $attr == "finalGatherContrast"	||
+	    $attr == "contourColor"	||
+	    $attr == "contourTex") {
+		vector $v1, $v2;
+		if (catch($v1 = `getAttr ($node1+"."+ $attr)`)
+		||  catch($v2 = `getAttr ($node2+"."+ $attr)`))
+			miError("error comparing attribute " + $attr);
+		else
+		if ($v1 != $v2)
+			return false;
+		}
+	else {	// Simple data type
+		string $v1, $v2;
+		if (catch($v1 = `getAttr ($node1+"."+ $attr)`)
+		||  catch($v2 = `getAttr ($node2+"."+ $attr)`))
+			miError("error comparing attribute " + $attr);
+		else
+		if ($v1 != $v2)
+			return false;
+		}
+
+	return true;
+}
+
+
+
+// Compare string arry attr $attr of $node1 and $node2.
+// Return 1 if the array values are the same.
+//
+global proc int isStringArrayAttrEqual(string $node1, string $node2, string $attr)
+{
+	// get the size
+	int $len1 = `getAttr -s ($node1+ "." + $attr)`;
+	int $len2 = `getAttr -s ($node2+ "." + $attr)`;
+	int $i=0, $j=0;
+	string $val1, $val2;
+
+	// skip empty plug, and compare the real values
+	for ($i=0; $i<$len1; $i++) {
+		// skip empty element o n$node1
+		$val1 = `getAttr ($node1+ "." + $attr + "[" + $i + "]")`;
+
+		if ($val1 == "")
+			continue;
+
+		// we have non-empty element on $node1.
+		// skip empty plug on $node2
+		for ( ; $j<$len2; $j++) {
+			$val2 = `getAttr ($node2+ "." + $attr + "[" + $j + "]")`;
+			if ($val2 != "") {
+				// different elements. return.
+				if ($val1 != $val2) return false;
+				// found a match.
+				// go to next element on node1.
+				break;
+				}
+			}
+
+		// no more non-empty element on $node2.
+		// fail.
+		if ($j == $len2)
+			return 0;
+		}
+
+	// $node1 is done.
+	// if there non-empty string on $node2, we fail
+	for (; $j<$len2; $j++) {
+		$val2 = `getAttr ($node2+ "." + $attr + "[" + $j + "]")`;
+		if ($val2 != "")
+			return 0;
+		}
+
+	return 1;
+}
+
+
+
+// Modified to include the load renderer menuitems in the renderer selection dropdown list
+
+// Description: Called when a selection is made in the current renderer option 
+// menu. Sets the current renderer.
+//
+// Returns: None
+//
+global proc updateCurrentRendererSel(string $menu)
+{
+	string $selRenderer = `optionMenu -query -value $menu`;
+	string $renderers[] = `renderer -query -namesOfAvailableRenderers`; 
+	string $rendererUIName = "";		
+
+//SZ
+	if ($selRenderer == "Load Mental Ray")
+	{
+		loadPlugin "Mayatomr";
+		evalDeferred -lp ("setCurrentRenderer \"mentalRay\"");
+		return;
+	}
+	if ($selRenderer == "Load Maya Vector Renderer")
+	{
+		loadPlugin "VectorRender";		
+		evalDeferred -lp ("setCurrentRenderer \"mayaVector\"");
+		return;
+	}
+//END
+
+	for ($i = 0; $i < size($renderers); $i += 1)
+	{
+        $rendererUIName = `renderer -query -rendererUIName $renderers[$i]`;
+		if($selRenderer == $rendererUIName)
+			break;
+	}
+
+	// If the select renderer is not installed, produce error
+	//
+	if($i == size($renderers))
+	{
+		error 	-showLineNumber	true
+	       		($rendererUIName + " does not exist ");
+	}
+	else
+	{
+		setCurrentRenderer($renderers[$i]);
+	}
+}
+
+
+
+// Modified tearOffPanel.mel file to include render-info update when the window is created or raised
+global proc string tearOffPanel (string $panelLabel, string $panelType, int $isScripted) {
+
+	string $wndName = "";
+	string $cmdStr;
+	string $whichPanel = `getPanel -withLabel $panelLabel`;
+
+//SZ	if( $whichPanel == "") {
+	if( $whichPanel == "" && exists ("unlocalizedPanelLabel")) {
+//END		
+		string $enLabel = unlocalizedPanelLabel( $panelLabel );
+		if( $enLabel != $panelLabel ) {
+			$whichPanel = `getPanel -withLabel $enLabel`;
+		}
+	}
+
+	if ("" != $whichPanel) {
+		$wndName = $whichPanel + "Window";
+		if (`panel -q -to $whichPanel`) {
+			//
+			// The window is already displayed so just show it
+			//
+			showWindow $wndName;
+		} else {
+			//
+			// There is no window so tear off the panel to make one
+			//
+			if ($isScripted) {
+				$cmdStr = ("scriptedPanel -e -to " + $whichPanel);
+			} else {
+				$cmdStr = ($panelType + " -e -to " + $whichPanel);
+			}
+			eval $cmdStr;
+		}
+		fillEmptyPanes;
+	} 
+	else 
+	{
+		if ($isScripted) 
+		{
+			catch (`scriptedPanel -l $panelLabel -type $panelType -to`);
+		} 
+		else 
+		{
+			$cmdStr = ($panelType + " -l \""+ $panelLabel +"\" -to;");
+			eval $cmdStr;
+		}
+	}
+//SZ	
+	string $renderViewName = getRenderWindowPanel();	
+	if ($panelType == "renderWindowPanel" && `renderWindowEditor -q -exists $renderViewName`)
+	{
+		if (`window -q -exists $wndName`)
+			window -e -restoreCommand "sz_MIT_Commands updateImageInfo" $wndName;
+		sz_MIT_Commands updateImageInfo;
+	}
+//END		
+	return $wndName;
+}
+
+
+
+global proc string getRenderWindowPanel()
+{
+
+	string $renderPanel;
+	string $renderPanels[] = `getPanel -scriptType "renderWindowPanel"`;
+
+	if( size($renderPanels) == 0 )
+	{
+		$renderPanel = `scriptedPanel -type "renderWindowPanel" -unParent`;
+		scriptedPanel -e -label `interToUI $renderPanel` $renderPanel;
+	}
+	else
+	{
+		$renderPanel = $renderPanels[0];
+	}
+
+	return $renderPanel;
+}

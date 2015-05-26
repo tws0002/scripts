@@ -1,0 +1,10 @@
+if(`about -windows` || `about -linux`) {
+    python("import sys");
+    python("sys.path.append('//Art-1405260002/d/assets/scripts/maya_scripts')");
+    python("sys.path.append('//Art-1405260002/d/assets/scripts/maya_scripts/install')");
+	python("sys.path.append('//Art-1405260002/d/assets/scripts/maya_scripts/lib')");
+    }
+
+
+python("import addToCustomShelf");
+//commandPort -stp "python" -n ":7002" -bs 65024 -eo "True" ;

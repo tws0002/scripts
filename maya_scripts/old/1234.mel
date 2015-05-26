@@ -1,0 +1,4 @@
+global proc testing() {
+	print "sdfsdfsfdsf";
+}
+

@@ -1,0 +1,27 @@
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 19
+        -height 19
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "" 
+        -enableBackground 0
+        -align "center" 
+        -label "" 
+        -labelOffset 0
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "" 
+        -image1 "" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "" 
+        -doubleClickCommand ""
+        -sourceType "" 
+        -commandRepeatable 1
+        -flat 1
+    ;

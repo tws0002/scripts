@@ -1,0 +1,17 @@
+.DS_Store
+.svn
+log/*.log
+tmp/**
+bootstrap-3.2.0-dist/
+ffmpeg/
+flake8-2.2.5/
+font-awesome-4.1.0/
+galleria/
+gridster.js/
+Highcharts-4.0.3/
+ImageMagick-6.9.0-6/
+jquery-ui-1.11.0/
+multiple-select-master/
+python-dateutil-2.3/
+six-1.8.0/
+zoom.js-master/

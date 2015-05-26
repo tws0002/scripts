@@ -1,0 +1,97 @@
+import maya.cmds as cmds
+global widget
+#project_path = cmds.textField("project_path", q=1, tx=1)
+project_path = widget.ui.save_path.text().replace("scenes/")
+print "project_path"
+#workspaceFileRule(path)
+
+#cmds.file(rename=final)
+#cmds.file(save=True, type='mayaBinary')
+#cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
+'''
+if cmds.window("error", exists=True):
+    cmds.deleteUI("error")
+path = cmds.textField("final_path", query=True, tx=True)
+filename = cmds.textField("basename", query=True, tx=True)
+if not os.path.exists(path):
+    os.makedirs(path)
+final = path + filename
+# project_path = cmds.textField("project_path", q=1, tx=1)
+
+workspaceFileRule(path)
+
+cmds.file(rename=final)
+cmds.file(save=True, type='mayaBinary')
+cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
+
+
+def workspaceFileRule(project_path):
+    project_path = project_path.replace("scenes/","")
+    cmds.workspace(project_path, o=1)
+    garbage = 'garbage'
+
+    cmds.workspace(fileRule=['scene', 'scenes'])
+    cmds.workspace(fileRule=['templates', garbage + '/templates'])
+    cmds.workspace(fileRule=['images', 'images'])
+    cmds.workspace(fileRule=['sourceImages', 'sourceimages'])
+    cmds.workspace(fileRule=['renderData', garbage])
+    cmds.workspace(fileRule=['clips', garbage])
+    cmds.workspace(fileRule=['sound', garbage])
+    cmds.workspace(fileRule=['scripts', garbage])
+    cmds.workspace(fileRule=['diskCache', garbage + '/data'])
+    cmds.workspace(fileRule=['movie', garbage])
+    cmds.workspace(fileRule=['translatorData', garbage])
+    cmds.workspace(fileRule=['autoSave', garbage])
+
+    cmds.workspace(fileRule=['offlineEdit', garbage])
+    cmds.workspace(fileRule=['3dPaintTextures', 'sourceimages/3dPaintTextures'])
+    cmds.workspace(fileRule=['depth', garbage + '/depth'])
+    cmds.workspace(fileRule=['iprImages', garbage + '/iprImages'])
+    cmds.workspace(fileRule=['shaders', garbage + '/shaders'])
+    cmds.workspace(fileRule=['furFiles', garbage + '/fur/furFiles'])
+    cmds.workspace(fileRule=['furImages', garbage + '/fur/furImages'])
+    cmds.workspace(fileRule=['furEqualMap', garbage + '/fur/furEqualMap'])
+    cmds.workspace(fileRule=['furAttrMap', garbage + '/fur/furAttrMap'])
+    cmds.workspace(fileRule=['furShadowMap', garbage + '/fur/furShadowMap'])
+    cmds.workspace(fileRule=['particles', garbage + '/particles'])
+    cmds.workspace(fileRule=['fluidCache', garbage + '/nCache/fluid'])
+    cmds.workspace(fileRule=['fileCache', garbage + '/nCache'])
+
+    cmds.workspace(fileRule=['eps', 'data'])
+    cmds.workspace(fileRule=['OBJexport', 'data'])
+    cmds.workspace(fileRule=['mel', 'scripts'])
+    cmds.workspace(fileRule=['STEP_DC', 'data'])
+    cmds.workspace(fileRule=['CATIAV5_DC', 'data'])
+    cmds.workspace(fileRule=['CATIAV4_DC', 'data'])
+    cmds.workspace(fileRule=['IPT_DC', 'data'])
+    cmds.workspace(fileRule=['SW_DC', 'test/test/test'])
+    cmds.workspace(fileRule=['DAE_FBX export', 'data'])
+    cmds.workspace(fileRule=['Autodesk Packet File', 'data'])
+    cmds.workspace(fileRule=['DAE_FBX', 'data'])
+    cmds.workspace(fileRule=['DXF_DCE', 'data'])
+    cmds.workspace(fileRule=['mayaAscii', 'scenes'])
+    cmds.workspace(fileRule=['move', 'data'])
+    cmds.workspace(fileRule=['mayaBinary', 'scenes'])
+    cmds.workspace(fileRule=['DWG_DC', 'data'])
+    cmds.workspace(fileRule=['DXF_DC', 'data'])
+    cmds.workspace(fileRule=['SPF_DCE', 'data'])
+    cmds.workspace(fileRule=['ZPR_DCE', 'data'])
+    cmds.workspace(fileRule=['audio', 'sound'])
+    cmds.workspace(fileRule=['IV_DC', 'data'])
+    cmds.workspace(fileRule=['STL_DCE', 'data'])
+    cmds.workspace(fileRule=['FBX export', 'data'])
+    cmds.workspace(fileRule=['JT_DC', 'data'])
+    cmds.workspace(fileRule=['DWG_DCE', 'data'])
+    cmds.workspace(fileRule=['FBX', 'data'])
+    cmds.workspace(fileRule=['Alembic', 'data'])
+    cmds.workspace(fileRule=['IGES_DC', 'data'])
+    cmds.workspace(fileRule=['illustrator', 'data'])
+    cmds.workspace(fileRule=['UG_DC', 'data'])
+    cmds.workspace(fileRule=['SPF_DC', 'data'])
+    cmds.workspace(fileRule=['PTC_DC', 'data'])
+    cmds.workspace(fileRule=['OBJ', 'data'])
+    cmds.workspace(fileRule=['CSB_DC', 'data'])
+    cmds.workspace(fileRule=['STL_DC', 'data'])
+    cmds.workspace(fileRule=['IGES_DCE', 'data'])
+    cmds.workspace(fileRule=['UG_DCE', 'data'])
+    '''

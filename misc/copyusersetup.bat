@@ -1,0 +1,1 @@
+copy "\\art-render\assets\scripts\maya_scripts\userSetup.mel" %HOMEDRIVE%\%HOMEPATH%\Documents\maya\2014-x64\scripts\userSetup.mel

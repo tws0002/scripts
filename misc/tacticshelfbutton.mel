@@ -1,0 +1,26 @@
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 19
+        -height 19
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "" 
+        -enableBackground 0
+        -align "center" 
+        -label "tactic" 
+        -labelOffset 0
+        -font "plainLabelFont" 
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.2 
+        -image "//art-render/assets/scripts/maya_scripts/icons/tactic_ico.png" 
+        -image1 "//art-render/assets/scripts/maya_scripts/icons/tactic_ico.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "import tactic2maya20\nreload(tactic2maya20)" 
+        -sourceType "python" 
+        -commandRepeatable 1
+        -flat 1
+    ;
