@@ -61,7 +61,7 @@ try:
             source_type = "python"
         elif source_type == "mel":
             command = "source \"" + scripts_path + script + "\";" + "\n" + name + "();"
-        image = scripts_path + "/icons/" + name + ".png"
+        image = scripts_path + "icons/" + name + ".png"
         cmds.shelfButton(p='TACTIC', l=name, i=image, c=command, rpt=1, stp=source_type)
         # print command
     print scriptList
