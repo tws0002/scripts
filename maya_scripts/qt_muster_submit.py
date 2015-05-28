@@ -135,6 +135,10 @@ def setMuster():
         pass
     elif "Nuke" in appName:
         scene_name = base_scenename + "_" + author + ".nk"
+        widget.ui.start_frame.setText(str(1))
+        widget.ui.end_frame.setText(str(1))
+        widget.ui.by_frame.setText(str(1))
+        widget.ui.frame_padding.setText(str(4))        
     else:
         scene_name = ""
 
@@ -155,8 +159,8 @@ def submitRender(arg=None):
     job_name = widget.ui.job_name.text()
     image_folder = widget.ui.image_folder.text()
     batch_render_filename = proj_path + "/scenes/" + scene_name
-    rendererID = "49"
-
+    render_pool = getSelectedPools()
+    folder_id = str(getParent())
     if appName == 'maya':
         renderer = cmds.getAttr("defaultRenderGlobals.currentRenderer")
         if renderer == "mayaSoftware":
@@ -252,23 +256,20 @@ def submitRender(arg=None):
         post_job_action = image_folder + "\convert.bat"
         post_job_action = post_job_action.replace("/", "\\")
         # post_job_action = ""
-        render_pool = getSelectedPools()
 
-        folder_id = str(getParent())
-        print folder_id
         cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -parent " + folder_id + " -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -attr MAYADIGITS " + frame_padding + " 0 -attr ARNOLDMODE 0 0 -attr ARNOLDLICENSE 1 1 -pool \"" + render_pool + "\" -se 1 -st 1 -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -eja \"" + post_job_action + "\" -n \"" + job_name + "\" -dest \"" + image_folder + "\" -f \"" + batch_render_filename + "\" -proj \"" + proj_path + "\""
-        print cmdline
         subprocess.call(cmdline.replace("/", "\\"))
 
     if "Nuke" in appName:
         import nuke
+        rendererID = "49"
         nuke.scriptSave()
         if os.path.isdir(image_folder + "/") is False:
             os.mkdir(image_folder + "/")
-        cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -pool \"" + render_pool + "\" -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -n \"" + job_name + "\" -f \"" + batch_render_filename + "\""
-        print cmdline
-        #subprocess.call(cmdline.replace("/", "\\"))
-    #widget.close()
+        cmdline = "\"C:\Program Files\Virtual Vertex\Muster 7\Mrtool.exe\" -b -parent " + folder_id + " -s " + muster_server + " -port " + muster_server_port + " -u \"admin\" -p \"\" -sf " + start_frame + " -ef " + end_frame + " -bf " + by_frame + " -pool \"" + render_pool + "\" -e " + rendererID + " -pk " + packet_size + " -pr " + priority + " -max 0 -v 3 -n \"" + job_name + "\" -f \"" + batch_render_filename + "\""
+        
+        subprocess.call(cmdline.replace("/", "\\"))
+    widget.close()
 
 
 def getPools():
@@ -395,15 +396,21 @@ def qt_muster_submitMain():
 
 
 def defaultSelection():
-    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Pixar",0)[0])
-    colorSelected()
-    widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("VanGogh",0)[0])
-    colorSelected()
+    if appName == "maya":
+        widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems(u"Pixar",QtCore.Qt.MatchFlags(0))[0])
+        colorSelected()
+        widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems(u"VanGogh",QtCore.Qt.MatchFlags(0))[0])
+        colorSelected()
+    elif "Nuke" in appName:
+        widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems(u"Pixar",QtCore.Qt.MatchFlags(0))[0])
+        colorSelected()
+
+    '''
     widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Davinci",0)[0])
     colorSelected()
     widget.ui.render_pool.setCurrentItem(widget.ui.render_pool.findItems("Monet",0)[0])
     colorSelected()
-
+    '''
     
 def clearSelection():
     count = widget.ui.render_pool.count()
@@ -520,9 +527,9 @@ def selectAllWrite():
     for n in nodes:
         n['selected'].setValue(True)
 
-def nukeWriteNodes():
 
-    global writeNodes
+def nukeWriteNodes():
+    # this finds all the write nodes in the scene and loads them into a table
 
     widget.ui.nuke_write_table.setRowCount(0)
     widget.ui.nuke_write_table.setColumnWidth(0,23)
@@ -537,6 +544,7 @@ def nukeWriteNodes():
         filename = widget.ui.job_name.text()
         pathname = widget.ui.image_folder.text()
         path = pathname + "/" + nodename + "/" + filename + "_" + nodename + ".####.exr"
+        print path
 
         nuke.toNode(nodename)['file'].setValue(path)
 
@@ -555,6 +563,12 @@ def nukeWriteNodes():
         elif n['disable'].value() == 0:
             disable.setIcon(nukecheckicon)
             disable.setText("on")
+            filename = widget.ui.job_name.text()
+            pathname = widget.ui.image_folder.text()
+            nodepath = pathname + "/" + nodename
+            nodepath = nodepath.replace("/","\\")
+            if os.path.isdir(nodepath) is False:
+                os.makedirs(nodepath)            
 
         disable.setTextAlignment(QtCore.Qt.AlignHCenter)
 
@@ -563,5 +577,6 @@ def nukeWriteNodes():
         widget.ui.nuke_write_table.setItem(i, 2, createPath)
 
     widget.ui.nuke_write_table.itemChanged.connect(renameWriteNode)
+
     deselect()
 #qt_muster_submitMain()
