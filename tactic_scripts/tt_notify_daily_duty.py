@@ -3,12 +3,15 @@ from dateutil import parser
 import time
 start_time = time.time()
 import sys
+import socket
 sys.path.append("//Art-1405260002/d/assets/client")
 
 from tactic_client_lib import TacticServerStub
 server = TacticServerStub()
 
-server.set_server("192.168.201.10")
+tactic_server_ip = socket.gethostbyname("vg.com")
+
+server.set_server(tactic_server_ip)
 server.set_project("simpleslot")
 ticket = server.get_ticket("julio", "1234")
 server.set_ticket(ticket)

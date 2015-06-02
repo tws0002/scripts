@@ -10,8 +10,9 @@ from dateutil import parser
 
 from tactic_client_lib import TacticServerStub
 server = TacticServerStub(setup=False)
-server.set_server("192.168.201.10")
-server.set_project("simpleslot")
+import socket
+tactic_server_ip = socket.gethostbyname("vg.com")
+server.set_server(tactic_server_ip)server.set_project("simpleslot")
 ticket = server.get_ticket("julio", "1234")
 # ticket = "8cc245264e73d48685ded14b6aa431a7" #perpetual ticket?
 server.set_ticket(ticket)

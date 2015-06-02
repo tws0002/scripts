@@ -5,7 +5,9 @@ from dateutil import parser
 
 from tactic_client_lib import TacticServerStub
 server = TacticServerStub(setup=False)
-server.set_server("192.168.201.10")
+import socket
+tactic_server_ip = socket.gethostbyname("vg.com")
+server.set_server(tactic_server_ip)
 server.set_project("simpleslot")
 ticket = server.get_ticket("admin", "chicago")
 server.set_ticket(ticket)

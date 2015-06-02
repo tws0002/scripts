@@ -63,6 +63,10 @@ if appName == "maya":
 elif "Nuke" in appName:
     import nuke
 
+def getMusterIP():
+    import socket
+    return socket.gethostbyname('art-render')
+
 def hideServerPanel():
     global server_panel_status
     if server_panel_status == "show":
@@ -105,7 +109,7 @@ def hideNukePanel():
 
 def setMuster():
     global scene_name, proj_path, name
-
+    muster_ip = getMusterIP() 
     name = jc.getNextFileName(1)
     path = name[0]
     base_scenename = name[1]
@@ -131,6 +135,7 @@ def setMuster():
         widget.ui.end_frame.setText(str(end_frame))
         widget.ui.by_frame.setText(str(by_frame))
         widget.ui.frame_padding.setText(str(frame_padding))
+        widget.ui.muster_ip.setText(muster_ip)
     elif appName == "3dsmax":
         pass
     elif "Nuke" in appName:

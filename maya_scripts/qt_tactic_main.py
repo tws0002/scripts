@@ -17,6 +17,7 @@ import qt_main_ui as qt_main_ui
 import qt_login_ui
 import os, shutil
 import subprocess
+import socket
 import jc_maya_aux_functions as jc
 # import maya.cmds as cmds
 
@@ -70,21 +71,23 @@ class loginWindow(QtGui.QDialog):
         ticket_files = os.listdir("c:/sthpw/etc/")
         ticket_file = "c:/sthpw/etc/" + name + ".tacticrc"
 
+        tactic_server_ip = socket.gethostbyname("vg.com")
+
         if len(ticket_files) == 0:
             file_object = open(ticket_file, "w")
-            ticket_content = "login=" + name + "\n" + "server=192.168.201.10" + "\n" + "project=simpleslot"
+            ticket_content = "login=" + name + "\n" + "server=" + tactic_server_ip + "\n" + "project=simpleslot"
             file_object.write(ticket_content)
             file_object.close()
 
         server = TacticServerStub(setup=0)
         server.login = name
-        server.set_server("192.168.201.10")
+        server.set_server(tactic_server_ip)
         server.set_project("simpleslot")
         ticket = server.get_ticket(name, password)
         server.set_ticket(ticket)
 
         file_object = open(ticket_file, "w")
-        ticket_content = "login=" + name + "\n" + "server=192.168.201.10" + "\n" + "ticket=" + ticket + "\n" + "project=simpleslot"
+        ticket_content = "login=" + name + "\n" + "server=" + tactic_server_ip + "\n" + "ticket=" + ticket + "\n" + "project=simpleslot"
         file_object.write(ticket_content)
         file_object.close()
 
@@ -861,6 +864,7 @@ def qt_tactic_mainMain():
     global server
     global widget
     serverok = 0
+    tactic_server_ip = socket.gethostbyname("vg.com")
 
     from tactic_client_lib import TacticServerStub
     #server = TacticServerStub()
@@ -882,7 +886,7 @@ def qt_tactic_mainMain():
                         lines.append(line.split("=")[1].replace("\n",""))
                 
             server.login = lines[0]
-            server.set_server("192.168.201.10")
+            server.set_server(tactic_server_ip)
             server.set_project("simpleslot")
             server.set_ticket(lines[2])
             serverok = 1
