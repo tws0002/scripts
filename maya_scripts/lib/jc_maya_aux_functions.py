@@ -27,12 +27,13 @@ def maxVersion(final_path, filename, mode):
         else:
             for savedFile in currentSceneReviewList:
                 savedFile = savedFile.replace((filename + "_"), "")
+                temp = len(savedFile.split("_"))
                 if mode == "maya":
                     version = savedFile.split(".")[0].split("_")[0]
                 elif mode == "images":
-                    version = savedFile.split(".")[0].split("_")[1]
+                    version = savedFile.split(".")[0].split("_")[temp - 1]
                 else:
-                    version = savedFile.split(".")[0].split("_")[1]
+                    version = savedFile.split(".")[0].split("_")[temp - 1]
                 version = version.replace("v", "")
                 versions.append(int(version))
 
