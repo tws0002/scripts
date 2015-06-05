@@ -41,7 +41,7 @@ for game in games:
         quarter_data = {'brief_quarter': quarter}
         year_data = {'brief_year': bed.year}
 
-        server.update(sk, year_data)
+        server.update(sk, quarter_data)
         print year_data
     except:
         print "probably no tasks"

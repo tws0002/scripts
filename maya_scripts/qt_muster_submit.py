@@ -10,6 +10,7 @@ import qt_muster_ui as qt_muster_ui
 import jc_maya_aux_functions as jc
 import os
 import subprocess
+import socket
 
 reload(qt_muster_ui)
 reload(jc)
@@ -283,8 +284,9 @@ def getPools():
     port = widget.ui.muster_port.text()
     muster_path = "C:/Program Files/Virtual Vertex/Muster 7/"
     os.environ["PATH"] += os.pathsep + muster_path
+
     try:
-        yyy = subprocess.Popen("mrtool -s 192.168.200.27 -port 9681 -u \"admin\" -p \"\" -q p -H 0 -S 0 -pf parent", shell=True, stdout=subprocess.PIPE).communicate()[0]
+        yyy = subprocess.Popen("mrtool -s " + server + " -port 9681 -u \"admin\" -p \"\" -q p -H 0 -S 0 -pf parent", shell=True, stdout=subprocess.PIPE).communicate()[0]
         pool = yyy.split("\r\n")
         myset = set(pool)
         final = []
