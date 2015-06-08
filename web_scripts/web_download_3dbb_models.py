@@ -45,7 +45,8 @@ for y in range(0,len(saved)): # go to sub_page
 
 driver.get(saved[0][2])
 
-item_pages = driver.find_elements_by_xpath("//div[@class='l_prolist']/dl/dd/p/a")
+item_pages = driver.find_elements_by_xpath("//div[@class='l_prolist']/dl/dd/p[@class='im']/a")
+print len(item_pages)
 item_pages.pop(0)
 for item_page in item_pages:
     item_link = item_page.get_attribute('href')
@@ -54,5 +55,6 @@ for item_page in item_pages:
     item_name = temp.get_attribute('alt')
     print item_image, item_name, item_link
 
-temp = item_pages[1].find_element_by_xpath("./img")
-print item_pages[0].find_element_by_xpath('./img').get_attribute('src')
+temp = item_pages[1]
+print item_pages[4].text
+print item_pages[1].find_element_by_xpath('./img').get_attribute('src')
