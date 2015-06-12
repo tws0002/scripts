@@ -27,7 +27,7 @@ def maxVersion(final_path, filename, mode):
         else:
             for savedFile in currentSceneReviewList:
                 savedFile = savedFile.replace((filename + "_"), "")
-                temp = len(savedFile.split("_"))
+                temp = len(savedFile.split("_")) # temp is length of remaining string, find the max length for the version
                 if mode == "maya":
                     version = savedFile.split(".")[0].split("_")[0]
                 elif mode == "images":

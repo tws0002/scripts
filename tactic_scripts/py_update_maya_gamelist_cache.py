@@ -1,3 +1,6 @@
+# this script is run on the tactic server with cron daily
+# this script updates the plan table which is the cache for project for maya/nuke/max filemanager utility
+
 import sys
 sys.path.append("/home/apache/tactic/src/client")
 sys.path.append("/mnt/hgfs/assets/scripts/python-dateutil-2.3")

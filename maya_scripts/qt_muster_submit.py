@@ -182,9 +182,10 @@ def submitRender(arg=None):
         mayaDefaultRenderers = ["mayaSoftware", "mayaHardware", "mayaHardware2"]
 
         if renderer == "arnold":
-            cmds.setAttr("defaultArnoldDriver.aiTranslator", "exr", type="string")
-            cmds.setAttr("defaultArnoldDriver.exrCompression", 3)
-            imageFormat = "exr"
+            imageFormat = cmds.getAttr("defaultArnoldDriver.aiTranslator")
+            #cmds.setAttr("defaultArnoldDriver.aiTranslator", "exr", type="string")
+            #cmds.setAttr("defaultArnoldDriver.exrCompression", 3)
+            #imageFormat = "exr"
             # imageFormat = cmds.optionMenuGrp("imageMenuMayaSW", q=1, v=1)
         else:
             imageFormatId = cmds.getAttr("defaultRenderGlobals.imageFormat")
