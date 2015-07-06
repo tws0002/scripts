@@ -19,30 +19,35 @@ import Queue
 
 
 drivers = []
+user = os.getenv('USERNAME')
 def profs():
-    adblockfile = 'c:/Users/julio/Downloads/adblock_plus-2.6.7-sm+tb+fx+an.xpi'
-    ffprofile = webdriver.FirefoxProfile("c:/Users/julio/Downloads/profilemodel")
+    adblockfile = '//art-cs005520513/julio/adblock_plus-2.6.7-sm+tb+fx+an.xpi'
+    ffprofile = webdriver.FirefoxProfile("c:/Users/" + user + "/Downloads/profilemodel")
     ffprofile.set_preference("extensions.adblockplus.currentVersion", "2.6.7")
-    ffprofile = webdriver.FirefoxProfile("c:/Users/julio/Downloads/profilemodel")
+    ffprofile = webdriver.FirefoxProfile("c:/Users/" + user + "/Downloads/profilemodel")
     ffprofile.add_extension(adblockfile)
     return ffprofile
-number_of_drivers = 6
+number_of_drivers = 8
 for i in range(number_of_drivers):
     drivers.append(webdriver.Firefox(profs()))
 
 
 
+
     
+#path = "//art-cs005520513/julio/3daa"
 path = "f:/3daa"
 item_folders = os.listdir(path)
-rar_link_file = "f:/rarlink01.txt"
+#rar_link_file = "//art-cs005520513/julio/rarlink02.txt"
+rar_link_file = "f:/rarlink04.txt"
 
 q = Queue.Queue(maxsize=0)
-start = 10200
-end = 20000
+start = 35000
+end = 40000
 for i in range(start, end):
     q.put(i)
 
+print len(q.queue)
 def getFiles(driver, q):
     while True: 
         cur = q.get()
@@ -107,7 +112,7 @@ def getFiles(driver, q):
                     with open(rar_link_file, "a") as file:
                         file.write(src + "\n")
                         q.task_done()
-                        break
+                        
 
 workers = []
 for x in range(number_of_drivers):
