@@ -71,8 +71,8 @@ body {
 
 /* Ensure certain elements are never larger than the slide itself */
 .reveal img, .reveal video, .reveal iframe {
-  max-width: 95%;
-  max-height: 95%; }
+  max-width: 1280px;
+  max-height: 720px; }
 
 .reveal strong, .reveal b {
   font-weight: bold; }
@@ -204,7 +204,7 @@ body {
  * IMAGES
  *********************************************/
 .reveal section img {
-  margin: 15px 0px;
+  margin: 360px -960px;
   background: rgba(255, 255, 255, 0.12);
   border: 4px solid #333;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); }

@@ -177,17 +177,22 @@ def getNextFileName(current):
             filename = filename.replace(".nk", "")
 
         # Building filename filters to get correct author name, since users with underscore will mess up the index using split
+
         project_name_filter = (abbrName(project_name) + "_")
-        item_type_filter = (abbrItemType(item_type) + "_")
         item_name_filter = item_name + "_"
         process_filter = (abbrName(process) + "_")
-
 
         filename_details = filename.split("_")
         project_name_abbr = abbrName(project_name)  # aoml
         process_abbr = abbrName(process)            # rig
+        
+        if project_type == "shot":
+            temp = filename.replace(project_name_filter,"").replace(item_name_filter,"").replace(process_filter,"").replace(".mb","")
 
-        temp = filename.replace(project_name_filter,"").replace(item_type_filter,"").replace(item_name_filter,"").replace(process_filter,"").replace(".mb","")
+        else:
+            item_type_filter = (abbrItemType(item_type) + "_")
+            temp = filename.replace(project_name_filter,"").replace(item_type_filter,"").replace(item_name_filter,"").replace(process_filter,"").replace(".mb","")
+
         author = temp[5:]
         version = temp.replace("_" + author,"")
 
