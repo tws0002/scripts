@@ -130,6 +130,25 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QPushButton" name="update_cache">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>70</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>更新快取</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>

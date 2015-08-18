@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v02.ui'
+# Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui'
 #
-# Created: Fri May 15 13:24:15 2015
+# Created: Fri Aug 14 16:44:26 2015
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -68,6 +68,11 @@ class Ui_main_window(object):
         self.line_2.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
         self.horizontalLayout.addWidget(self.line_2)
+        self.update_cache = QtGui.QPushButton(main_window)
+        self.update_cache.setMinimumSize(QtCore.QSize(0, 0))
+        self.update_cache.setMaximumSize(QtCore.QSize(70, 16777215))
+        self.update_cache.setObjectName("update_cache")
+        self.horizontalLayout.addWidget(self.update_cache)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
         self.mainLayout = QtGui.QVBoxLayout()
         self.mainLayout.setSpacing(3)
@@ -337,6 +342,7 @@ class Ui_main_window(object):
 
     def retranslateUi(self, main_window):
         main_window.setWindowTitle(QtGui.QApplication.translate("main_window", "Form", None, QtGui.QApplication.UnicodeUTF8))
+        self.update_cache.setText(QtGui.QApplication.translate("main_window", "更新快取", None, QtGui.QApplication.UnicodeUTF8))
         self.project_label.setText(QtGui.QApplication.translate("main_window", "Projects", None, QtGui.QApplication.UnicodeUTF8))
         self.project_info.verticalHeaderItem(0).setText(QtGui.QApplication.translate("main_window", "專案:", None, QtGui.QApplication.UnicodeUTF8))
         self.project_info.verticalHeaderItem(1).setText(QtGui.QApplication.translate("main_window", "案型:", None, QtGui.QApplication.UnicodeUTF8))

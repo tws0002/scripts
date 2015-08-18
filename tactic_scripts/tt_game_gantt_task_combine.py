@@ -48,7 +48,7 @@ for game in games:
     data = {}
     data['game_code'] = game_code
 
-    if game_type[0] == "cf" or game_type[0] == "sports":
+    if game_type[0] == "cf" or game_type[0] == "sports" or game_type[0] == "others":
         for asset_process in asset_processes:
             expr = "@MIN(simpleslot/game['name','" + game_name + "'].simpleslot/assets.sthpw/task['process','" + asset_process + "'].bid_start_date)"
             temp_min = server.eval(expr)

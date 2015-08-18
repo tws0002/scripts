@@ -35,8 +35,8 @@
 
 			// The "normal" size of the presentation, aspect ratio will be preserved
 			// when the presentation is scaled to fit different resolutions
-			width: 960,
-			height: 700,
+			// width: 960,
+			// height: 700,
 
 			// Factor of the display size that should remain empty around the content
 			margin: 0.1,
@@ -1630,8 +1630,8 @@
 
 		// Only proceed if enabled in config
 		if( config.overview ) {
-
-			// Don't auto-slide while in overview mode
+			$j("div[id='section_correction']").css('top','0');
+            // $j("div[id='section_correction']").css('height','700px');			// Don't auto-slide while in overview mode
 			cancelAutoSlide();
 
 			var wasActive = dom.wrapper.classList.contains( 'overview' );
@@ -1706,7 +1706,8 @@
 
 		// Only proceed if enabled in config
 		if( config.overview ) {
-
+			$j("div[id='section_correction']").css('top','-260px');
+            // $j("div[id='section_correction']").css('height','');
 			dom.wrapper.classList.remove( 'overview' );
 
 			// Temporarily add a class so that transitions can do different things

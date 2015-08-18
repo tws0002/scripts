@@ -1,0 +1,60 @@
+linear-gradient(90deg, #136a8a 10%, #267871 90%) turquoise flow
+linear-gradient(90deg, #ff0084 10%, #33001b 90%) flickr
+linear-gradient(90deg, #485563 10%, #29323c 90%) servquick
+linear-gradient(90deg, #360033 10%, #0b8793 90%) purple bliss
+linear-gradient(90deg, #73C8A9 10%, #373B44 90%) between the clouds
+linear-gradient(90deg, #00c6ff 10%, #0072ff 90%) facebook
+linear-gradient(90deg, #83a4d4 10%, #b6fbff 90%) friday
+linear-gradient(90deg, #fe8c00 10%, #f83600 90%) soundcloud
+
+linear-gradient(90deg, #00c6ff 10%, #0072ff 90%) facebook messenger
+linear-gradient(90deg, #F0C27B 10%, #4B1248 90%) starfall
+
+linear-gradient(90deg, #FF4E50 10%, #F9D423 90%) dance to forget
+linear-gradient(90deg, #ADD100 10%, #7B920A 90%) parklife
+linear-gradient(90deg, #000000 10%, #53346D 90%) shadow night
+linear-gradient(90deg, #649173 10%, #DBD5A4 90%) earthly
+linear-gradient(90deg, #00d2ff 10%, #3a7bd5 90%) reef
+
+linear-gradient(90deg, #c21500 10%, #ffc500 90%) kyoto
+
+
+linear-gradient(90deg, #24C6DC 10%, #514A9D 90%) mantle
+
+linear-gradient(90deg, #DE6262 10%, #FFB88C 90%) lost memory
+linear-gradient(90deg, #1A2980 10%, #26D0CE 90%) aqua marine
+linear-gradient(90deg, #FF8008 10%, #FFC837 90%) juicy orange
+linear-gradient(90deg, #FF512F 10%, #F09819 90%) sunrise
+
+
+linear-gradient(90deg, #F0C27B 10%, #4B1248 90%) starfall
+"radial-gradient(ellipse at center, #4B1248 10%, #F0C27B 90%)",
+"radial-gradient(ellipse at center, #0b8793 10%, #360033 90%)"
+linear-gradient(90deg, #360033 10%, #0b8793 90%) purple bliss
+
+
+
+
+
+background_gradients = [
+"radial-gradient(ellipse at center, #267871 10%, #136a8a 90%)",
+"radial-gradient(ellipse at center, #33001b 10%, #ff0084 90%)",
+"radial-gradient(ellipse at center, #29323c 10%, #485563 90%)",
+"radial-gradient(ellipse at center, #0b8793 10%, #360033 90%)",
+"radial-gradient(ellipse at center, #373B44 10%, #73C8A9 90%)",
+"radial-gradient(ellipse at center, #0072ff 10%, #00c6ff 90%)",
+"radial-gradient(ellipse at center, #b6fbff 10%, #83a4d4 90%)",
+"radial-gradient(ellipse at center, #f83600 10%, #fe8c00 90%)",
+"radial-gradient(ellipse at center, #0072ff 10%, #00c6ff 90%)",
+"radial-gradient(ellipse at center, #4B1248 10%, #F0C27B 90%)",
+"radial-gradient(ellipse at center, #F9D423 10%, #FF4E50 90%)",
+"radial-gradient(ellipse at center, #7B920A 10%, #ADD100 90%)",
+"radial-gradient(ellipse at center, #53346D 10%, #000000 90%)",
+"radial-gradient(ellipse at center, #DBD5A4 10%, #649173 90%)",
+"radial-gradient(ellipse at center, #3a7bd5 10%, #00d2ff 90%)",
+"radial-gradient(ellipse at center, #ffc500 10%, #c21500 90%)",
+"radial-gradient(ellipse at center, #514A9D 10%, #24C6DC 90%)",
+"radial-gradient(ellipse at center, #FFB88C 10%, #DE6262 90%)",
+"radial-gradient(ellipse at center, #26D0CE 10%, #1A2980 90%)",
+"radial-gradient(ellipse at center, #FFC837 10%, #FF8008 90%)",
+"radial-gradient(ellipse at center, #F09819 10%, #FF512F 90%)"]

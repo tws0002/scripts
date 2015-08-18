@@ -263,3 +263,37 @@ body {
  *********************************************/
 .reveal .slide-number {
   color: #8b743d; }
+
+.revealmp {
+    display:none;
+}
+
+.cancel
+{
+    display:block;
+    position:absolute;
+    top:3px;
+    right:2px;
+    color:#8b743d;
+    height:35px;
+    width:35px;
+    text-align:center;
+    text-decoration:none;
+
+}
+
+.cancel:hover
+{
+    color:#c0a76e;
+    cursor: pointer;
+
+}
+
+.cancel_button { 
+  margin-bottom:1em; 
+  font-size:3em; 
+  line-height:1; 
+    text-decoration:none;
+    text-align:center;
+    font-weight:bold;
+}

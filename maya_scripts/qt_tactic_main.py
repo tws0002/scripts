@@ -1,4 +1,4 @@
-# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui_v02.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v02.ui
+# pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui
 #C:\Python27\Lib\site-packages\PySide>
 #pyside-rcc.exe -py2 //Art-1405260002/d/assets/scripts/maya_scripts/icons/icons.qrc > //Art-1405260002/d/assets/scripts/maya_scripts/ui/icons_rc.py
 import sys
@@ -7,8 +7,9 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
 sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/ui")
 sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts")
 sys.path.append("//Art-1405260002/d/assets/scripts/install")
-#sys.path.append("C:/Program Files/Autodesk/Maya2014/Python/Lib/site-packages")
-
+sys.path.append("//Art-1405260002/d/assets/scripts/python-dateutil-2.3")
+sys.path.append("//Art-1405260002/d/assets/scripts/six-1.8.0")
+import datetime
 
 from PySide import QtCore, QtGui
 
@@ -19,6 +20,8 @@ import os, shutil
 import subprocess
 import socket
 import jc_maya_aux_functions as jc
+from dateutil import parser
+
 # import maya.cmds as cmds
 
 reload(qt_main_ui)
@@ -118,6 +121,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.complete_button.clicked.connect(setCompleteFilter)
 
         self.ui.publish_button.clicked.connect(publishMaster)
+        self.ui.update_cache.clicked.connect(updateCache)
 
         #self.ui.inprogress_button.clicked.connect(getProjects)
         #self.ui.ready_button.clicked.connect(getProjects)
@@ -902,3 +906,59 @@ def qt_tactic_mainMain():
     #mainProcess()
 #widget.close()
 #qt_tactic_mainMain()
+
+def gamelist(items):
+    now = datetime.datetime.now()
+    names = ""
+    names_chn = ""
+    games_type = ""
+    assignments = ""
+    bsd_string = ""
+    bed_string = ""
+
+    for game in items:
+        name = game.get("name")
+        name_chn = game.get("name_chn")
+        search_code = game.get("code")
+        expr = "@SOBJECT(sthpw/task['search_code','" + search_code + "'])"
+        depts = server.eval(expr)
+    
+        expr = "@GET(simpleslot/game['name','" + name + "'].simpleslot/game_type.name)"
+        game_type = server.eval(expr)
+        for dept in depts:
+            dept_name = dept.get("process")
+            if dept_name == "3d":
+                bsd = dept.get("bid_start_date")
+                bsd = parser.parse(bsd)
+                bsd = bsd.strftime("%m/%d/%y")
+                bed = dept.get("bid_end_date")
+                bed = parser.parse(bed)
+                bed = bed.strftime("%m/%d/%y")
+                bsd_string = bsd_string + "__" + (bsd)
+                bed_string = bed_string + "__ " + (bed)
+                assignment = dept.get("assigned")
+                assignments = assignments + " " + assignment
+                names = names + " " + name
+                games_type = games_type + " " + game_type[0]
+                names_chn = names_chn + "__" + name_chn
+    data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
+    return data
+
+def updateCache():
+    expr = "@SOBJECT(simpleslot/game['project_status','.In Progress'])"
+    inprogress = server.eval(expr)
+    
+    expr = "@SOBJECT(simpleslot/game['project_status','.Ready'])"
+    ready = server.eval(expr)
+    
+    expr = "@SOBJECT(simpleslot/game['project_status','.Complete'])"
+    complete = server.eval(expr)
+    data = gamelist(inprogress)    
+    test1 = server.update("simpleslot/plan?project=simpleslot&id=8", data)
+    
+    data = gamelist(ready)
+    test2 = server.update("simpleslot/plan?project=simpleslot&id=10",data)
+    
+    data = gamelist(complete)
+    test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
+    return "update complete"
