@@ -1,0 +1,190 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="cache-control" content="max-age=0" /><meta http-equiv="cache-control" content="no-cache" /><meta http-equiv="expires" content="0" /><meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" /><meta http-equiv="pragma" content="no-cache" />
+
+/* Fonts */
+@font-face {
+	font-family: 'Novecento';
+	src: url('../font/novecentowide-normal-webfont.eot');
+	src: url('../font/novecentowide-normal-webfont.eot?#iefix') format('embedded-opentype'),
+		url('../font/novecentowide-normal-webfont.woff') format('woff'),
+		url('../font/novecentowide-normal-webfont.ttf') format('truetype'),
+		url('../font/novecentowide-normal-webfont.svg#novecento_widenormal') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Novecento';
+	src: url('../font/novecentowide-demibold-webfont.eot');
+	src: url('../font/novecentowide-demibold-webfont.eot?#iefix') format('embedded-opentype'),
+		url('../font/novecentowide-demibold-webfont.woff') format('woff'),
+		url('../font/novecentowide-demibold-webfont.ttf') format('truetype'),
+		url('../font/novecentowide-demibold-webfont.svg#novecento_widedemibold') format('svg');
+	font-weight: bold;
+	font-style: normal;
+}
+span {
+	white-space: nowrap;
+}
+
+body { 
+	background: #e8e8e8; 
+}
+
+h1, h2, h3, h4, h5, h6 { 
+    color: rgba(255, 255, 255, 0.85);
+	white-space: nowrap;
+	display: inline-block;
+}
+
+h2 {
+    font-family: Meiryo;
+	font-weight: lighter;
+	font-size: 1.8em;
+	-webkit-margin-after: 0em;
+	-webkit-margin-before: 0em;	
+
+}
+
+h3 {
+	font-family: helvetica;
+	font-weight: bolder;
+	font-size: 5em;
+	-webkit-margin-after: 0em;		
+-webkit-margin-before: 0em;		
+
+}
+
+
+
+.container { margin: 0 auto; }
+.bg {
+	background-size: 100% 130%;
+    top: 0;
+    left: 0;
+}
+/* Example wrapper */
+.wrap {
+	position: relative;
+}
+
+/* Frame */
+.frame {
+	height: 800px;
+/*	line-height: 250px;*/
+	overflow: hidden;
+	border:1px solid #f17308; 
+	background:#f17308; 
+	/*border-color:#f17308;*/
+	box-shadow: 0 0 30px rgba(0, 0, 0, 1); 
+
+}
+.frame ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	height: 100%;
+}
+.frame ul li {
+    float: left;
+    width: 227px;
+    height: 100%;
+    margin: 0 1px 0 0;
+    padding: 0;
+    background: #f17308;
+    text-align: center;
+    cursor: move;
+    overflow: hidden;
+}
+
+.frame ul li a {
+	cursor: w-resize;
+}
+
+.frame ul li img {
+	-webkit-filter: grayscale(1);
+	height: 100%;
+	transform: translateX(-100px);
+
+}
+
+.frame ul li img:hover {
+	-webkit-filter: grayscale(0);
+
+}
+
+
+.frame ul li.active {
+	color: #fff;
+	background: #a03232;
+}
+
+/* Scrollbar */
+.scrollbar {
+	margin: 0 0 2em 0;
+	height: 1px;
+	background: #ccc;
+	line-height: 0;
+}
+.scrollbar .handle {
+	width: 100px;
+	height: 100%;
+	background: #F17308;
+	cursor: w-resize;
+}
+.scrollbar .handle .mousearea {
+	position: absolute;
+	top: -9px;
+	left: 0;
+	width: 100%;
+	height: 20px;
+}
+
+/* Pages */
+.pages {
+	list-style: none;
+	margin: 20px 0;
+	padding: 0;
+	text-align: center;
+}
+.pages li {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	margin: 0 4px;
+	text-indent: -999px;
+	border-radius: 10px;
+	cursor: pointer;
+	overflow: hidden;
+	background: #fff;
+	box-shadow: inset 0 0 0 1px rgba(0,0,0,.2);
+}
+.pages li:hover {
+	background: #aaa;
+}
+.pages li.active {
+	background: #666;
+}
+
+/* Controls */
+.controls { margin: 25px 0; text-align: center; }
+
+/* One Item Per Frame example*/
+.oneperframe { height: 300px; line-height: 300px; }
+.oneperframe ul li { width: 1140px; }
+.oneperframe ul li.active { background: #333; }
+
+/* Crazy example */
+.crazy ul li:nth-child(2n) { width: 100px; margin: 0 4px 0 20px; }
+.crazy ul li:nth-child(3n) { width: 300px; margin: 0 10px 0 5px; }
+.crazy ul li:nth-child(4n) { width: 400px; margin: 0 30px 0 2px; }
+
+.btn {
+    position: relative;
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+
+}
+
+.btn-group{
+	margin: auto;
+}

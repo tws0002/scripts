@@ -702,6 +702,7 @@ def finalPath():
     item_name = uiinfo[3]
     item_process = uiinfo[4]
     final_path = ""
+    base_filename = ""
     item_type = ""
     filename = ""
 
@@ -752,8 +753,12 @@ def finalPath():
             widget.ui.save_path.setText(final_path)
             widget.ui.save_file.setText(filename)
 
+
     print final_path
-    updateFileList(final_path, base_filename)
+    try:
+        updateFileList(final_path, base_filename)
+    except:
+        print "updateFilelist failed"
     recent_file = ""
 
 def loginProcess():
