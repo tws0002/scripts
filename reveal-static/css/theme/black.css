@@ -12,13 +12,18 @@ section.has-light-background, section.has-light-background h1, section.has-light
  *********************************************/
 body {
   background: #222;
-  background-color: #222; }
+  background-color: #222;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+   }
 
 .reveal {
   font-family: 'Source Sans Pro', Helvetica, sans-serif;
   font-size: 38px;
   font-weight: normal;
   color: #fff; }
+
 
 ::selection {
   color: #fff;
@@ -270,6 +275,14 @@ body {
     text-align: center;
 }
 
+.contrast {
+  -webkit-filter : contrast(400%);
+  -moz-filter    : contrast(400%);
+  -o-filter      : contrast(400%);
+  -ms-filter     : contrast(400%);
+  filter         : contrast(400%);
+}
+
 
 .tooltip{
     display: inline;
@@ -282,7 +295,7 @@ body {
     border-radius: 5px;
     bottom: 26px;
     color: #fff;
-    width: 100px;
+    width: 100%;
     content: attr(tooltip);
     left: 20%;
     padding: 5px 15px;
@@ -307,3 +320,6 @@ body {
     90%  {opacity: .444;}
     100% {opacity: 0;}
 }
+
+
+

@@ -20,24 +20,58 @@ index_template = "manga_index.template"
 
 # Read the template file using the environment object.
 # This also constructs our Template object.
+path = "//Art-1405260002/d/assets/manga/"
+
+manga = "blade_of_the_immortal"
+manga_chn = "無限住人".decode("utf-8")
+
+#-------------------------------main index
+template = templateEnv.get_template(index_template)
+
+ignore_dir = ["css", "templates", "images"]
+mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
+
+
+for manga in mangas:
+    chapters = [d for d in os.listdir(path + manga) if os.path.isdir(path + manga + "/" + d)]
+    for chapter in chapters:
+        images_path = path + manga + "/" + chapter
+        #images = os.listdir(images_path)
+        image = os.listdir(images_path)[0]
+
+        if "-" in image:
+            temp = image.split("-")
+        elif "_" in image:
+            temp = image.split("_")
+
+
+        image = [x for x in temp if "." in x and x != 'Thumbs.db'][0].split(".")[0]
+        print image
+        
+
+
+        image = [x for x in images if x != 'Thumbs.db' and x.split("-")[1][0:3] == '001' and "thumb" not in x][0]
+        image = [x for x in images if x != 'Thumbs.db' and x.split(".")[0][:-3]]
+        
+        image.split("_")
+        numbers = [s for s in image if s.isdigit()] 
+        print numbers
+        image = images[10]
+
+
+
+#-------------------------------chapter index
 template = templateEnv.get_template(book_template)
 
+chapters = [d for d in os.listdir(path + manga) if os.path.isdir(path + manga + "/" + d)]            
 
-path = "//Art-1405260002/d/assets/manga/"
-manga = "mushishi"
-manga_chn = "蟲師".decode("utf-8")
-
-chapters = [d for d in os.listdir(path + manga) if os.path.isdir(os.path.join(path + manga, d))]            
 books = []
 number = 0
-for book in chapters:
+for chapter in chapters:
     number += 1
-    
-    images_path = path + "/" + manga + "/" + book
-    images = os.listdir(images_path)
-    #image = [x for x in images if x != 'Thumbs.db' and x.split("-")[1][0:3] == '001' and "thumb" not in x][0]
-    image = [x for x in images if x != 'Thumbs.db' and x.split("_")[1][0:4] == '0000' and "thumb" not in x][0]
+    images_path = path + manga + "/" + chapter
 
+    image = [x for x in os.listdir(images_path) if x != 'Thumbs.db' and 'thumb' not in x][0]
 
     #convert first image to thumbnail
     temp = image.split(".")
@@ -49,17 +83,18 @@ for book in chapters:
     if os.path.isfile(thumb_network_path) == True:
         pass
     else:  
-        imageMagickCMD = "//Art-1405260002/d/assets/scripts/ImageMagick-6.9.0-6/convert.exe \"%s\" -thumbnail \"800x600^\" -gravity Center -extent 800x600  \"%s\"" % (image_network_path, thumb_network_path)
+        imageMagickCMD = "//Art-1405260002/d/assets/scripts/ImageMagick-6.9.0-6/convert.exe \"%s\" -thumbnail \"2362x1000^\" -gravity Center -extent 1562x1000 -gravity West -extent 700x1000  \"%s\"" % (image_network_path, thumb_network_path)        
         subprocess.call(imageMagickCMD)
 
-    thumb_web_path = "http://vg.com/assets/manga/" + manga + "/" + book + "/" + image_name + "_thumb" + "." + image_ext
-    chapter_link = ("http://vg.com/assets/manga/" + manga + "/" + book + ".html")
+    thumb_web_path = "http://vg.com/assets/manga/" + manga + "/" + chapter + "/" + image_name + "_thumb" + "." + image_ext
+    chapter_link = ("http://vg.com/assets/manga/" + manga + "/" + chapter + ".html")
     books.append({'link': chapter_link, 'thumb': thumb_web_path, 'number': number})
     
 data = {    "title1" : manga_chn[0],
             "title2" : manga_chn[1:],
             "books" : books
                }
+               
 outputText = template.render( data )
 print outputText
 t = outputText.encode('utf8')
@@ -67,14 +102,14 @@ f = open(path + manga + ".html",'w')
 f.write(t) # python will convert \n to os.linesep
 f.close() 
 
-#-------------------------------
+#-------------------------------image index
 template = templateEnv.get_template(image_template)
 i = 0
 for chapter in chapters:
     next_number = i + 1
     prev_number = i - 1
     image_path = path + manga + "/" + chapter
-
+    chapter_index = "http://vg.com/assets/manga/" +  + "/" + manga +".html"
     temp = os.listdir(image_path)
     if prev_number < 0:
         prev_chapter = ""
@@ -85,7 +120,6 @@ for chapter in chapters:
     else:
         prev_chapter = "http://vg.com/assets/manga/" + manga + "/" + chapters[prev_number] + ".html"
         next_chapter = "http://vg.com/assets/manga/" + manga + "/" + chapters[next_number] + ".html"
-    print prev_chapter
     i += 1
 
     images = []
@@ -100,6 +134,7 @@ for chapter in chapters:
 
     data = {
         "images" : images,
+        "chapter_index": chapter_index,
         "prev_chapter": prev_chapter,
         "next_chapter": next_chapter
             }
@@ -109,23 +144,7 @@ for chapter in chapters:
     f.write(outputText.encode('utf8')) # python will convert \n to os.linesep
     f.close() 
 
-#-------------------------------
-template = templateEnv.get_template(index_template)
 
-temp = [m for m in os.listdir(path)]
-mangas = []
-for x in temp:
-    try:
-        if x.split(".")[1] == "html" and x.split(".")[0] != "index":
-            mangas.append(x)
-    except:
-        pass
-    
-for manga in mangas:
-    image_path = path + manga + "/" + chapter
-
-print mangas
-for manga in mangas:
 
     
     

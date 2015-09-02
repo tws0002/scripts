@@ -887,7 +887,7 @@
 						(touches = e.touches) &&
 							((touches.length === 1 && !options.disablePan) || touches.length === 2) :
 						// Mouse/Pointer: Ignore right click
-						!options.disablePan && e.which === 1) {
+						!options.disablePan && e.which === 2) {
 
 						e.preventDefault();
 						e.stopPropagation();
