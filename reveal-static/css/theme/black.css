@@ -276,11 +276,11 @@ body {
 }
 
 .contrast {
-  -webkit-filter : contrast(400%);
-  -moz-filter    : contrast(400%);
-  -o-filter      : contrast(400%);
-  -ms-filter     : contrast(400%);
-  filter         : contrast(400%);
+  -webkit-filter : contrast(150%);
+  -moz-filter    : contrast(150%);
+  -o-filter      : contrast(150%);
+  -ms-filter     : contrast(150%);
+  filter         : contrast(150%);
 }
 
 
@@ -322,4 +322,21 @@ body {
 }
 
 
-
+.reveal .home_btn {
+  color: #42affa;
+  font-family: 'Montserrat' !important;
+  font-style: normal;
+  font-weight: 400;
+  border-radius: 15%;
+  width: 70px;
+  background: rgba(0,0,0,0.5);
+  border: 2px solid #42affa;
+  text-align: center;
+  position: fixed;
+  display: block;
+  right: 25px;
+  top: 25px;
+  opacity: 0.5;
+  z-index: 30;
+  font-size: 40px;
+}

@@ -1,6 +1,21 @@
 import jinja2
 import os
+import csv
+import uniout
+csv_path = "d:/manga_list.csv"
 
+csv_list = []
+with open(csv_path, 'rb') as csvfile:
+    csv_content = csv.reader(csvfile, delimiter=',')
+    for row in csv_content:
+        csv_list.append([unicode(row[0], 'Big5'), unicode(row[1], 'Big5'), row[2]])
+
+for x in csv_list:
+    print x[1]
+    print unicode(x[1],'Big5')
+
+csv_list = csv_list[0:10]    
+print csv_list
 # In this case, we will load templates off the filesystem.
 # This means we must construct a FileSystemLoader object.
 # 
@@ -109,7 +124,7 @@ for chapter in chapters:
     next_number = i + 1
     prev_number = i - 1
     image_path = path + manga + "/" + chapter
-    chapter_index = "http://vg.com/assets/manga/" +  + "/" + manga +".html"
+    chapter_index = "http://vg.com/assets/manga/" + "/" + manga +".html"
     temp = os.listdir(image_path)
     if prev_number < 0:
         prev_chapter = ""
@@ -139,7 +154,6 @@ for chapter in chapters:
         "next_chapter": next_chapter
             }
     outputText = template.render( data )
-
     f = open(path + "/" + manga + "/" + chapter + ".html",'w')
     f.write(outputText.encode('utf8')) # python will convert \n to os.linesep
     f.close() 
