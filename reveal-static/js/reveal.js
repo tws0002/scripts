@@ -476,7 +476,7 @@
 			statusDiv.style.position = 'absolute';
 			statusDiv.style.height = '1px';
 			statusDiv.style.width = '1px';
-			statusDiv.style.overflow ='hidden';
+			// statusDiv.style.overflow ='hidden';
 			statusDiv.style.clip = 'rect( 1px, 1px, 1px, 1px )';
 			statusDiv.setAttribute( 'id', 'aria-status-div' );
 			statusDiv.setAttribute( 'aria-live', 'polite' );
