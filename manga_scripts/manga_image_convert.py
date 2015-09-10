@@ -47,42 +47,15 @@ flags = [ag_flag, ab_flag, as_flag]
 
 ignore_dir = ["css", "templates", "images"]
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
-mangas = mangas[32:33]
+mangas = mangas[1:2]
 
 #manga = mangas[0]
 
 #----------------------rename folders
 for manga in mangas:
-    #manga = mangas[0]    
+    manga = mangas[0]    
     chapters = [x[1] for x in os.walk((path + manga).decode('utf8'))][0]
     
-    try:
-        chapters.remove("cover")
-    except:
-        pass
-    
-    for x in chapters:
-        try:
-            if chardet.detect(str(x)).get('encoding') == 'ascii':
-                folder_rename = False
-            elif " " in x:
-                folder_rename = True
-            else:
-                folder_rename = True
-        except:
-            folder_rename = True
-    
-    if folder_rename == True:
-        i = 1
-        for chapter in chapters:
-            image_path = path + manga + "/" + chapter
-            new_path = path + manga + "/Vol_%02d" % i
-            os.rename(image_path, new_path )
-            print image_path, new_path
-            i += 1
-    
-    #-----------------------------
-    chapters = [x[1] for x in os.walk((path + manga).decode('utf8'))][0]
     try:
         chapters.remove("cover")
     except:
@@ -90,9 +63,8 @@ for manga in mangas:
     
     i = 0
     overwrite = True
-    
     for chapter in chapters:
-        #chapter = chapters[0]
+        chapter = chapters[0]
         image_path = path + manga + "/" + chapter
         chapter_index = "http://vg.com/assets/manga/" + "/" + manga +".html"
         images = [x for x in os.listdir(image_path) if x != 'Thumbs.db' and 'thumb' not in x]
@@ -124,9 +96,10 @@ for manga in mangas:
         ar1 = [2.495, 2.009, 1.284, 1.214, 0.725, 0.7969] #abara
         ar2 = [2.344, 2.046, 1.206, 1.141, 0.841, 0.905] #appleseed
         
-        crop_type0 = ar1.index(min(ar1, key=lambda x:abs(x-aspect_ratio)))
-        crop_type1 = ar2.index(min(ar2, key=lambda x:abs(x-aspect_ratio)))
-        crop_type2 = ar3.index(min(ar3, key=lambda x:abs(x-aspect_ratio)))
+        #compare current ar to each type and find the closest, returns index 
+        crop_type0 = ar0.index(min(ar0, key=lambda x:abs(x-aspect_ratio))) 
+        crop_type1 = ar1.index(min(ar1, key=lambda x:abs(x-aspect_ratio)))
+        crop_type2 = ar2.index(min(ar2, key=lambda x:abs(x-aspect_ratio)))
     
         ar_temp = [ar0[crop_type0], ar1[crop_type1], ar2[crop_type2]]
         crop_type_temp = ar_temp.index(min(ar_temp, key=lambda x:abs(x-aspect_ratio)))
@@ -136,8 +109,10 @@ for manga in mangas:
             ar_type = crop_type2
         elif crop_type_temp == 2:
             ar_type = crop_type3    
+
+        flag = flags[ar_type]    
     
-        if (int(width) * 0.4867 * 0.7367)/int(height) > 0.83:
+        if (int(width) * 0.4867 * 0.7367)/int(height) > 0.83: #.4867 and .7367 are crop percentages, not exact, needs more precision
             im_final = "-resize 700x -gravity center -background white -extent 700x1000 " #base tweek
         else:
             im_final = "-resize x1000 -gravity center -background white -extent 700x1000 " #base tweek        

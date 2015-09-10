@@ -26,7 +26,7 @@ path = "//Art-1405260002/d/assets/manga/"
 
 ignore_dir = ["css", "templates", "images"]
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
-mangas = mangas[0:1]
+mangas = mangas[0:32]
 
 #manga = mangas[0]
 #-------------------------------chapter index
