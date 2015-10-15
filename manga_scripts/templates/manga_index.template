@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" class=" js csstransitions"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" type="text/css" href="http://vg.com/assets/manga/css/style.css">
+    <script src="http://vg.com/assets/scripts/modernizr/modernizr.js"></script>
+
+    </head>
+    <body class="bg" style="background-image: url('http://vg.com/assets/manga/images/big-video-background.jpg');">
+        <div class="container">
+			<header class="clearfix">
+				<span></span>
+				<h1>Manga Collection <span></span></h1>
+
+				<p>By: Julio</p>
+			</header>
+			<section>
+				<ul id="da-thumbs" class="da-thumbs">
+					<li>
+	                    <a href='http://vg.com/assets/manga/wuxianzhuren/wuxianzhuren.html'>
+	                        <img src='http://vg.com/assets/manga/wuxianzhuren/WxzrVol_01/Wxzr01-001_thumb.jpg'></img>
+							<div style="display: block; left: 0px; top: -100%; overflow: hidden; transition: all 300ms ease;"><span>無限住人</span></div>
+	                    </a>					
+					</li>
+				</ul>
+			</section>
+        </div>
+		<script type="text/javascript" src="http://vg.com/assets/scripts/jquery-2.1.1.min.js"></script>
+		<script type="text/javascript" src="http://vg.com/assets/manga/css/jquery.hoverdir.js"></script>	
+		<script type="text/javascript">
+			$(function() {
+			
+				$(' #da-thumbs > li ').each( function() { $(this).hoverdir({
+					hoverDelay : 50,
+					inverse : true
+				}); } );
+
+			});
+		</script>
+    
+</body></html>

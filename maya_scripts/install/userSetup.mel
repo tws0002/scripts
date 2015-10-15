@@ -7,9 +7,3 @@ if(`about -windows` || `about -linux`) {
 
 
 python("import addToCustomShelf");
-
-source "DeadlineMayaClient.mel";
-//commandPort -stp "python" -n ":7002" -bs 65024 -eo "True" ;
-
-
-//evalDeferred("source \"" + `about -pd` + "/prefs/scripts/userSetup.mel\"");

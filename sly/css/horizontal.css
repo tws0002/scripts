@@ -3,21 +3,21 @@
 /* Fonts */
 @font-face {
 	font-family: 'Novecento';
-	src: url('../font/novecentowide-normal-webfont.eot');
-	src: url('../font/novecentowide-normal-webfont.eot?#iefix') format('embedded-opentype'),
-		url('../font/novecentowide-normal-webfont.woff') format('woff'),
-		url('../font/novecentowide-normal-webfont.ttf') format('truetype'),
-		url('../font/novecentowide-normal-webfont.svg#novecento_widenormal') format('svg');
+	src: url('http://vg.com/assets/fonts/novecento/novecentowide-normal-webfont.eot');
+	src: url('http://vg.com/assets/fonts/novecento/novecentowide-normal-webfont.eot?#iefix') format('embedded-opentype'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-normal-webfont.woff') format('woff'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-normal-webfont.ttf') format('truetype'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-normal-webfont.svg#novecento_widenormal') format('svg');
 	font-weight: normal;
 	font-style: normal;
 }
 @font-face {
 	font-family: 'Novecento';
-	src: url('../font/novecentowide-demibold-webfont.eot');
-	src: url('../font/novecentowide-demibold-webfont.eot?#iefix') format('embedded-opentype'),
-		url('../font/novecentowide-demibold-webfont.woff') format('woff'),
-		url('../font/novecentowide-demibold-webfont.ttf') format('truetype'),
-		url('../font/novecentowide-demibold-webfont.svg#novecento_widedemibold') format('svg');
+	src: url('http://vg.com/assets/fonts/novecento/novecentowide-demibold-webfont.eot');
+	src: url('http://vg.com/assets/fonts/novecento/novecentowide-demibold-webfont.eot?#iefix') format('embedded-opentype'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-demibold-webfont.woff') format('woff'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-demibold-webfont.ttf') format('truetype'),
+		url('http://vg.com/assets/fonts/novecento/novecentowide-demibold-webfont.svg#novecento_widedemibold') format('svg');
 	font-weight: bold;
 	font-style: normal;
 }
@@ -56,7 +56,13 @@ h3 {
 
 }
 
-
+.chapter_bg {
+    transform: rotate(-90deg);
+    margin: 400px 0px 0px 0px;
+    font-size: 19em;
+    width: 150px;
+    color: #1b1b1b;
+}
 
 .container { margin: 0 auto; }
 .bg {
@@ -71,7 +77,7 @@ h3 {
 
 /* Frame */
 .frame {
-	height: 700px;
+	/*height: 700px;*/
 	overflow: hidden;
 	border:1px solid #f17308; 
 	/*border-color:#f17308;*/
@@ -85,18 +91,22 @@ h3 {
 }
 .frame ul li {
     float: left;
-    width: 429px;
-    height: 100%;
-    margin: 0 1px 0 0;
-    padding: 0;
+
+    /* width: 429px; */
+    height: 700px;
+    margin: 0 0 0 0;
+/*    padding: 0;*/
     text-align: center;
     cursor: move;
     overflow: hidden;
-	position: relative;
+    position: relative;
+    border: solid 1px #f17308;
 }
 
 .frame ul li a {
-	cursor: w-resize;
+display: block;
+    padding: 0;
+
 }
 
 .frame ul li img {
@@ -109,7 +119,14 @@ h3 {
 /*.frame ul li img:hover {
 	-webkit-filter: grayscale(0);
 }*/
+.frame ul li table {
+    display: inline-block;
+    position: absolute;
+    margin: -700px 0px 0px -39px;
+    font-size: 2.5em;
+  text-shadow: -1px -1px 16px rgba(255,255,255,0.46), -1px 1px 4px rgba(255,255,255,0.46), 1px -1px 4px rgba(255,255,255,0.46), 1px 1px 4px rgba(255,255,255,0.46);
 
+}
 
 .frame ul li.active {
 	color: #fff;

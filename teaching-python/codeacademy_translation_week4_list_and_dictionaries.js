@@ -1,0 +1,682 @@
+javascript:
+function translate() {
+  progress = $(".lesson__show-checkpoints").text();
+  current = parseInt(progress.split("/")[0]);
+  $(".block-label--light-blue").text("說明");
+  content = $(".article__inner")[1];
+  instructions = $(".article__inner")[3];
+  if(current == 1) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Introduction to Lists</div>
+          </div>
+          <div class='article__content'>
+            <p>List (陣列) 是一種 <strong>datatype</strong> 你可以用一個單一的variable, 以序列的方式儲存許多類型不同的資料. (Datatypes 你已經學到的有 strings, numbers 和boolean.)</p>
+
+<p>你可以把以下面的方式把物件定義為一個 list,並指定一個 variable name </p>
+
+<pre><code class='python'>list_name = [item_1, item_2]
+</code></pre>
+
+<p>list 的物件存在於 [ ] 符號之內. 一個 list可以是空的也沒有關係: <code class='ini'><span class='setting'>empty_list = <span class='value'>[]</span></span></code>.</p>
+
+<p>Lists 和 string 非常相似, 但是有幾個關鍵的不同. </p>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>List <code class='undefined'>zoo_animals</code> 有三個物件在裡面 (請看 <a href='javascript:void(0)' class='line-no' data-from='1' data-to=''>line 1</a>). 在最後的逗號之後,<code class='undefined'>]</code> 符號之前 加入第四個(以 <code class='undefined'>'string'</code> 的形式, 用你最喜歡動物的名字)!</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Remember:</p>
+
+<pre><code class='python'>list_name = [<span class='string'><span class='string'>'item_0'</span></span>, <span class='string'><span class='string'>'item_1'</span></span>, <span class='string'><span class='string'>'item_2'</span></span>, <span class='string'><span class='string'>'your_item'</span></span>]
+</code></pre>
+
+<p>If your favorite animals are already on the list, add an animal that's exciting, but inexpensive. (This is a poor zoo with very few animals.)</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 2) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Access by Index</div>
+          </div>
+          <div class='article__content'>
+            <p>你可以藉由 <strong>index</strong> 存取 list 中的個別物件 . Index 就像是 list 中物件的地址. Index 應該放在 list 名稱之後, 用 [ ] 符號框住, 像下面這樣: <code class='perl'>list_name[<span class='keyword'>index</span>]</code>.</p>
+
+<p><strong>List 的 index 從 0 開始, 而不是 1!</strong> 要存取第一個物件應該要像這樣輸入: <code class='css'><span class='tag'>list_name</span><span class='attr_selector'>[0]</span></code>.  以此類推, 第二個物件的 index 是 1: <code class='css'><span class='tag'>list_name</span><span class='attr_selector'>[1]</span></code>. 電腦科學家喜歡從 0 開始計算.</p>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>寫一段指令 print 出 list 中第二個和第四個相加的結果, 請使用 index 的方式來取得 list 裡的物件!</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Remember:</p>
+
+<ol>
+<li>List indices begin with 0, not 1.</li>
+<li>The second item will have an index of 1.</li>
+<li>The fourth item will have an index of 3.</li>
+</ol>
+
+                  </div>
+                </div>
+              </div>
+          </div>
+");    
+  }
+  if(current == 3) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>New Neighbors</div>
+          </div>
+          <div class='article__content'>
+            <p>使用 list 加上 index 就像是使用其他的 variable! 你可以用它來取得 value, 也可以把 value assign 給那個 list index 的位置.</p>
+
+<p>下面這樣可以取得 list 在特定 index 位置的 value:</p>
+
+<pre><code class='python'>zoo_animals[<span class='number'>0</span>]
+<span class='comment'># Gets the value 'pangolin'</span>
+</code></pre>
+
+<p>下面這個則是如果把 value 指定給 list 裡特定的 index 的位置 <a href='javascript:void(0)' class='line-no' data-from='5' data-to=''>line 5</a>:</p>
+
+<pre><code class='python'>zoo_animals[<span class='number'>2</span>] = <span class='string'>'hyena'</span>
+<span class='comment'># Changes 'sloth' to 'hyena'</span>
+</code></pre>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>請寫一段指令, 把現在 value 是 <code class='undefined'>'tiger'</code> 的位置, 指定成另一種動物的名稱(動物名稱用 string), 動物名稱請自己取.</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Remember:</p>
+
+<ol>
+<li>List indices begin with 0, not 1!</li>
+<li>The fourth item will have an index of 3.</li>
+</ol>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 4) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Late Arrivals &amp; List Length</div>
+          </div>
+          <div class='article__content'>
+            <p>List 裡面的物件總數不需要是固定. 你隨時都可以把物件 append (加) 到 list 的最後面!</p>
+
+<pre><code class='python'>letters = [<span class='string'>'a'</span>, <span class='string'>'b'</span>, <span class='string'>'c'</span>]
+letters.append(<span class='string'>'d'</span>)
+<span class='keyword'>print</span> len(letters)
+<span class='keyword'>print</span> letters
+</code></pre>
+
+<ol>
+<li>在上面的例子, 我們先建立了一個 list 叫做 <code class='undefined'>letters</code>.</li>
+<li>然後我們在 <code class='undefined'>letters</code> list 的最後面加入一個string <code class='cpp'><span class='string'>'d'</span></code>.</li>
+<li>下一步, print <code class='undefined'>letters</code> list 的長度: <code class='undefined'>4</code>, .</li>
+<li>最後, print letters 產生結果: <code class='cpp'>[<span class='string'>'a'</span>, <span class='string'>'b'</span>, <span class='string'>'c'</span>, <span class='string'>'d'</span>]</code>.</li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>在 <a href='javascript:void(0)' class='line-no' data-from='5' data-to=''>lines 5</a>, 6, 和 7, 再 append 三個物件到 <code class='javascript'>suit<span class='keyword'>case</span></code> list, 就像上面例子的第二行. </li>
+<li>然後, 把 <code class='undefined'>list_length</code> 設定為等同於 <code class='javascript'>suit<span class='keyword'>case</span></code> list length的值.</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>That bit of <code class='undefined'>%</code> magic on <a href='javascript:void(0)' class='line-no' data-from='11' data-to=''>line 11</a> is the string formatting we <a href='http://www.codecademy.com/courses/python-beginner-sRXwR/3#!/exercises/2'>learned earlier</a>. The <code class='perl'><span class='variable'>%d</span></code> tells Python to expect an integer to insert instead of a string value (<code class='perl'><span class='variable'>%s</span></code>).</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 5) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>List Slicing</div>
+          </div>
+          <div class='article__content'>
+            <p>有時候我們只想要存取 list 的其中一部分.</p>
+
+<pre><code class='python'>letters = [<span class='string'>'a'</span>, <span class='string'>'b'</span>, <span class='string'>'c'</span>, <span class='string'>'d'</span>, <span class='string'>'e'</span>]
+slice = letters[<span class='number'>1</span>:<span class='number'>3</span>]
+<span class='keyword'>print</span> slice
+<span class='keyword'>print</span> letters
+</code></pre>
+
+<ol>
+<li>在上面的例子裡, 我們先建立了一個 list 叫做 <code class='undefined'>letters</code>.</li>
+<li>然後, 我們拿其中的一部分, 命名為 <code class='ruby'><span class='identifier'><span class='keymethods'>slice</span></span></code> . 這樣取得的部分 list 包含了 從冒號前的數字 的index 開始, 一直延續到冒號後面的數字做為index 的物件的'前一個'.</li>
+<li>接下來, print slice 的結果: <code class='cpp'>[<span class='string'>'b'</span>, <span class='string'>'c'</span>]</code>. 記得 index 是從 0 開始數, 還有延續到 index 3 的前一個.</li>
+<li>最後, , 我們再 print 一次 list letters: <code class='cpp'>[<span class='string'>'a'</span>, <span class='string'>'b'</span>, <span class='string'>'c'</span>, <span class='string'>'d'</span>, <span class='string'>'e'</span>]</code>, 注意! 用這樣的方式取得一部分的 list 不會改變原先的 <code class='undefined'>letters</code> list.</li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>在 <a href='javascript:void(0)' class='line-no' data-from='4' data-to=''>line 4</a>, 創造一個 list 叫做 <code class='undefined'>middle</code>, 內容只包含 <code class='javascript'>suit<span class='keyword'>case</span></code> 中間位置的兩個物件.</li>
+<li>在 <a href='javascript:void(0)' class='line-no' data-from='5' data-to=''>line 5</a>, 創造一個 list 叫做 <code class='perl'><span class='keyword'>last</span></code> 內容只包含 <code class='javascript'>suit<span class='keyword'>case</span></code> 的最後兩個物件.</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>In order to slice the last two items from the list<br><br>
+<code class='ini'><span class='setting'>myList = <span class='value'>[<span class='number'>0</span>,<span class='number'>1</span>,<span class='number'>2</span>,<span class='number'>3</span>,<span class='number'>4</span>]</span></span></code>, the ending index of your slice will be one beyond the actual last index of the list. Check it out:</p>
+
+<pre><code class='python'>myList[<span class='number'>3</span>:<span class='number'>5</span>]
+<span class='comment'># Returns [3, 4]</span>
+</code></pre>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 6) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Slicing Lists and Strings</div>
+          </div>
+          <div class='article__content'>
+            <p>上一堂課 slice list 的方法也可以用在 string 上! String 就像是由它裡面 character (字元)構成的 lists: 每一個 character 就是 list裡面的一個物件, 從 index 0 開始.</p>
+
+<pre><code class='python'>my_list[:<span class='number'>2</span>]
+<span class='comment'># Grabs the first two items</span>
+my_list[<span class='number'>3</span>:]
+<span class='comment'># Grabs the fourth through last items</span>
+</code></pre>
+
+<p>如果你想要包含 list 裡面的 第一個或是最後一個物件, 那冒號的前面或後面不要填入任何數字就可以了.</p>
+
+          </div>
+        </div>
+");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>把 <code class='undefined'>animals</code> list 的 index 3 到 5 的 character 指定為 <code class='undefined'>dog</code> variable.</li>
+<li>把 <code class='undefined'>animals</code> 的 index 6 到最後的 character 指定為 <code class='undefined'>frog</code> varaiable.</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Remember: you don't need the first index if you're starting from the beginning of the string, and you don't need the second index if you're going all the way to the end!</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 7) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Maintaining Order</div>
+          </div>
+          <div class='article__content'>
+            <p>有時候你會需要從 list 中找到你想要的某一個物件 .</p>
+
+<pre><code class='python'>animals = [<span class='string'>'ant'</span>, <span class='string'>'bat'</span>, <span class='string'>'cat'</span>]
+<span class='keyword'>print</span> animals.index(<span class='string'>'bat'</span>)
+</code></pre>
+
+<ol>
+<li>首先, 我們創造了一個 list 叫做 <code class='undefined'>animals</code>, 裡面包含了三個 strings.</li>
+<li>然後, 我們 print the 第一個內容是 <code class='undefined'>'bat'</code> 的 index , 也就是 <code class='undefined'>1</code>.</li>
+</ol>
+
+<p>我們也可以把新的物件插入到 list 中.</p>
+
+<pre><code class='python'>animals.insert(<span class='number'>1</span>, <span class='string'>'dog'</span>)
+<span class='keyword'>print</span> animals
+</code></pre>
+
+<ol>
+<li>我們把 <code class='undefined'>'dog'</code> 插入到 index 1 的位置, 這會讓 index 1 之後的所有東西都被往後推一位.</li>
+<li>We print out <code class='css'><span class='attr_selector'>['ant', 'dog', 'bat', 'cat']</span></code></li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>使用 <code class='perl'>.<span class='keyword'>index</span>(item)</code> 的 function 找出 <code class='undefined'>'duck'</code> 的 index. 把這個找出來的 index 指定為variable: <code class='undefined'>duck_index</code>.</li>
+<li>然後使用 <code class='ruby'>.<span class='identifier'><span class='keymethods'>insert</span></span>(<span class='identifier'><span class='keymethods'>index</span></span>, <span class='identifier'>item</span>)</code> 的功能, 把 string: <code class='undefined'>'cobra'</code> 插入到這個 index.</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>You're not replacing <code class='undefined'>'duck'</code> with <code class='undefined'>'cobra'</code>—you're just finding <code class='undefined'>'duck'</code>, then inserting <code class='undefined'>'cobra'</code>.</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 8) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>For One and All</div>
+          </div>
+          <div class='article__content'>
+            <p>如果你想要對 list 裡的所有物件都做同一件事, 你可以使用 <code class='java'><span class='keyword'>for</span></code> loop 這個 loop (迴圈)功能. 如果你已經在 JavaScript 學過 <code class='java'><span class='keyword'>for</span></code> loops , 注意在 Python 裡面是不一樣的.</p>
+
+<pre><code class='python'><span class='keyword'>for</span> variable <span class='keyword'>in</span> list_name:
+    <span class='comment'># Do stuff!</span>
+</code></pre>
+
+<p><code class='java'><span class='keyword'>for</span></code> 後面的 variable 名稱; 指的是在 list 裡每一個物件, 每一次執行的 variable name.</p>
+
+<p>然後 <code class='python'><span class='keyword'>in</span> list_name</code> 指的是 <code class='undefined'>list_name</code> 會是在這個迴圈中使用的 list . 這一行最後以一個冒號 (<code class='undefined'>:</code>) 做結尾, 而下面縮排的程式碼內容則是 list 中每一個物件都會執行一次.</p>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>在 <code class='java'><span class='keyword'>for</span></code>-loop 縮排的位置寫一段指令,  讓這個 loop print 出 my_list 裡每個數字乘以 2 的結果.</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Each list item is assigned to the user-defined variable <code class='undefined'>number</code> in turn. All you need to do is <code class='python'><span class='keyword'>print</span></code> two times <code class='undefined'>number</code> in the body of the loop (the indented part).</p>
+
+<p>The <code class='java'><span class='keyword'>for</span></code> loop will automatically execute your code as many times as there are items in <code class='undefined'>my_list</code>!</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 9) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>More with 'for'</div>
+          </div>
+          <div class='article__content'>
+            <p>如果你的 list 很混亂的話, 你可能需要使用 <code class='perl'><span class='keyword'>sort</span>()</code> 這個功能.</p>
+
+<pre><code class='python'>animals = [<span class='string'>'cat'</span>, <span class='string'>'ant'</span>, <span class='string'>'bat'</span>]
+animals.sort()
+
+<span class='keyword'>for</span> animal <span class='keyword'>in</span> animals:
+    <span class='keyword'>print</span> animal
+</code></pre>
+
+<ol>
+<li>首先, 我們創造了一個有三個物件的 list 叫做 <code class='undefined'>animals</code> . 這些 string 沒有照字母順序排列.</li>
+<li>然後我們 sort <code class='undefined'>animals</code> ,讓她依照字母順序排列. 注意: <code class='perl'>.<span class='keyword'>sort</span>()</code> 修改了 animals list 而不是return 一個新的 list.</li>
+<li>然後, for <code class='undefined'>animals</code> 裡的每個物件, 我們依照 <code class='undefined'>'ant', 'bat', 'cat'</code> 的順序, print 出所有的物件, 一個物件一行.</li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>寫一個 <code class='java'><span class='keyword'>for</span></code>-loop 讓她重複跑 <code class='undefined'>start_list</code> 裡的每個物件, 並且把每個物件的平方 (<code class='perl'><span class='keyword'>x</span> <span class='variable'>**</span> <span class='number'>2(平方)</span></code>), <code class='undefined'>.append()</code> 到 <code class='undefined'>square_list</code> 裡面.</li>
+<li>然後 sort <code class='undefined'>square_list</code>!</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>You will need to use:  </p>
+
+<ol>
+<li>A <code class='java'><span class='keyword'>for</span></code> loop<br></li>
+<li>The <code class='undefined'>.append()</code> method<br></li>
+<li>The <code class='perl'>.<span class='keyword'>sort</span>()</code> method</li>
+</ol>
+
+<p>Feel free to peek back at previous exercises in this section if you need to!</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 10) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>This Next Part is Key</div>
+          </div>
+          <div class='article__content'>
+            <p>Dictionary 和 list 很相似, 但是你是透過 <strong>key</strong> 來找它對應的 value, 而不是像 list 一樣用順序性的 index. key 可以是 string 或是 數字.  Dictionary 是用 curly braces (大括號), 像下面這樣:</p>
+
+<pre><code class='python'>d = {<span class='string'>'key1'</span> : <span class='number'>1</span>, <span class='string'>'key2'</span> : <span class='number'>2</span>, <span class='string'>'key3'</span> : <span class='number'>3</span>}
+</code></pre>
+
+<p>這是一個叫做 <code class='undefined'>d</code> 的 dictionary, 裡面有三組 <strong>key 和對應的 value</strong>. Key <code class='undefined'>'key1'</code> 對應 value <code class='undefined'>1</code>, <code class='undefined'>'key2'</code> 對應 <code class='undefined'>2</code>, 以此類推.</p>
+
+<p>Dictionaries 就像電話簿一樣好用 (名字對應電話號碼), 或是像網路上的登入頁面, (e-mail 對應使用者名稱)!</p>
+
+          </div>
+        </div>
+");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>Print 出 <code class='undefined'>'Sloth'</code> 和 <code class='undefined'>'Burmese Python'</code> 這兩個 key 對應的 value. 用 key 來取得 dictionary 的 values 就像是用 index 去取得 list 的 values:</p>
+
+<pre><code class='python'>residents[<span class='string'>'Puffin'</span>]
+<span class='comment'># Gets the value 104</span>
+</code></pre>
+
+<p>Check the Hint if you need help!</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>As an example, code has been provided that prints the value stored under the <code class='undefined'>'Puffin'</code> key. The code on <a href='javascript:void(0)' class='line-no' data-from='4' data-to=''>line 4</a> It will print <code class='undefined'>104</code> (do you see why?). Your code should be very similar, but should target the other two keys (<code class='undefined'>'Sloth'</code> and <code class='undefined'>'Burmese Python'</code>).</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 11) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>New Entries</div>
+          </div>
+          <div class='article__content'>
+            <p>就像 list 一樣, Dictionaries 是 mutable (可變的). 也就是說他們在被創造出來之後可以再修改. 這樣的好處是你創造一個 dictionary 之後可以在加入新的 key/value, 像下面這樣:</p>
+
+<pre><code class='python'>dict_name[new_key] = new_value
+</code></pre>
+
+<p>一對空的 curly braces <code class='css'><span class='rules'>{<span class='rule'>}</span></span></code> 是一個空的 dictionary, 就像一對空的 <code class='css'><span class='attr_selector'>[]</span></code> 是一個空的 list 一樣.</p>
+
+<p><code class='undefined'>len()</code> 作用再 dictionary 上會找出它總共有多少組 key-value. 一組 key-value 算是一個, 即使 value 是一個 list 也還是和它對應的 key 算做'一'組. (Dictionary 的 value 可以是 list!)</p>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>加入三組 key-value 到 <code class='undefined'>menu</code> 這個 dictionary 裡面, 菜的名稱是 key, (as a <code class='undefined'>'string'</code>), 而價格則是對應的 value (a float or integer). 例:</p>
+
+<pre><code class='python'>menu[<span class='string'>'Spam'</span>] = <span class='number'>2.50</span>
+</code></pre>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>You will need to add at least three key-value pairs. One has already been added on <a href='javascript:void(0)' class='line-no' data-from='2' data-to=''>line 2</a>.  Your code will follow the same format, but should create and assign different keys!</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 12) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Changing Your Mind</div>
+          </div>
+          <div class='article__content'>
+            <p>有許多方法可以改變 Dictionary 的內容. 裡面的物件可以用 <code class='python'><span class='keyword'>del</span></code> 指令來刪除:</p>
+
+<pre><code class='python'><span class='keyword'>del</span> dict_name[key_name]
+</code></pre>
+
+<p>會移除 dictionary 裡面 <code class='undefined'>key_name</code> 這個key, 以及他對應的 value.</p>
+
+<p>新的 key 和對應的 value 可以藉由 下面這個方法來加到 dictionary 裡面:</p>
+
+<pre><code class='python'>dict_name[key] = new_value
+</code></pre>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>用 <code class='python'><span class='keyword'>del</span></code> 指令來刪除 <code class='undefined'>zoo_animals</code> 這個dictionary 裡面的 <code class='undefined'>'Sloth'</code> 和 <code class='undefined'>'Bengal Tiger'</code>, 以及他們對應的 value.</p>
+
+<p>把 <code class='undefined'>'Rockhopper Penguin'</code> 這個 key 對應的 value 改成除了 <code class='undefined'>'Arctic Exhibit'</code>以外的任何東西.</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>Check out the examples in the instructions if you need help!</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 13) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>Remove a Few Things</div>
+          </div>
+          <div class='article__content'>
+            <p>有時候你會需要移除 list 裡面的某些東西.</p>
+
+<pre><code class='python'>beatles = [<span class='string'>'john'</span>,<span class='string'>'paul'</span>,<span class='string'>'george'</span>,<span class='string'>'ringo'</span>,<span class='string'>'stuart'</span>]
+beatles.remove(<span class='string'>'stuart'</span>)
+<span class='keyword'>print</span> beatles
+&gt;&gt; [<span class='string'>'john'</span>,<span class='string'>'paul'</span>,<span class='string'>'george'</span>,<span class='string'>'ringo'</span>]
+</code></pre>
+
+<ol>
+<li>我們創造了一個包含五個 string 的 list 叫做 <code class='undefined'>beatles</code>.</li>
+<li>然後, 我們移除了 <code class='undefined'>beatles</code> 裡的第一個符合 <code class='undefined'>'stuart'</code> 這個名稱的物件. 注意 <code class='undefined'>.remove(item)</code> 這個指令不會 return 任何 value.</li>
+<li>最後, 我們 print 這個 list 來確定 <code class='undefined'>'stuart'</code> 真的被 remove(移除)了.</li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <p>把 <code class='undefined'>'dagger'</code> 從 <code class='undefined'>backpack</code> 裡面移除.</p>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>You can use list functions with a list stored in a dictionary as follows:</p>
+
+<pre><code class='python'>dict_name[<span class='string'>'list_key'</span>].list_function()
+</code></pre>
+
+<p>This should help you delete <code class='undefined'>'dagger'</code> from the list of items stored under the <code class='undefined'>'backpack'</code> key. (You can use <code class='undefined'>.remove()</code> on lists just like you can on dictionaries.)</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  if(current == 14) {
+    $(content).replaceWith("<div class='article__inner'>
+          <div class='article__header'>
+            <div class='lesson-checkpoint__name'>It's Dangerous to Go Alone! Take This</div>
+          </div>
+          <div class='article__content'>
+            <p>讓我們重新看一下 <strong>dictionaries</strong> 的注意事項</p>
+
+<pre><code class='python'>my_dict = {
+    <span class='string'>'fish'</span>: [<span class='string'>'c'</span>, <span class='string'>'a'</span>, <span class='string'>'r'</span>, <span class='string'>'p'</span>],
+    <span class='string'>'cash'</span>: -<span class='number'>4483</span>,
+    <span class='string'>'luck'</span>: <span class='string'>'good'</span>
+}
+<span class='keyword'>print</span> my_dict[<span class='string'>'fish'</span>][<span class='number'>0</span>]
+</code></pre>
+
+<ol>
+<li>上面這例子裡, 我們創造了一個 dictionary, 裡面包含了各種類型的 value.</li>
+<li>Key <code class='undefined'>'fish'</code> 是一個 list, key <code class='undefined'>'cash'</code> 是一個 int (整數),  key <code class='undefined'>'luck'</code> 則是 string.</li>
+<li>最後, 我們 print <code class='cpp'><span class='string'>'c'</span></code>. 當我們用 <code class='css'><span class='tag'>my_dict</span><span class='attr_selector'>['fish']</span></code> 的方式來存取 dictionary 裡的 value, 我們可以直接存取這個 value. 因此我們可以持接取得 key <code class='undefined'>'fish'</code> 對應的 list 在 index '0' 位置的 value</li>
+</ol>
+
+          </div>
+        </div>");
+    $(instructions).replaceWith("<div class='article__inner'>
+            <ol>
+<li>幫 <code class='undefined'>inventory</code> 新增一個叫做 <code class='undefined'>'pocket'</code> 的 key</li>
+<li>把 key <code class='undefined'>'pocket'</code> 的 value 設定為 一個 list, 裡面要包含後面這些 strings: <code class='undefined'>'seashell'</code>, <code class='undefined'>'strange berry'</code>, 還有 <code class='undefined'>'lint'</code></li>
+<li>用 <code class='perl'>.<span class='keyword'>sort</span>()</code> 指令重新排列 <code class='undefined'>'backpack'</code> 這個 key 對應的 list.</li>
+<li>然後從 <code class='undefined'>'backpack'</code> 這個 key 對應的 list 裡面 <code class='undefined'>.remove('dagger')</code></li>
+<li>把 <code class='undefined'>'gold'</code> 這個 key 對應的 value 加 50</li>
+</ol>
+
+              <div class='ui-accordian ui-accordian--lesson'>
+                <div class='ui-accordian__inner'>
+                  <a href='#' onclick='proAdTrackImpression();' class='ui-accordian__trigger ui-media'>
+                    <div class='ui-media__image new-icon--small new-icon--center new-icon--circle--blue'>?</div>
+                    <div class='ui-media__main'>
+                      <span class='is-hidden-if-is-expanded'><b>Stuck?</b> Get a hint!</span>
+                      <span class='is-shown-if-is-expanded--inline'><b>Hint</b></span>
+                    </div>
+                  </a>
+                  <div class='ui-accordian__content has-markdown'>
+
+                    <p>You can use list functions with a list stored in a dictionary as follows:</p>
+
+<pre><code class='python'>dict_name[<span class='string'>'list_key'</span>].list_function()
+</code></pre>
+
+<p>This should help you delete <code class='undefined'>'dagger'</code> from the list of items stored under the <code class='undefined'>'backpack'</code> key. (You can use <code class='undefined'>.remove()</code> on lists just like you can on dictionaries.)</p>
+
+                  </div>
+                </div>
+              </div>
+          </div>");
+  }
+  $(".is-hidden-if-is-expanded").replaceWith("<span class='is-hidden-if-is-expanded'><b>卡關了嗎?</b> 暗示!</span>");
+  $(".is-shown-if-is-expanded--inline").replaceWith("<span class='is-shown-if-is-expanded--inline'><b>暗示</b></span>");  
+  $(".lesson__course-name.one-line-text.js-course-name").text("Python Syntax(語法)");   
+  $("p").css("font-family", "Meiryo");
+  $("<style type='text/css'> body.composer{ font-family: 'Meiryo', 'Open Sans','Hevetica Neue','Helvetica',sans-serif; position: relative; overflow: hidden; width: auto; font-size: 17px; line-height: 30px;} </style>").appendTo("head");  
+}
+
+translate();
+var text = document.querySelector(".lesson-left-bar");
+var observer = new MutationObserver(function(mutations){
+  observer.disconnect();
+  translate();
+  observer.observe(text, {childList: true, characterData: false, characterDataOldValue: false, subtree: true});
+});
+observer.observe(text, {childList: true, characterData: false, characterDataOldValue: false, subtree: true});
+
+

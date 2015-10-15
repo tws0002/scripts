@@ -175,12 +175,15 @@ for manga in mangas:
 
             
 #remove thumbnails
-chapters = [d for d in os.listdir(path + manga) if os.path.isdir(path + manga + "/" + d)]            
-for chapter in chapters:
-    image_path = path + manga + "/" + chapter
-    images = [x for x in os.listdir(image_path) if 'thumb' in x]
-    for image in images:
-        image_network_path = image_path + "/" +  image
-        print image_network_path
-        os.remove(image_network_path)
+for manga in mangas:
+mangas[1:]
+for manga in mangas:
+    chapters = [d for d in os.listdir(path + manga) if os.path.isdir(path + manga + "/" + d)]            
+    for chapter in chapters:
+        image_path = path + manga + "/" + chapter
+        images = [x for x in os.listdir(image_path) if 'thumb' in x]
+        for image in images:
+            image_network_path = image_path + "/" +  image
+            print image_network_path
+            os.remove(image_network_path)
 

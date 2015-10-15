@@ -25,6 +25,8 @@ def findFeaturePositions(imgarray):
             num = 2
         x_axis.append(num)
     return x_axis_values
+    
+    
     plt.plot(x_axis_values)
     # go through x_axis and find chunks of 0, 1-5, 6-10
     i = 0

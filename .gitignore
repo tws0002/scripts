@@ -1,6 +1,7 @@
 .DS_Store
 .svn
 *.pyc
+~*
 log/*.log
 tmp/**
 bootstrap-3.2.0-dist/
@@ -23,3 +24,4 @@ ionicons-2.0.1/
 animate/
 greensock-js/
 js-cookie/
+misc/
