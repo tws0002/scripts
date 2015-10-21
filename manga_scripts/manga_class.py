@@ -38,19 +38,25 @@ class Manga(object):
         
         return self.vol_num
     
-    def aspect_ratio(self):
+    def aspectRatio(self):
         width = self.manga_data[self.vol_num]['width']
         height = self.manga_data[self.vol_num]['height']
         return float(width)/float(height)
-        
-            
+    
+    def aspectRatios(self):
+        ars = []
+        for x in self.manga_data:
+            ars.append(float(x['width']) / float(x['height']))
+        return ars
 
-            
+    def coverType        
 
 
 #%% 
 man = Manga("gunnm", 2)
+man.count
 man.aspect_ratio()
+
 
 
 #%%
