@@ -7,17 +7,18 @@ Created on Thu Sep 10 13:55:34 2015
 import os
 import shutil
 
-path = r"d:/manga/"
+path = r"f:/manga/"
 ignore_dir = ["css", "templates", "images", "cover", "Thumbs.db", "desktop.ini"]
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
 
-mangas = mangas[mangas.index("gun_smith_cats"):]
+mangas = mangas[mangas.index("tsukidate_no_satsujin"):]
+mangas = mangas[0:1]
 # copy image to covers
 for manga in mangas:
     #chapters = [x[1] for x in os.walk((path + manga).decode('utf8'))][0]
     chapters = [x for x in os.listdir(path + manga) if "html" not in x and x not in ignore_dir]
     i = 0
-    cover_test_path = ("d:/cover/" + manga)
+    cover_test_path = ("f:/cover/" + manga)
     try:
         if os.path.isdir(cover_test_path) == True:
             if len(os.listdir(cover_test_path)) != 0:
@@ -45,7 +46,7 @@ for manga in mangas:
                 pass
             else:
                 shutil.copy2(image_network_path, cover_local)        
-       
+#%%       
 # find folders within folder
 for manga in mangas:
     chapters = os.listdir(path + manga)

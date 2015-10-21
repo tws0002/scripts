@@ -61,7 +61,7 @@ for manga in mangas:
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
 
 for manga in mangas:
-    #manga = "boys_be_2"
+    manga = "legend_of_odle"
     print manga
     
     if len(os.listdir(path + manga)) == 0:
