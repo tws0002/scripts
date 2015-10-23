@@ -3,9 +3,8 @@ import csv
         
 #%%  
 class Manga(object):
-    def __init__(self, name, vol_num=0):
+    def __init__(self, name):
         self.name = name
-        self.vol_num = vol_num
         path = r"f:\cover_data1.csv"
         database = []
         with open(path, "r") as fileobj:
@@ -38,7 +37,8 @@ class Manga(object):
         
         return self.vol_num
     
-    def aspectRatio(self):
+    def aspectRatio(self, vol_num):
+        self.vol_num = vol_num
         width = self.manga_data[self.vol_num]['width']
         height = self.manga_data[self.vol_num]['height']
         return float(width)/float(height)
@@ -49,21 +49,23 @@ class Manga(object):
             ars.append(float(x['width']) / float(x['height']))
         return ars
 
-    def coverType        
+    def coverType(self, vol_num):
+        """guess the cover type based on aspect ratio"""
+        self.vol_num = vol_num
+        ar = self.aspectRatio(vol_num)
+        return ar
+        
+            
 
+#
 
 #%% 
-man = Manga("gunnm", 2)
+man = Manga("gunnm")
+man.aspectRatio(4)
 man.count
-man.aspect_ratio()
+man.aspectRatios()
+man.coverType(1)
 
 
 
 #%%
-man.count
-volumes = man.returnDB()
-man.consistency()
-
-vol = Volumes(volumes)
-vol.vols
-

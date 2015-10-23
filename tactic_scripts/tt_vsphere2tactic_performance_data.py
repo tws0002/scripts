@@ -5,12 +5,6 @@ Created on Wed Jul 22 10:55:06 2015
 @author: julio
 """
 
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul 21 11:54:55 2015
-
-@author: julio
-"""
 
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
@@ -28,7 +22,7 @@ import time
 import sys
 import socket
 sys.path.append("//Art-1405260002/d/assets/client")
-
+#%%
 from tactic_client_lib import TacticServerStub
 
 server = TacticServerStub.get()
@@ -38,7 +32,8 @@ server.set_project("simpleslot")
 ticket = server.get_ticket("julio", "1234")
 server.set_ticket(ticket)
 
-si = SmartConnect(host="192.168.200.56", user="julio@vsphere.local", pwd="12345678", port=int(443))
+
+si = SmartConnect(host="192.168.163.56", user="julio@vsphere.local", pwd="12345678", port=int(443))
 
 content = si.RetrieveContent()
 datacenters = content.rootFolder.childEntity
