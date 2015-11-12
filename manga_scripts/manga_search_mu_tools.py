@@ -108,7 +108,7 @@ with open(manga_list, "r") as infile, open(new_list, "a+") as outfile:
             csvwriter.writerow(data)
 #%% this part fills in mangas already with ids
 manga_list = r"f:/manga_missing.txt"
-new_list = r"f:/manga_list_06.csv"
+new_list = r"f:/manga_list_09.csv"
 with open(manga_list, "r") as infile, open(new_list, "a+") as outfile:
     csvwriter = unicodecsv.writer(outfile, delimiter=",", lineterminator="\n")
     csvreader = unicodecsv.reader(outfile, delimiter=",", lineterminator="\n")

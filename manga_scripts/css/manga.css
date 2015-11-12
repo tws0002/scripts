@@ -1,0 +1,27 @@
+.btn {
+    position: relative;
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.65);
+    cursor: pointer;
+    vertical-align: middle;
+    margin-right: 30px;
+}
+
+.nav {
+	font-size: 2em;
+}
+
+small {
+	    margin-top: -90px;
+    margin-bottom: -90px;
+    display: block;
+}
+
+.h3 .volume {
+    position:  absolute;
+}
+
+li .table {
+    position: relvative;
+    display: float;
+}

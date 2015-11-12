@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui'
 #
-# Created: Fri Aug 14 16:44:26 2015
+# Created: Thu Nov 12 16:19:49 2015
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -31,8 +31,8 @@ class Ui_main_window(object):
         self.inprogress_button.setMaximumSize(QtCore.QSize(24, 24))
         self.inprogress_button.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/play_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/play_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/play_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/play_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.inprogress_button.setIcon(icon)
         self.inprogress_button.setCheckable(True)
         self.inprogress_button.setChecked(True)
@@ -43,8 +43,8 @@ class Ui_main_window(object):
         self.ready_button.setMaximumSize(QtCore.QSize(24, 24))
         self.ready_button.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/pause_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon1.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/pause_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon1.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/pause_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/pause_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.ready_button.setIcon(icon1)
         self.ready_button.setCheckable(True)
         self.ready_button.setChecked(False)
@@ -55,8 +55,8 @@ class Ui_main_window(object):
         self.complete_button.setMaximumSize(QtCore.QSize(24, 24))
         self.complete_button.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/check_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        icon2.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/check_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
+        icon2.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/check_off_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/check_on_24.png"), QtGui.QIcon.Normal, QtGui.QIcon.On)
         self.complete_button.setIcon(icon2)
         self.complete_button.setCheckable(True)
         self.complete_button.setChecked(False)
@@ -259,7 +259,7 @@ class Ui_main_window(object):
         self.logout_button.setMaximumSize(QtCore.QSize(21, 21))
         self.logout_button.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/sign-out_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/sign-out_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.logout_button.setIcon(icon3)
         self.logout_button.setObjectName("logout_button")
         self.login_layout.addWidget(self.logout_button)
@@ -282,7 +282,7 @@ class Ui_main_window(object):
         self.open_path_button.setMaximumSize(QtCore.QSize(21, 21))
         self.open_path_button.setText("")
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/folder-open-o_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/folder-open-o_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.open_path_button.setIcon(icon4)
         self.open_path_button.setObjectName("open_path_button")
         self.save_path_layout.addWidget(self.open_path_button)
@@ -305,7 +305,7 @@ class Ui_main_window(object):
         self.save_button.setMaximumSize(QtCore.QSize(21, 21))
         self.save_button.setText("")
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap("//Art-1405260002/d/assets/scripts/maya_scripts/icons/save_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(QtGui.QPixmap("//art-1405260002/D/assets/scripts/maya_scripts/icons/save_222222_12.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.save_button.setIcon(icon5)
         self.save_button.setObjectName("save_button")
         self.save_file_layout.addWidget(self.save_button)
@@ -337,7 +337,7 @@ class Ui_main_window(object):
 
         self.retranslateUi(main_window)
         self.tabProjectWidget.setCurrentIndex(0)
-        self.tabProductionType.setCurrentIndex(1)
+        self.tabProductionType.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(main_window)
 
     def retranslateUi(self, main_window):

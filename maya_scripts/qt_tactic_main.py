@@ -10,8 +10,12 @@ sys.path.append("//Art-1405260002/d/assets/scripts/install")
 sys.path.append("//Art-1405260002/d/assets/scripts/python-dateutil-2.3")
 sys.path.append("//Art-1405260002/d/assets/scripts/six-1.8.0")
 import datetime
+global widget, server, recent_file, loginWidget
+
 
 from PySide import QtCore, QtGui
+from tactic_client_lib import TacticServerStub
+server = TacticServerStub()
 
 import ctypes
 import qt_main_ui as qt_main_ui
@@ -22,26 +26,22 @@ import socket
 import jc_maya_aux_functions as jc
 from dateutil import parser
 
-# import maya.cmds as cmds
-
 reload(qt_main_ui)
 reload(qt_login_ui)
 reload(jc)
 
-global widget, server, recent_file
 
 asset_item_details = ""
 shot_item_details = ""
 
 app = QtGui.QApplication.instance()
-appName = app.objectName()
-
 if not app:
     app = QtGui.QApplication([])
 
+appName = app.objectName()
+
 class _GCProtector(object):
     widgets = []
-
 
 class loginWindow(QtGui.QDialog):
     def __init__(self, parent=None):
@@ -712,6 +712,8 @@ def finalPath():
         ext = ".mb"
     elif "Nuke" in appName:
         ext = ".nk"
+    elif appName == "python":
+        ext = ""
 
     if selectedTab == "assets":
         if project_type == "cf" or project_type == "sports" or project_type == "video_conf":
@@ -779,7 +781,6 @@ def loginProcess():
         ptr = ctypes.pythonapi.PyCObject_AsVoidPtr(capsule)
         #MaxPlus.Win32.Set3dsMaxAsParentWindow(ptr)
 
-
     loginWidget.show()
 
 def openRecent():
@@ -792,10 +793,6 @@ def openRecent():
             recent_file = jc.getNextFileName(0)
         except:
             recent_file = ""
-
-
-
-
         '''
     project_path = recent_file[0]
     project_filename = recent_file[2]
@@ -846,44 +843,13 @@ def mainProcess():
         '''
 
 def qt_tactic_mainMain():
-    # pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py tactic_3d.ui
-    import sys
-    sys.path.append("//Art-1405260002/d/assets/client")
-    sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
-    sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts")
-    sys.path.append("//Art-1405260002/d/assets/scripts/install")
-    #sys.path.append("C:/Program Files/Autodesk/Maya2014/Python/Lib/site-packages")
-    from PySide import QtCore, QtGui
-
-    import ctypes
-    import qt_main_ui
-    import qt_login_ui
-    import os
-    import subprocess
-    import jc_maya_aux_functions as jc
-    #import maya.cmds as cmds
-
-    reload(qt_main_ui)
-    reload(qt_login_ui)
-    reload(jc)
-
-
-    asset_item_details = ""
-    shot_item_details = ""
     global server
-    global widget
-    serverok = 0
-    tactic_server_ip = socket.gethostbyname("vg.com")
-
-    from tactic_client_lib import TacticServerStub
-    #server = TacticServerStub()
-
     try:
-        if server:
-            expr = "@GET(sthpw/login.login)"
-            temp = server.eval(expr)
-            serverok = 1
+        expr = "@GET(sthpw/login.login)"
+        temp = server.eval(expr)
+        serverok = 1
     except:
+        print "servernotok"
         try:
             server = TacticServerStub()
             ticket_path = "c:/sthpw/etc"
@@ -900,17 +866,14 @@ def qt_tactic_mainMain():
             server.set_ticket(lines[2])
             serverok = 1
         except:
+            print "notok"
             loginProcess()
 
     if serverok == 1:
         try:
             widget.show()
-            #widget.close()
         except:
             mainProcess()
-    #mainProcess()
-#widget.close()
-#qt_tactic_mainMain()
 
 def gamelist(items):
     now = datetime.datetime.now()
@@ -967,3 +930,6 @@ def updateCache():
     data = gamelist(complete)
     test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
     return "update complete"
+#%%
+if __name__ == "__main__":
+    qt_tactic_mainMain() # for addCustomShelf, the rule is filename + Main()

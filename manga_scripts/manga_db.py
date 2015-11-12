@@ -14,10 +14,10 @@ with open(mcdjson) as fileobj:
 
 jsondata = json.loads(data)
 
-    
+
 #%%
 
-import unicodecsv    
+import unicodecsv
 #manga_list = r"\\art-1405260002\D\assets\scripts\manga_scripts\manga_list.csv"
 manga_list = r"f:/manga_list02.csv"
 mangas = []
@@ -31,7 +31,7 @@ found = []
 new = []
 
 for manga in mangas:
-    manga = manga.decode('big5').encode('utf8')    
+    manga = manga.decode('big5').encode('utf8')
     manga_id = manga.split(",")[3]
     source_name = manga.split(",")[2]
     source_name_chn = manga.split(",")[1].replace("?","")
@@ -43,7 +43,7 @@ for manga in mangas:
         t_names = ""
         for target_id, target_names in jsondata.items():
             for target in target_names:
-                count = 0            
+                count = 0
                 target = target.lower().replace("-","")
                 if len(source_name.split(" ")) == 1: # single word source needs exact match
                     if source_name == target:
@@ -59,14 +59,14 @@ for manga in mangas:
         if ok == 1:
             print source_name, target, target_id
 
-#%%            
+#%%
         if ok == 1:
             found.append(source_name)
             new.append([manga.split(",")[0],manga.split(",")[1],manga.split(",")[2],target_id, t_names])
         else:
             not_ok.append(manga.split(",")[2])
             new.append([manga.split(",")[0],manga.split(",")[1],manga.split(",")[2],"", ""])
-#%%        
+#%%
 
 print len(found)
 print len(not_ok)

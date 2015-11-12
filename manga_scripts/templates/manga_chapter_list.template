@@ -3,15 +3,28 @@
 <html lang="en" class=" js csstransforms csstransforms3d preserve3d">
     <head>
         <link rel="stylesheet" href="http://vg.com/assets/scripts/sly/css/horizontal.css?version=1">
-        <link rel="stylesheet" href="http://vg.com/assets/manga/css/manga.css">
+        <link rel="stylesheet" href="http://vg.com/assets/scripts/manga_scripts/css/manga.css">
         <link rel="stylesheet" href="http://vg.com/assets/scripts/font-awesome-4.1.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="http://vg.com/assets/scripts/animate/animate.min.css">
 
     </head>
     <body class="bg">
         <div class="wrap">
-        <h3>{{title1}}</h3>
-        <h2>{{title2}}</h2>
+        <div class='chn_block fade'>
+            <!-- {{title_chn}} -->
+            {% for character in title_chn%}
+                <h3 class='chn'>{{character}}</h3>
+            {% endfor %}
+            <div class='chn_author_block'>
+            {% for character in author_chn%}
+                <h4 class='chn'>{{character}}</h4>
+            {% endfor %}
+            </div>
+        </div>
+        <div class="info">
+            <h3 class='title'>{{title}}</h3>
+            <h4 class='author'>By: {{author}}</h4>
+        </div>
         <div class="scrollbar">
             <div class="handle" style="transform: translateZ(0px) translateX(114px); width: 190px;">
                 <div class="mousearea"></div>
@@ -22,12 +35,8 @@
                 {% for chapter in chapter_list  %}
                 <li>
                     <a href='{{chapter.link}}'>
-                    <h3 class="chapter_bg">{{title1}}{{title2}}</h3>
-                    <table>
-                        <tr><td><h2>第</h2></td></tr>
-                        <tr><td><h2>{{chapter.number}}</h2></td></tr>
-                        <tr><td><h2>集</h2></td></tr>
-                    </table>
+                    <img src='{{chapter.cover}}'/>
+                    <h2>第{{chapter.number}}集</h2>
                     </a>
                 </li>
                 {% endfor %}
@@ -46,22 +55,38 @@
                 </div>
                 <div class="btn nav forward">
                     <i class="fa fa-angle-right animated infinite pulse"></i>
-                </div>                
+                </div>
             </div>
         </div>
+        <div class='description'>
+            {{description}}
+        </div>
 
-     
+
         <!-- Scripts -->
+      
         <script src="http://vg.com/assets/scripts/jquery-2.1.1.min.js"></script>
         <script src="http://vg.com/assets/scripts/sly/js/plugins.js"></script>
         <script src="http://vg.com/assets/scripts/sly/js/sly.min.js"></script>
         <script src="http://vg.com/assets/scripts/sly/js/horizontal.js"></script>
+        <script>
+            height = $(window).height();
+            title_count = $('h3.chn').length;
+            title_height = (height / 5) * 4;
+            title_font_size = (title_height / title_count / 1.16);
+            $('h3.chn').css('font-size', title_font_size);
+            
+            author_count = $('h4.chn').length;
+            word = $('h3.chn')[0];
+            author_font_size = (height/10)/author_count;
+            $('h4.chn').css('font-size', author_font_size);
+        </script>  
         <script>
             var items = $('li').on('click', function() {
                 var index = items.index(this);
                 Cookies.set('startAt', index, {expires: 30, path: ''});
             });
 
-        </script>           
+        </script>
     </body>
 </html>

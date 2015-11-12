@@ -138,6 +138,7 @@
 	return init();
 }));
 
+//this is from custom cookie attribute
 startAt = parseInt(Cookies.get('startAt'));
 
 

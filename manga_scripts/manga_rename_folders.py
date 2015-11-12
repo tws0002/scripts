@@ -22,17 +22,15 @@ def copytree(src, dst, symlinks=False, ignore=None):
             if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
                 shutil.copy2(s, d)   
 
-path = "//Art-1405260002/d/assets/manga/"
-#path = "d:/manga/"
+#path = r"//Art-1405260002/d/assets/manga/"
+path = r"f:/manga/"
 
 ignore_dir = ["css", "templates", "images"]
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
-
+mangas = ['kiben_gakuha_yotsuya_senpai_no_kaidan']
 #----------------------move folder up one level
-
+#%%
 for manga in mangas:
-    #manga = "doraaemon"
-    #print manga
     chapters = [x[1] for x in os.walk((path + manga).decode('utf8'))][0]
     #chapters = os.listdir(path + manga)
     if len(chapters) < 2: # single folder
@@ -58,12 +56,11 @@ for manga in mangas:
 
 
 # convert chapter folders to Vol_01 format 
-mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
+# mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
 
+#%%
 for manga in mangas:
-    manga = "legend_of_odle"
     print manga
-    
     if len(os.listdir(path + manga)) == 0:
         pass
     else:

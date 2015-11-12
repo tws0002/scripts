@@ -18,8 +18,8 @@ chapter_links = []
 for chapter in chapters:
     chapter_links.append(chapter.get_attribute('href'))
 
-len(chapter_links)
-chapter_links = chapter_links[0:2]
+#len(chapter_links)
+#chapter_links = chapter_links[0:2]
 #%%
 for chapter_link in chapter_links:
     driver.get(chapter_link)
@@ -48,8 +48,3 @@ for chapter_link in chapter_links:
         output.close()
 
     time.sleep(.5)
-    
-    
-
-
-    

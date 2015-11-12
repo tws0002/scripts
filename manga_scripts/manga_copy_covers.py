@@ -11,9 +11,11 @@ path = r"f:/manga/"
 ignore_dir = ["css", "templates", "images", "cover", "Thumbs.db", "desktop.ini"]
 mangas = [m for m in os.listdir(path) if m not in ignore_dir if os.path.isdir(os.path.join(path,m))]
 
-mangas = mangas[mangas.index("tsukidate_no_satsujin"):]
-mangas = mangas[0:1]
+#mangas = mangas[mangas.index("tsukidate_no_satsujin"):]
+#mangas = mangas[0:1]
 # copy image to covers
+mangas = ['donmai_princess']
+#%%
 for manga in mangas:
     #chapters = [x[1] for x in os.walk((path + manga).decode('utf8'))][0]
     chapters = [x for x in os.listdir(path + manga) if "html" not in x and x not in ignore_dir]
@@ -27,8 +29,8 @@ for manga in mangas:
                 raise
         else:
             raise
-    except:
         print manga
+    except:
         try:
             os.mkdir(cover_test_path)
         except:
@@ -130,4 +132,39 @@ for manga in mangas:
                 #os.rmdir(src)
         i += 1
 
+#%% this part copyies covers not in mcd to network
+import os
+import unicodecsv
+import subprocess
+import shutil
+csv_path = r"f:/manga_list08.csv"
+
+def copytree(src, dst, symlinks=False, ignore=None):
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+    for item in os.listdir(src):
+        s = os.path.join(src, item)
+        d = os.path.join(dst, item)
+        if os.path.isdir(s):
+            copytree(s, d, symlinks, ignore)
+        else:
+            if not os.path.exists(d) or os.stat(s).st_mtime - os.stat(d).st_mtime > 1:
+                shutil.copy2(s, d) 
+#%%
+csv_list = []
+with open(csv_path, 'r') as csvfile:
+    csv_content = unicodecsv.reader(csvfile, delimiter=',', lineterminator='\n')
+    for row in csv_content:
+        csv_list.append(row)
+
+#%%
+for x in csv_list:
+    if x[13] == 'False':
+        src = r"f:/cover/%s/" % x[2]
+        dst = r"//art-1405260002/d/assets/manga/covers/%s/" % x[2]
+        if os.path.isdir(dst) == True:
+            print "exists"
+        else:
+            print x[2]
+            copytree(src, dst)
 
