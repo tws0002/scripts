@@ -747,20 +747,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <widget class="Line" name="line">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="publish_button">
-         <property name="text">
-          <string>Publish</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>

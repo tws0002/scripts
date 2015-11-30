@@ -1,3 +1,71 @@
+function zoomin() {
+    temp = $j('section.present').children("img").panzoom("getTransform");
+    ratio = parseFloat(temp.match(/\(([^)]+)\)/)[1].split(",")[0])
+    z_in = ratio + 0.15;
+    $j('section.present').children("img").panzoom('zoom', z_in);
+}
+
+function zoomout() {
+    temp = $j('section.present').children("img").panzoom("getTransform");
+    ratio = parseFloat(temp.match(/\(([^)]+)\)/)[1].split(",")[0])
+    z_out = ratio - 0.15;
+    $j('section.present').children("img").panzoom('zoom', z_out);
+}
+
+function contrast(){
+    if($j('section').children("img").hasClass("contrast") == true){
+        $j('section').children("img").removeClass("contrast");    
+    }
+    else {
+        $j('section').children("img").addClass("contrast");
+    }
+}
+
+
+function fitImage() {
+    doc_w = $j(document).width();
+    doc_h = window.innerHeight;
+
+    img_w = $j('section.present').children("img").prop('naturalWidth');
+    img_h = $j('section.present').children("img").prop('naturalHeight');
+    
+    var ratio;
+    if((img_w/img_h) < (doc_w/doc_h)) {
+        ratio = doc_h / img_h;    
+    }
+    else if((img_w/img_h) > (doc_w/doc_h)) {
+        ratio = doc_w / img_w;
+    }
+
+    offset_h = img_h/2 - doc_h/2;
+    if(img_w < doc_w) {
+        offset_w = 0;
+    }
+    else {
+        offset_w = img_w/2 - doc_w/2;
+    }
+
+
+    $j('section.present').children("img").panzoom({
+        minScale: 0,
+    });
+
+    $j('section.present').children("img").panzoom('zoom', ratio);
+    $j('section.present').children("img").panzoom('pan', -offset_w, -offset_h);
+    $j('section.present').children("img").on('mousewheel.focal', function(e) {
+        e.preventDefault();
+        var delta = e.delta || e.originalEvent.wheelDelta;
+        var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+        $j('section.present').children("img").panzoom('zoom', zoomOut, {
+          increment: 0.05,
+          animate: false,
+          focal: e,
+        });
+    });     
+   $j(".present").css("overflow", "visible");
+
+}
+
 (function ( $ ) {
     $(document).mousedown(function(e) { e.preventDefault(); pos=e.pageX; dragging = true })
 

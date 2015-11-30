@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui'
 #
-# Created: Thu Nov 12 16:19:49 2015
+# Created: Thu Nov 26 10:58:19 2015
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -324,14 +324,6 @@ class Ui_main_window(object):
         self.open_button = QtGui.QPushButton(main_window)
         self.open_button.setObjectName("open_button")
         self.file_list_layout.addWidget(self.open_button)
-        self.line = QtGui.QFrame(main_window)
-        self.line.setFrameShape(QtGui.QFrame.HLine)
-        self.line.setFrameShadow(QtGui.QFrame.Sunken)
-        self.line.setObjectName("line")
-        self.file_list_layout.addWidget(self.line)
-        self.publish_button = QtGui.QPushButton(main_window)
-        self.publish_button.setObjectName("publish_button")
-        self.file_list_layout.addWidget(self.publish_button)
         self.mainLayout.addLayout(self.file_list_layout)
         self.verticalLayout_2.addLayout(self.mainLayout)
 
@@ -370,5 +362,4 @@ class Ui_main_window(object):
         self.save_file_label.setText(QtGui.QApplication.translate("main_window", "存檔名:", None, QtGui.QApplication.UnicodeUTF8))
         self.file_list_label.setText(QtGui.QApplication.translate("main_window", "Files", None, QtGui.QApplication.UnicodeUTF8))
         self.open_button.setText(QtGui.QApplication.translate("main_window", "Open", None, QtGui.QApplication.UnicodeUTF8))
-        self.publish_button.setText(QtGui.QApplication.translate("main_window", "Publish", None, QtGui.QApplication.UnicodeUTF8))
 

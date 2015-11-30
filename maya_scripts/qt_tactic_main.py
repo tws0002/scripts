@@ -1,6 +1,7 @@
 # pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui
 #C:\Python27\Lib\site-packages\PySide>
 #pyside-rcc.exe -py2 //Art-1405260002/d/assets/scripts/maya_scripts/icons/icons.qrc > //Art-1405260002/d/assets/scripts/maya_scripts/ui/icons_rc.py
+#test
 import sys
 sys.path.append("//Art-1405260002/d/assets/client")
 sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
@@ -10,12 +11,13 @@ sys.path.append("//Art-1405260002/d/assets/scripts/install")
 sys.path.append("//Art-1405260002/d/assets/scripts/python-dateutil-2.3")
 sys.path.append("//Art-1405260002/d/assets/scripts/six-1.8.0")
 import datetime
+import time
 global widget, server, recent_file, loginWidget
 
 
 from PySide import QtCore, QtGui
 from tactic_client_lib import TacticServerStub
-server = TacticServerStub()
+#server = TacticServerStub()
 
 import ctypes
 import qt_main_ui as qt_main_ui
@@ -74,7 +76,7 @@ class loginWindow(QtGui.QDialog):
         ticket_files = os.listdir("c:/sthpw/etc/")
         ticket_file = "c:/sthpw/etc/" + name + ".tacticrc"
 
-        tactic_server_ip = socket.gethostbyname("vg.com")
+        tactic_server_ip = socket.gethostbyname('vg.com')
 
         if len(ticket_files) == 0:
             file_object = open(ticket_file, "w")
@@ -120,7 +122,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.ready_button.clicked.connect(setReadyFilter)
         self.ui.complete_button.clicked.connect(setCompleteFilter)
 
-        self.ui.publish_button.clicked.connect(publishMaster)
+        #self.ui.publish_button.clicked.connect(publishMaster)
         self.ui.update_cache.clicked.connect(updateCache)
 
         #self.ui.inprogress_button.clicked.connect(getProjects)
@@ -240,6 +242,7 @@ def clearAll():
 
 def getItems():
     clearAll()
+    time.sleep(0.05)
 
     game = widget.ui.project_list.currentItem().text()
 
@@ -762,6 +765,7 @@ def finalPath():
     except:
         print "updateFilelist failed"
     recent_file = ""
+    #time.sleep(0.2)
 
 def loginProcess():
     global loginWidget
@@ -844,6 +848,7 @@ def mainProcess():
 
 def qt_tactic_mainMain():
     global server
+    serverok = 0
     try:
         expr = "@GET(sthpw/login.login)"
         temp = server.eval(expr)
@@ -866,8 +871,9 @@ def qt_tactic_mainMain():
             server.set_ticket(lines[2])
             serverok = 1
         except:
-            print "notok"
             loginProcess()
+            print "notok"
+
 
     if serverok == 1:
         try:
@@ -930,6 +936,10 @@ def updateCache():
     data = gamelist(complete)
     test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
     return "update complete"
+
+def test1():
+    print "test"
 #%%
 if __name__ == "__main__":
     qt_tactic_mainMain() # for addCustomShelf, the rule is filename + Main()
+

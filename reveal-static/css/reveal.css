@@ -267,7 +267,7 @@ body {
   top: 75px;
   opacity: 0.5;
   z-index: 31;
-  font-size: 40px; }
+  font-size: 35px; }
 
 /*********************************************
  * SLIDES
@@ -635,7 +635,7 @@ body {
           perspective: 700px; }
 
 .reveal.overview .slides section {
-  height: 700px;
+  height: 1080px;
   overflow: hidden;
   opacity: 1 !important;
   visibility: visible !important;
@@ -1189,7 +1189,9 @@ body {
 .reveal .nav_control {
   width: 250px;
   margin: 0 auto;
+  
 }
+
 .big-pulse {
   -webkit-animation-name: big-pulse;
   animation-name: big-pulse;
@@ -1241,4 +1243,132 @@ body {
 } 
 
 
+.reveal .slides div.item_title{
+  display: none;
+}
 
+.reveal .slides div.item_title_chn{
+  display: none;
+}
+
+.reveal .slides div.item_author{
+  display: none;
+}
+
+.reveal .slides div.item_date{
+  display: none;
+}
+
+.reveal .slides div.item_process{
+  display: none;
+}
+
+.reveal div.footer div.info_block{
+  display: flex;
+}
+
+.reveal div.footer div.proj_col{
+  margin-left: 30px;
+}
+
+.reveal div.footer div.item_col{
+  margin-left: 30px;
+}
+
+.reveal div.footer div.misc_col{
+  margin-left: 30px;
+}
+
+
+.reveal div.footer div.info_project{
+  text-transform: uppercase;
+  font-size: 1em;
+  color:  #2E81A2;
+}
+
+.reveal div.footer div.info_project_chn{
+  font-size: .7em;
+  color:  #2E81A2; 
+}
+
+.reveal div.footer div.info_item{
+    text-transform: uppercase;
+  font-size: 1em;
+  color:  #2E81A2;
+}
+
+.reveal div.footer div.info_item_chn{
+    font-size: .7em;
+  color:  #2E81A2; 
+}
+
+.reveal div.footer div.info_author{
+  text-transform: uppercase;
+  font-size: 1em;
+  color:  #2E81A2;
+}
+
+.reveal div.footer div.info_date{
+  font-size: 1em;
+  color:  #2E81A2;
+}
+
+#search-bg {
+  /* Absolutely position it, but stretch it to all four corners, then put it just behind #search's z-index */
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  display: block;
+  top: 300px;
+  right: 0px;
+  bottom: -300px;
+  left: 0px;
+  z-index: 99;
+  background-position: center -490px;
+  -webkit-filter: blur(25px) contrast(.9) saturate(.95) brightness(1.1);
+
+}
+
+#section_correction {
+  /* Put this on top of the blurred layer */
+  position: relative;
+  top: -260px;
+}
+
+
+#search {
+  position: relative;
+  z-index: 100;
+  padding: 20px;
+  top: 300px;
+  background: rgba(105,105,105,0.4);
+  border-top: 1px solid rgba(255,255,255,.2);
+  border-bottom: 1px solid rgba(0,0,0,.2);
+  align-content: center;
+}
+
+
+
+@keyframes blur{
+  from{
+      text-shadow:
+      0px 0px 10px #000,
+      0px 0px 10px #fff, 
+      0px 0px 25px #fff,
+      0px 0px 25px #fff,
+      0px 0px 25px #fff,
+      0px 0px 25px #fff,
+      0px 0px 25px #fff,
+      0px 0px 25px #fff,
+      0px 0px 50px #fff,
+      0px 0px 50px #fff,
+      0px 0px 50px #7B96B8,
+      0px 0px 150px #7B96B8,
+      0px 10px 100px #7B96B8,
+      0px 10px 100px #7B96B8,
+      0px 10px 100px #7B96B8,
+      0px 10px 100px #7B96B8,
+      0px -10px 100px #7B96B8,
+      0px -10px 100px #7B96B8,
+      0px -10px 100px #000000;}
+}
