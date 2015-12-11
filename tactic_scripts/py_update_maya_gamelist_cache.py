@@ -55,9 +55,9 @@ def gamelist(items):
                 bsd_string = bsd_string + "__" + (bsd)
                 bed_string = bed_string + "__ " + (bed)
                 assignment = dept.get("assigned")
-                assignments = assignments + " " + assignment
-                names = names + " " + name
-                games_type = games_type + " " + game_type[0]
+                assignments = assignments + "__" + assignment
+                names = names + "__" + name
+                games_type = games_type + "__" + game_type[0]
                 names_chn = names_chn + "__" + name_chn
     data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
     return data

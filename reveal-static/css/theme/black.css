@@ -10,7 +10,7 @@ section.has-light-background, section.has-light-background h1, section.has-light
 /*********************************************
  * GLOBAL STYLES
  *********************************************/
-body {
+.reveal body {
   background: #222;
   background-color: #222;
   -webkit-user-select: none;
@@ -401,4 +401,13 @@ body {
   opacity: 0.5;
   z-index: 30;
   font-size: 40px;
+}
+
+.reveal .navHint {
+    right: 0;
+    left: 0;
+    margin: auto 0;
+    position: fixed;
+    z-index: 20;
+    opacity: .75;
 }

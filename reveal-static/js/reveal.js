@@ -1391,7 +1391,7 @@
 			dom.wrapper.appendChild( dom.overlay );
 
 			
-			var html = '<p class="title">julio \u7684\u6f2b\u756b\u700f\u89bd\u5668v1.0</p>';
+			var html = '<p class="title">julio\'s Image Display Tool v2.0</p>';
 			html += '<p class="title">\u9375\u76e4\u6377\u5f91</p><br/>';
 			html += '<table><th>KEY</th><th>\u52d5\u4f5c</th>';
 			html += '<tr><td>D,\u2192,SPACE</td><td>\u4e0b\u4e00\u5f35</td></tr><tr><td>A,\u2190</td><td>\u524d\u4e00\u5f35</td></tr><tr><td>E</td><td>\u4e0b\u5341\u5f35</td></tr><tr><td>Q</td><td>\u524d\u5341\u5f35</td></tr><tr><td>W</td><td>\u653e\u5927</td></tr><tr><td>S</td><td>\u7e2e\u5c0f</td></tr><tr><td>Z</td><td>\u524d\u4e00\u672c</td></tr><tr><td>C</td><td>\u4e0b\u4e00\u672c</td></tr><tr><td>Home</td><td>\u7b2c\u4e00\u5f35</td></tr><tr><td>End</td><td>\u6700\u5f8c\u4e00\u5f35</td></tr><tr><td>F</td><td>\u5168\u5c4f</td></tr><tr><td>ESC, O</td><td>Overview</td></tr><tr><td>\u6ed1\u9f20\u6efe\u8f2a</td><td>\u653e\u5927\u7e2e\u5c0f</td></tr><tr><td>\u6ed1\u9f20\u62d6\u62c9</td><td>\u79fb\u52d5\u5716\u7247</td></tr><tr><td>X, \u6ed1\u9f20\u5de6\u9375\u96d9\u64ca</td><td>\u91cd\u8a2d\u5716\u7247\u5927\u5c0f</td></tr>';

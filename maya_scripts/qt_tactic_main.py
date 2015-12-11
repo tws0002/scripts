@@ -209,7 +209,7 @@ def getProjects():
     projects_list = {'name': names, 'login': bsd, 'keywords': bed, 'game_name_chn': names_chn, 'description': games_type, 'process': assigned}
 
     names = projects_list.get('name')
-    names = names.split(" ")  # list is a space separated string
+    names = names.split("__")  # list is a space separated string
     names.pop(0)
     names = sorted(names)
 
@@ -249,7 +249,7 @@ def getItems():
     temp = projects_list
 
     names = temp.get('name')
-    names = names.split(" ")
+    names = names.split("__")
 
     bsd = temp.get('login')
     bsd = bsd.split("__")
@@ -261,10 +261,10 @@ def getItems():
     names_chn = names_chn.split("__")
 
     games_type = temp.get('description')
-    games_type = games_type.split(" ")
+    games_type = games_type.split("__")
 
     assigned = temp.get('process')
-    assigned = assigned.split(" ")
+    assigned = assigned.split("__")
 
     temp = zip(names_chn, games_type, assigned, bsd, bed, names)
     temp.pop(0)
@@ -281,7 +281,7 @@ def getItems():
             if temp[x][1] == "casino":  # if selected is casino or shot or assets
                 updateList(temp[x][5], "3d", "assets")
 
-            elif temp[x][1] == "sports" or temp[x][1] == "cf" or temp[x][1] == "video_conf":
+            elif temp[x][1] == "sports" or temp[x][1] == "cf" or temp[x][1] == "video_conf" or temp[x][1] == "database":
                 updateList(temp[x][5], "assets", "assets")
                 updateList(temp[x][5], "shot", "shot")
 
@@ -719,7 +719,7 @@ def finalPath():
         ext = ""
 
     if selectedTab == "assets":
-        if project_type == "cf" or project_type == "sports" or project_type == "video_conf":
+        if project_type == "cf" or project_type == "sports" or project_type == "video_conf" or project_type == "database":
             expr = "@SOBJECT(simpleslot/game['name','" + project + "'].simpleslot/assets['name','" + item_name + "'].simpleslot/asset_type)"
             asset_type = server.eval(expr)
             item_type = asset_type[0].get('name')
@@ -758,8 +758,6 @@ def finalPath():
             widget.ui.save_path.setText(final_path)
             widget.ui.save_file.setText(filename)
 
-
-    print final_path
     try:
         updateFileList(final_path, base_filename)
     except:
@@ -909,11 +907,11 @@ def gamelist(items):
                 bed = parser.parse(bed)
                 bed = bed.strftime("%m/%d/%y")
                 bsd_string = bsd_string + "__" + (bsd)
-                bed_string = bed_string + "__ " + (bed)
+                bed_string = bed_string + "__" + (bed)
                 assignment = dept.get("assigned")
-                assignments = assignments + " " + assignment
-                names = names + " " + name
-                games_type = games_type + " " + game_type[0]
+                assignments = assignments + "__" + assignment
+                names = names + "__" + name
+                games_type = games_type + "__" + game_type[0]
                 names_chn = names_chn + "__" + name_chn
     data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
     return data
@@ -937,8 +935,6 @@ def updateCache():
     test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
     return "update complete"
 
-def test1():
-    print "test"
 #%%
 if __name__ == "__main__":
     qt_tactic_mainMain() # for addCustomShelf, the rule is filename + Main()

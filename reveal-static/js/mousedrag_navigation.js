@@ -101,3 +101,65 @@ function updateInfo() {
     $j('div.info_author').append(author);
     $j('div.info_date').append(date);
 }
+
+function updateCursor() {
+    current = $j('div.slides').children('section.future').length;
+    item_count = $j('div.slides').children('.section_top').length;
+    child_count = $j('section.present').children('section').length - 1;
+    cur_item_child_future_count = $j('section.present').children('section.future').length;
+    right = left = up = down = 0;
+
+    if(current == item_count){
+        right = 1; //right
+    } 
+
+    else if(current == 0) {
+        left = 1; //left
+    }
+
+    else {
+        left = right = 1; //left + right
+    }
+
+    if(child_count == 0) { //no up down
+    }
+    else if(child_count > 0) {
+        if(cur_item_child_future_count == 0) {
+            up = 1; //up
+        }
+        else if(cur_item_child_future_count == child_count) {
+            down = 1; //down
+        }
+        else {
+            up = down = 1; //up + down
+        }
+    }
+
+    if(left == 0 && right == 1 && up == 0 && down == 0) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/right.png');
+    }
+    if(left == 1 && right == 0 && up == 0 && down == 0) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left.png');
+    }
+    if(left == 1 && right == 1 && up == 0 && down == 0) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-right.png');
+    }
+    if(left == 1 && right == 1 && up == 1 && down == 0) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-right-up.png');
+    }
+    if(left == 1 && right == 1 && up == 0 && down == 1) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-right-down.png');
+    }
+    if(left == 1 && right == 0 && up == 1 && down == 0) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-up.png');
+    }
+    if(left == 1 && right == 0 && up == 0 && down == 1) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-down.png');
+    }
+    if(left == 1 && right == 1 && up == 1 && down == 1) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/all.png');
+    }
+    if(left == 1 && right == 0 && up == 1 && down == 1) {
+        $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-up-down.png');
+    }        
+}
