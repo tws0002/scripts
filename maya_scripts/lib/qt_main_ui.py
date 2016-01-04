@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import sys
+sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
+# -*- coding: utf-8 -*-
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui'
 #
-# Created: Fri Dec 18 09:41:03 2015
+# Created: Thu Dec 24 14:02:28 2015
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +15,7 @@ from PySide import QtCore, QtGui
 class Ui_main_window(object):
     def setupUi(self, main_window):
         main_window.setObjectName("main_window")
-        main_window.resize(471, 800)
+        main_window.resize(471, 731)
         main_window.setMinimumSize(QtCore.QSize(0, 0))
         main_window.setMaximumSize(QtCore.QSize(620, 800))
         font = QtGui.QFont()
@@ -149,7 +152,7 @@ class Ui_main_window(object):
         self.asset_list = QtGui.QListWidget(self.assets_tab)
         self.asset_list.setObjectName("asset_list")
         self.asset_layout.addWidget(self.asset_list)
-        self.asset_process_list = QtGui.QListWidget(self.assets_tab)
+        self.asset_process_list = processListWidget(self.assets_tab, mainWindowObj=main_window)
         self.asset_process_list.setMaximumSize(QtCore.QSize(150, 16777215))
         self.asset_process_list.setObjectName("asset_process_list")
         self.asset_layout.addWidget(self.asset_process_list)
@@ -201,7 +204,7 @@ class Ui_main_window(object):
         self.shot_list = QtGui.QListWidget(self.shots_tab)
         self.shot_list.setObjectName("shot_list")
         self.shot_layout.addWidget(self.shot_list)
-        self.shot_process_list = QtGui.QListWidget(self.shots_tab)
+        self.shot_process_list = processListWidget(self.shots_tab, mainWindowObj=main_window)
         self.shot_process_list.setMaximumSize(QtCore.QSize(150, 16777215))
         self.shot_process_list.setObjectName("shot_process_list")
         self.shot_layout.addWidget(self.shot_process_list)
@@ -347,7 +350,7 @@ class Ui_main_window(object):
         self.verticalLayout_7.addWidget(self.note_label)
         self.note_list = QtGui.QListWidget(main_window)
         self.note_list.setMinimumSize(QtCore.QSize(0, 0))
-        self.note_list.setMaximumSize(QtCore.QSize(16777215, 150))
+        self.note_list.setMaximumSize(QtCore.QSize(16777215, 75))
         self.note_list.setWordWrap(True)
         self.note_list.setObjectName("note_list")
         self.verticalLayout_7.addWidget(self.note_list)
@@ -404,3 +407,6 @@ class Ui_main_window(object):
         self.note_list.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">這裡會列出</span><span style=\" font-size:10pt; font-weight:600;\">選擇</span><span style=\" font-size:10pt;\">的檔案的備註，滑鼠點兩下可以刪除。</span></p><p><span style=\" font-size:10pt;\">用下面的字框來輸入備註，寫完記得按儲存。</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.note.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">這邊輸入備註。</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
+import processlistwidget
+from processlistwidget import processListWidget
+reload(processlistwidget)

@@ -1,6 +1,27 @@
-#import subprocess
-#subprocess.call("C:/Python27/scripts/pyside-uic -o //Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py //Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui")
+'''
+import subprocess
+import fileinput
 
+input = "//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui"
+output = "//Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py"
+subprocess.call("C:/Python27/scripts/pyside-uic -o %s %s" % (output, input))
+
+with open(output, 'r') as data:
+    filedata = data.read()
+
+header = "# -*- coding: utf-8 -*-\n" 
+header = header + "import sys\nsys.path.append(\"//Art-1405260002/d/assets/scripts/maya_scripts/lib\")\n"
+
+filedata = filedata.replace('../', '//Art-1405260002/d/assets/scripts/maya_scripts/')
+filedata = filedata.replace("self.asset_process_list = processListWidget(self.assets_tab)", "self.asset_process_list = processListWidget(self.assets_tab, mainWindowObj=main_window)")
+filedata = filedata.replace("self.shot_process_list = processListWidget(self.shots_tab)", "self.shot_process_list = processListWidget(self.shots_tab, mainWindowObj=main_window)")
+filedata = filedata.replace("from processlistwidget import processListWidget", "import processlistwidget\nfrom processlistwidget import processListWidget\nreload(processlistwidget)")
+
+filedata = header + filedata
+with open(output, 'w') as data:
+    data.write(filedata)
+
+'''    
 scripts_path = "//Art-1405260002/d/assets"
 import sys
 tactic_client_path = scripts_path + "/client"
@@ -27,15 +48,23 @@ import socket
 import jc_maya_aux_functions as jc
 from dateutil import parser
 
-tactic_server_ip = socket.gethostbyname("vg.com")
+try:
+    tactic_server_ip = socket.gethostbyname("vg.com")
+except:
+    tactic_server_ip = "192.168.163.60"
 
 reload(qt_main_ui)
 reload(qt_login_ui)
 reload(jc)
 
-
 asset_item_details = ""
 shot_item_details = ""
+notready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/notready.png')
+ready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/ready.png')
+inprogress_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/inprogress.png')
+standby_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/standby.png')
+review_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/review.png')
+complete_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/complete.png')
 
 app = QtGui.QApplication.instance()
 if not app:
@@ -119,6 +148,7 @@ class mainWindow(QtGui.QDialog):
     bsd = None
     bed = None
     sk = None
+    processes = None
 
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
@@ -137,6 +167,7 @@ class mainWindow(QtGui.QDialog):
 
         self.ui.save_button.clicked.connect(self.tacticSave)
         self.ui.open_button.clicked.connect(self.tacticLoad)
+        self.ui.file_list.itemDoubleClicked.connect(self.tacticLoad)
         self.ui.open_path_button.clicked.connect(self.openPath)
         self.ui.logout_button.clicked.connect(self.logOut)
 
@@ -152,15 +183,7 @@ class mainWindow(QtGui.QDialog):
             background-color: rgb(170,170,170);
             color: black;
         """)
-        combobox = QtGui.QComboBox()
-        combobox.addItem('one')
-        self.ui.asset_info.setCellWidget(2,2, combobox)
-        #self.ui.publish_button.clicked.connect(publishMaster)
         self.ui.update_cache.clicked.connect(self.updateCache)
-
-        #self.ui.inprogress_button.clicked.connect(getProjects)
-        #self.ui.ready_button.clicked.connect(getProjects)
-        #self.ui.complete_button.clicked.connect(getProjects)
 
         if "Nuke" in appName:
             pass
@@ -179,8 +202,9 @@ class mainWindow(QtGui.QDialog):
             for note in notes:
                 filename = note.split("#")[0]
                 note = note.split("#")[1]
-                if filename == self.ui.file_list.currentItem().text():
+                if filename == self.ui.file_list.currentItem().text().split("  ")[1]:
                     self.ui.note_list.addItem(note)
+                    self.ui.note_list.scrollToItem(self.ui.note_list.item(self.ui.note_list.count() - 1))
 
     def saveNotes(self):
         note = self.ui.note.text().replace("\n","")
@@ -199,7 +223,7 @@ class mainWindow(QtGui.QDialog):
                     sk = task.get('__search_key__')
 
             now = now.strftime("%m/%d %H:%M")
-            note = self.ui.file_list.currentItem().text() + "#" + now + "(" + name + "):     " + note
+            note = self.ui.file_list.currentItem().text().split("  ")[1] + "#" + now + "(" + name + "):     " + note
             notes.append(note)
             notes = "\n".join(notes)
             data = {'description': notes}
@@ -283,8 +307,6 @@ class mainWindow(QtGui.QDialog):
         self.ui.asset_list.clear()
         self.ui.shot_list.clear()
 
-        #time.sleep(0.05)
-
         self.game = self.ui.project_list.currentItem().text()
 
         names = self.projects_data.get('name')
@@ -343,39 +365,7 @@ class mainWindow(QtGui.QDialog):
                 self.ui.tabProductionType.setCurrentIndex(1)
 
         self.getProcess()
-        '''
-        recent_file = ''
 
-        if recent_file == "":
-            production_type = self.productionType()
-            if production_type == "assets":
-                if self.ui.asset_list.count() != 0:
-                    self.ui.asset_list.setCurrentRow(0)
-                    self.ui.tabProductionType.setCurrentIndex(0)
-
-                    self.getProcess()
-
-            elif production_type == "shot":
-                if self.ui.shot_list.count() != 0:
-                    self.ui.shot_list.setCurrentRow(0)
-                    self.ui.tabProductionType.setCurrentIndex(1)
-
-                    self.getProcess()
-        else:
-            if recent_file[3][5] == "assets":
-                if self.ui.asset_list.count() != 0:
-                    self.ui.tabProductionType.setCurrentIndex(0)
-                    self.ui.asset_list.setCurrentItem(self.ui.asset_list.findItems(recent_file[3][1], QtCore.Qt.MatchExactly)[0])
-                    self.ui.asset_list.scrollToItem(self.ui.asset_list.findItems(recent_file[3][1], QtCore.Qt.MatchExactly)[0], QtGui.QAbstractItemView.EnsureVisible)
-                    self.getProcess()
-
-            elif recent_file[3][5] == "shot":
-                if self.ui.shot_list.count() != 0:
-                    self.ui.tabProductionType.setCurrentIndex(1)
-                    self.ui.shot_list.setCurrentItem(self.ui.shot_list.findItems(recent_file[3][1], QtCore.Qt.MatchExactly)[0])
-                    self.ui.shot_list.scrollToItem(self.ui.shot_list.findItems(recent_file[3][1], QtCore.Qt.MatchExactly)[0], QtGui.QAbstractItemView.EnsureVisible)
-                    self.getProcess()
-        '''
     def updateList(self, name=None, stype=None, production_type=None):
         expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
         temp = self.server.eval(expr)
@@ -404,11 +394,6 @@ class mainWindow(QtGui.QDialog):
         return production_type
 
     def getProcess(self):
-        if self.ui.asset_process_list.count() != 0:
-            self.ui.asset_process_list.clear()
-        if self.ui.shot_process_list.count() != 0:
-            self.ui.shot_process_list.clear()
-
         production_type = self.productionType()
 
         selected = ""
@@ -425,45 +410,32 @@ class mainWindow(QtGui.QDialog):
                 stype = "assets"
                 self.item_type = self.asset_item_details[selected].get('asset_type_code')
 
+            # item_type is retrieved here instead of in final path
             self.item_type = self.assetTypeCode(self.item_type)
 
-
         elif production_type == "shot":
-            selected = self.ui.shot_list.currentRow()
-            self.item_name = self.ui.shot_list.currentItem().text()
-            self.item_name_chn = self.shot_item_details[selected].get('description')
-            self.item_type = "None"
-            self.item_code = self.shot_item_details[selected].get('code')
+            if self.ui.shot_list.count() != 0:            
+                selected = self.ui.shot_list.currentRow()
+                self.item_name = self.ui.shot_list.currentItem().text()
+                self.item_name_chn = self.shot_item_details[selected].get('description')
+                self.item_type = "None"
+                self.item_code = self.shot_item_details[selected].get('code')
             stype = "shot"
-
 
         expr = "@SOBJECT(simpleslot/" + stype + "['code','" + self.item_code + "'].sthpw/task)"
         tasks = self.server.eval(expr)
 
         self.item_tasks = self.orderTasksByProcesses(tasks)
 
-        bad = []
-        bad.append("assets")
-        processes = [y['process'] for y in self.item_tasks]
-
-        processes = [y for y in processes if y not in bad]
-        processes = set(processes)
-        processes = list(processes)
-        processes = self.orderProcesses(processes)
-        recent_file = ""
-
-        for process in processes:
-            if production_type == "assets" and self.ui.asset_list.count() != 0:
-                self.ui.asset_process_list.addItem(process)
-            elif production_type == "shot" and self.ui.shot_list.count() != 0:
-                self.ui.shot_process_list.addItem(process)
+        self.updateProcessList()
+        selectedProcess = 0
+        for i, task in enumerate(self.item_tasks):
+            if task.get('status') == ".In Progress":
+                selectedProcess = i
 
         if production_type == "assets":
             if self.ui.asset_list.count() != 0:
-                if recent_file == "":
-                    self.ui.asset_process_list.setCurrentRow(0)     # select first in process list if it contains anything
-                else:
-                    self.ui.asset_process_list.setCurrentItem(self.ui.asset_process_list.findItems(recent_file[3][2], QtCore.Qt.MatchExactly)[0])
+                self.ui.asset_process_list.setCurrentRow(selectedProcess)     # select first in process list if it contains anything
 
                 widgetItem = QtGui.QTableWidgetItem(self.item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
@@ -475,10 +447,7 @@ class mainWindow(QtGui.QDialog):
 
         elif production_type == "shot":
             if self.ui.shot_list.count() != 0:
-                if recent_file == "":
-                    self.ui.shot_process_list.setCurrentRow(0)
-                else:
-                    self.ui.shot_process_list.setCurrentItem(self.ui.shot_process_list.findItems(recent_file[3][2], QtCore.Qt.MatchExactly)[0])
+                self.ui.shot_process_list.setCurrentRow(selectedProcess)
 
                 widgetItem = QtGui.QTableWidgetItem(self.item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
@@ -489,8 +458,7 @@ class mainWindow(QtGui.QDialog):
                 self.ui.shot_info.setItem(1,0,widgetItem)
         self.finalPath()
 
-        #recent_file = ""  # set to none, this is so locating recent file will only run once, when the widget is initialized.
-
+    '''
     def orderProcesses(self, processes):
         length = len(processes) - 1
         new = []
@@ -528,10 +496,15 @@ class mainWindow(QtGui.QDialog):
             new[length] = "rough"
             length = length - 1
         return new
+    '''
 
     def orderTasksByProcesses(self, tasks):
         new = []
-        ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
+        production_type = self.productionType()
+        if production_type == "shot":
+            ordered = ['layout','animation','lighting','effects','final']
+        else:
+            ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
         for order in ordered:
             for task in tasks:
                 if task.get('process') == order:
@@ -540,15 +513,15 @@ class mainWindow(QtGui.QDialog):
 
     def assetTypeCode(self, code):
         if code == "ASSET_TYPE00002":
-            asset_type = "Character"
+            asset_type = "character"
         elif code == "ASSET_TYPE00003":
-            asset_type = "Vehicles"
+            asset_type = "vehicle"
         elif code == "ASSET_TYPE00004":
-            asset_type = "Sets"
+            asset_type = "set"
         elif code == "ASSET_TYPE00005":
-            asset_type = "Props"
+            asset_type = "prop"
         elif code == "ASSET_TYPE00006":
-            asset_type = "Misc"
+            asset_type = "other"
         elif code == "3D_TYPE00002":
             asset_type = "character"
         elif code == "3D_TYPE00003":
@@ -588,6 +561,8 @@ class mainWindow(QtGui.QDialog):
                 self.assigned = self.assigned + ", " + x.get("assigned")
                 self.bsd = self.bsd + ", " + x.get("bid_start_date")[5:-9]
                 self.bed = self.bed + ", " + x.get("bid_end_date")[5:-9]
+                self.sk = x.get('__search_key__')
+
         self.assigned = self.assigned[2:]
         self.bsd = self.bsd[2:]
         self.bed = self.bed[2:]
@@ -615,9 +590,15 @@ class mainWindow(QtGui.QDialog):
         self.updateProcessInfo()
 
         if production_type == "assets":
-            self.item_process = self.ui.asset_process_list.currentItem().text()
+            try:
+                self.item_process = self.ui.asset_process_list.currentItem().text()
+            except:
+                pass
         elif production_type == "shot":
-            self.item_process = self.ui.shot_process_list.currentItem().text()
+            try:
+                self.item_process = self.ui.shot_process_list.currentItem().text()
+            except:
+                pass
 
         #print project, production_type, item_name, item_process
         final_path = ""
@@ -636,24 +617,17 @@ class mainWindow(QtGui.QDialog):
 
         if production_type == "assets":
             if project_type == "cf" or project_type == "sports" or project_type == "video_conf" or project_type == "database":
-                expr = "@SOBJECT(simpleslot/game['name','" + project + "'].simpleslot/assets['name','" + self.item_name + "'].simpleslot/asset_type)"
-                asset_type = self.server.eval(expr)
-                item_type = asset_type[0].get('name')
-                final_path = base_path + project + "/assets/" + item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
-                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
+                final_path = base_path + project + "/assets/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
+                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
 
-                filename = jc.abbrName(project) + "_" + jc.abbrItemType(item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
+                filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
                 project_type = "assets"
 
             elif project_type == "casino":
-                expr = "@SOBJECT(simpleslot/game['name','" + project + "'].simpleslot/3d['name','" + self.item_name + "'].simpleslot/3d_type)"
-                asset_type = self.server.eval(expr)
-                item_type = asset_type[0].get('name')
-                final_path = base_path + project + "/casino/" + item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
-                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
+                final_path = base_path + project + "/casino/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
+                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
 
-                #filename = jc.abbrName(project) + "_" + jc.abbrItemType(item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
-                filename = jc.abbrName(project) + "_"  + jc.abbrItemType(item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
+                filename = jc.abbrName(project) + "_"  + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
                 project_type = "assets"
 
         elif production_type == "shot":
@@ -678,7 +652,7 @@ class mainWindow(QtGui.QDialog):
             self.updateFileList(final_path, base_filename)
         except:
             print "updateFilelist failed"
-        recent_file = ""
+        #recent_file = ""
 
     def updateFileList(self, final_path, base_filename): # use getfilelist() and update ui
         fileList = []
@@ -694,13 +668,46 @@ class mainWindow(QtGui.QDialog):
             pass
 
         for filename in fileList:
-            self.ui.file_list.addItem(filename)
+            filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(final_path + filename)))
+            self.ui.file_list.addItem(filedate + "  " + filename)
 
         file_list_count = self.ui.file_list.count()
+
         if file_list_count != 0:
             self.ui.file_list.setCurrentRow(file_list_count - 1)
 
         self.getNotes()
+
+    def updateProcessList(self):
+        production_type = self.productionType()
+
+        if self.ui.asset_process_list.count() != 0:
+            self.ui.asset_process_list.clear()
+        if self.ui.shot_process_list.count() != 0:
+            self.ui.shot_process_list.clear()
+
+        for task in self.item_tasks:
+            process = task.get('process')
+            status = task.get('status')
+            if status == '.Not Ready':
+                icon = notready_icon
+            elif status == '.Ready':
+                icon = ready_icon
+            elif status == '.In Progress':
+                icon = inprogress_icon
+            elif status == '.Stand By':
+                icon = standby_icon                
+            elif status == '.Review':
+                icon = review_icon
+            elif status == '.Complete':
+                icon = complete_icon
+               
+            if production_type == "assets" and self.ui.asset_list.count() != 0:
+                item = QtGui.QListWidgetItem(icon, process)
+                self.ui.asset_process_list.addItem(item)
+            elif production_type == "shot" and self.ui.shot_list.count() != 0:
+                item = QtGui.QListWidgetItem(icon, process)
+                self.ui.shot_process_list.addItem(item)
 
     def updateStatus(self):
         tasks = self.item_tasks
@@ -712,19 +719,17 @@ class mainWindow(QtGui.QDialog):
 
         for i, task in enumerate(new):
             process = self.item_process
-            print i, task.get('process'), process
+            # print i, task.get('process'), process
             if task.get('process') == process:
                 if task.get('status') == '.Not Ready' or task.get('status') == '.Ready':
                     task_sk = task.get('__search_key__')
                     datas.update({task_sk:inprogress})
-                    while i != 0:
-                        i-=1
-                        if new[i].get('status') != '.Complete':
-                            past_sk = new[i].get('__search_key__')
-                            datas.update({past_sk:complete})
-
-        self.server.update_multiple(datas)
-
+                while i != 0:
+                    i-=1
+                    if new[i].get('status') != '.Complete':
+                        past_sk = new[i].get('__search_key__')
+                        datas.update({past_sk:complete})
+        self.server.update_multiple(datas, triggers=False)
 
     def tacticSave(self, arg=None):
         path = self.ui.save_path.text()
@@ -750,19 +755,14 @@ class mainWindow(QtGui.QDialog):
             nuke.scriptSaveAs(filename=final)
 
         print "saved, task status set to in progress"
-        for task in self.item_tasks:
-            if task.get('process') == self.item_process:
-                if task.get('status') == '.Not Ready' or task.get('status') == '.Ready':
-                    inprogress = {'status':'.In Progress'}
-                    task_sk = task.get('__search_key__')
-                    self.server.update(task_sk, inprogress)
 
         self.finalPath()
         self.updateStatus()
+        self.getProcess()
 
     def tacticLoad(self, arg=None):
         path = self.ui.save_path.text()
-        filename = self.ui.file_list.currentItem().text()
+        filename = self.ui.file_list.currentItem().text().split("  ")[1]
         project_path = path.replace("scenes/", "")
 
         if appName == "3dsmax":
@@ -897,14 +897,14 @@ def qt_tactic_mainMain():
         except:
             loginProcess()
 
-    mainProcess(server=server)
-    '''
+    #mainProcess(server=server)
+    #'''
     if serverok == 1:
         try:
             widget.show()
         except:
             mainProcess(server=server)
-    '''
+    #'''
 
 #%%
 def loginProcess():

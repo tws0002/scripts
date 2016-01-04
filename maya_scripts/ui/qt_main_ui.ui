@@ -345,7 +345,7 @@
               <widget class="QListWidget" name="asset_list"/>
              </item>
              <item>
-              <widget class="QListWidget" name="asset_process_list">
+              <widget class="processListWidget" name="asset_process_list">
                <property name="maximumSize">
                 <size>
                  <width>150</width>
@@ -467,7 +467,7 @@
               <widget class="QListWidget" name="shot_list"/>
              </item>
              <item>
-              <widget class="QListWidget" name="shot_process_list">
+              <widget class="processListWidget" name="shot_process_list">
                <property name="maximumSize">
                 <size>
                  <width>150</width>
@@ -863,6 +863,13 @@
  <pixmapfunction>QPixmap getPixmap(const QString &amp;name){
 return QPixmap(QApplication::applicationDirPath()+QDir::s eparator()+name);
 }</pixmapfunction>
+ <customwidgets>
+  <customwidget>
+   <class>processListWidget</class>
+   <extends>QListWidget</extends>
+   <header>processlistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
