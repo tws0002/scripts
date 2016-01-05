@@ -774,7 +774,7 @@ class mainWindow(QtGui.QDialog):
             import maya.cmds as cmds
             print path + filename
             cmds.file(modified=0)
-            cmds.file((path + filename), open=True)
+            cmds.file((path + filename), open=True, ignoreVersion=True)
             jc.mayaWorkspaceFileRule(path)
 
         elif "Nuke" in appName:
