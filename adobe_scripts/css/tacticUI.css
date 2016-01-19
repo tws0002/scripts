@@ -1,0 +1,144 @@
+        div {
+            display: inline;
+        }
+        body {
+            font-family: helvetica, arial, "細明體";
+            color: #b1b1b1;
+            background-color: #323232;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+            background: #FECA40;
+            -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+        }
+        ::-webkit-scrollbar-thumb:window-inactive {
+            background: #FECA40;
+        }
+
+        input{
+                margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+        }
+        .selectable .ui-selecting { background: #FECA40; }
+        .selectable .ui-selected { background: #F39814; color: white; }
+        .selectable { width: inherit; height: 90%; list-style-type: none; margin: 0; padding: 0; overflow-x: hidden; display: inline-block; background: linear-gradient(to bottom, #4d4d4d , #646464 10%, #5d5d5d); }
+        .selectable li { margin: 1px; padding: 0px; font-size: 11px;}
+        .selectable .ui-selectee { margin: 0px; padding: 0px; font-size: 12px;}
+
+        .panel {
+            display: inline-block;
+            width: 175px;
+            height: 250px;
+        }
+
+        .tab {
+            display: inline-block;
+            margin: auto;
+            width: 100%;
+            height: 10%;
+        }
+        .tab_label {
+            font-size: 12px;
+            display: inline-block;
+            border-top: 1px solid #555;
+            border-left: 1px solid #555;
+            border-right: 1px solid #555;
+            padding: 5px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+        }
+        .assets_tab{
+        }
+        .shots_tab{
+            color: #444;
+        }
+
+        .filter{
+            display: flex;
+        }
+
+        .button_on{
+            cursor: pointer;
+            filter: grayscale(0%);
+            -webkit-filter: grayscale(0%) brightness(100%);
+        }
+
+        .button_off{
+            cursor: pointer;
+            filter: grayscale(100%);
+            -webkit-filter: grayscale(100%) brightness(50%);
+            background: linear-gradient(to bottom, #484848 , #525252);
+        }
+
+        .filter img {
+            border: 1px solid #111;
+            padding: 1px;
+        }
+
+        .filter img:hover {
+             background:#484848;
+        }
+
+        #asset_process_panel{
+            width: 90px;
+        }
+
+        #shot_process_panel{
+            width: 90px;
+        }
+
+        .mainUI{
+            display: none;
+        }
+
+        .loginUI{
+
+        }
+
+        .text_label{
+            width: 20%;
+            text-align: right;
+            font-size: 12px;
+        }
+
+        .text_input{
+            margin: 1px;
+            width: 80%;
+            border: 1px solid #000;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #4d4d4d , #646464 10%, #5d5d5d);
+        }
+
+        .text_button{
+            margin: auto;
+            padding: 2px;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #525252, #727272);
+            width: 15px;
+            height: 15px;
+            display: inline-block;
+            float: right;
+        }
+
+        .img_button{
+            cursor: pointer;
+            filter: grayscale(0%);
+            margin: auto;
+            width: 100%;
+            height: 100%;
+        }

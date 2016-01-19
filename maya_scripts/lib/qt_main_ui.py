@@ -5,7 +5,7 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui'
 #
-# Created: Thu Dec 24 14:02:28 2015
+# Created: Thu Jan 14 12:20:04 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -333,6 +333,9 @@ class Ui_main_window(object):
         self.open_button = QtGui.QPushButton(main_window)
         self.open_button.setObjectName("open_button")
         self.verticalLayout_6.addWidget(self.open_button)
+        self.publish_button = QtGui.QPushButton(main_window)
+        self.publish_button.setObjectName("publish_button")
+        self.verticalLayout_6.addWidget(self.publish_button)
         self.file_list_layout.addLayout(self.verticalLayout_6)
         self.line = QtGui.QFrame(main_window)
         self.line.setFrameShape(QtGui.QFrame.HLine)
@@ -403,6 +406,7 @@ class Ui_main_window(object):
         self.save_button.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">存檔</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.file_list_label.setText(QtGui.QApplication.translate("main_window", "檔案", None, QtGui.QApplication.UnicodeUTF8))
         self.open_button.setText(QtGui.QApplication.translate("main_window", "Open", None, QtGui.QApplication.UnicodeUTF8))
+        self.publish_button.setText(QtGui.QApplication.translate("main_window", "Publish", None, QtGui.QApplication.UnicodeUTF8))
         self.note_label.setText(QtGui.QApplication.translate("main_window", "檔案備註", None, QtGui.QApplication.UnicodeUTF8))
         self.note_list.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">這裡會列出</span><span style=\" font-size:10pt; font-weight:600;\">選擇</span><span style=\" font-size:10pt;\">的檔案的備註，滑鼠點兩下可以刪除。</span></p><p><span style=\" font-size:10pt;\">用下面的字框來輸入備註，寫完記得按儲存。</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.note.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">這邊輸入備註。</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))

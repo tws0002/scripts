@@ -149,6 +149,7 @@ class mainWindow(QtGui.QDialog):
     bed = None
     sk = None
     processes = None
+    prev_selection = 0
 
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
@@ -169,6 +170,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.open_button.clicked.connect(self.tacticLoad)
         self.ui.file_list.itemDoubleClicked.connect(self.tacticLoad)
         self.ui.open_path_button.clicked.connect(self.openPath)
+        self.ui.publish_button.clicked.connect(self.publishMaster)
         self.ui.logout_button.clicked.connect(self.logOut)
 
         self.ui.inprogress_button.clicked.connect(self.setInProgressFilter)
@@ -363,8 +365,10 @@ class mainWindow(QtGui.QDialog):
             if self.ui.shot_list.count() != 0:
                 self.ui.shot_list.setCurrentRow(0)
                 self.ui.tabProductionType.setCurrentIndex(1)
-
-        self.getProcess()
+        try:
+            self.getProcess()
+        except:
+            pass
 
     def updateList(self, name=None, stype=None, production_type=None):
         expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
@@ -395,6 +399,10 @@ class mainWindow(QtGui.QDialog):
 
     def getProcess(self):
         production_type = self.productionType()
+        # if production_type == "shot":
+        #     ordered = ['layout','animation','lighting','effects','comp','final']
+        # else:
+        #     ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
 
         selected = ""
 
@@ -428,10 +436,15 @@ class mainWindow(QtGui.QDialog):
         self.item_tasks = self.orderTasksByProcesses(tasks)
 
         self.updateProcessList()
+
         selectedProcess = 0
+        # check if previous selection exists in current process list
         for i, task in enumerate(self.item_tasks):
-            if task.get('status') == ".In Progress":
+            if task.get('process') == self.item_process:
                 selectedProcess = i
+                break
+
+        print self.item_process
 
         if production_type == "assets":
             if self.ui.asset_list.count() != 0:
@@ -456,53 +469,16 @@ class mainWindow(QtGui.QDialog):
                 widgetItem = QtGui.QTableWidgetItem(self.item_type)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1,0,widgetItem)
-        self.finalPath()
-
-    '''
-    def orderProcesses(self, processes):
-        length = len(processes) - 1
-        new = []
-        for x in range(0, len(processes)):
-            new.append("")
-
-        if "final" in processes:
-            new[length] = "final"
-            length = length - 1
-        if "layout" in processes:
-            new[length] = "layout"
-            length = length - 1
-        if "effects" in processes:
-            new[length] = "effects"
-            length = length - 1
-        if "lighting" in processes:
-            new[length] = "lighting"
-            length = length - 1
-        if "animation" in processes:
-            new[length] = "animation"
-            length = length - 1
-        if "rigging" in processes:
-            new[length] = "rigging"
-            length = length - 1
-        if "texture" in processes:
-            new[length] = "texture"
-            length = length - 1
-        if "model" in processes:
-            new[length] = "model"
-            length = length - 1
-        if "concept" in processes:
-            new[length] = "concept"
-            length = length - 1
-        if "rough" in processes:
-            new[length] = "rough"
-            length = length - 1
-        return new
-    '''
+        try:
+            self.finalPath()
+        except:
+            pass
 
     def orderTasksByProcesses(self, tasks):
         new = []
         production_type = self.productionType()
         if production_type == "shot":
-            ordered = ['layout','animation','lighting','effects','final']
+            ordered = ['layout','animation','lighting','effects','comp','final']
         else:
             ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
         for order in ordered:
@@ -592,6 +568,7 @@ class mainWindow(QtGui.QDialog):
         if production_type == "assets":
             try:
                 self.item_process = self.ui.asset_process_list.currentItem().text()
+                #self.prev_selection = self.ui.asset_process_list.currentItem().text()
             except:
                 pass
         elif production_type == "shot":
@@ -620,7 +597,7 @@ class mainWindow(QtGui.QDialog):
                 final_path = base_path + project + "/assets/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
                 base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
 
-                filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
+                filename =      jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
                 project_type = "assets"
 
             elif project_type == "casino":
@@ -747,18 +724,51 @@ class mainWindow(QtGui.QDialog):
         elif appName == "maya":
             import maya.cmds as cmds
             jc.mayaWorkspaceFileRule(path)
-            cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
+            # cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
             cmds.file(rename=final)
             cmds.file(save=True, type='mayaBinary')
         elif "Nuke" in appName:
             import nuke
             nuke.scriptSaveAs(filename=final)
+            nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
+            self.setNukeProject()
 
         print "saved, task status set to in progress"
+
+        self.prev_selection = self.ui.asset_process_list.currentItem().text()
 
         self.finalPath()
         self.updateStatus()
         self.getProcess()
+
+    def publishMaster(self, arg=None):
+        def hasNumbers(inputString):
+            return any(char.isdigit() for char in inputString)
+            
+        path = self.ui.save_path.text()
+        filename = self.ui.file_list.currentItem().text().split("  ")[1]
+
+        process = self.ui.asset_process_list.currentItem().text()
+        base_path = path.split(process)[0]
+        process = jc.abbrName(process)
+
+        base, ext = filename.split(".")
+
+        words = base.split("_")
+        final = ""
+
+        for i, word in enumerate(words):
+            if word[0] == 'v' and hasNumbers(word[1]) and hasNumbers(word[2]) and hasNumbers(word[3]) and len(word) == 4:
+                version = word
+
+        user = base.split(version)[1][1:]
+        final = base.split(process)[0][:-1]
+
+        destination = base_path + "rigging/scenes/" + final + "_master." + ext
+        source = path + filename
+        print source, destination
+        shutil.copy2(source, destination)
+
 
     def tacticLoad(self, arg=None):
         path = self.ui.save_path.text()
@@ -772,14 +782,36 @@ class mainWindow(QtGui.QDialog):
 
         elif appName == "maya":
             import maya.cmds as cmds
+            import maya.mel as mel
             print path + filename
             cmds.file(modified=0)
             cmds.file((path + filename), open=True, ignoreVersion=True)
+            setrmsproj = 'rman setvar RMSPROJ \"' + path.replace("scenes/","") + '\"'
+            try:
+                mel.eval(setrmsproj)
+            except:
+                pass
             jc.mayaWorkspaceFileRule(path)
 
         elif "Nuke" in appName:
             import nuke
             nuke.scriptOpen(path + filename)
+            nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
+            self.setNukeProject()
+
+    def setNukeProject(self, arg=None):
+        import nuke
+        sourceimages_path = nuke.root()['project_directory'].value() + "sourceimages/"
+        images_path = nuke.root()['project_directory'].value() + "images/"
+
+        if os.path.exists(images_path) is False:
+            os.makedirs(images_path)
+        if os.path.exists(sourceimages_path) is False:
+            os.makedirs(sourceimages_path)
+
+        nuke.addFavoriteDir('images', images_path)
+        nuke.addFavoriteDir('sourceimages', sourceimages_path)
+
 
     def openPath(self):
         final_path = self.ui.save_path.text()
@@ -897,14 +929,14 @@ def qt_tactic_mainMain():
         except:
             loginProcess()
 
-    #mainProcess(server=server)
-    #'''
+    mainProcess(server=server)
+    '''
     if serverok == 1:
         try:
             widget.show()
         except:
             mainProcess(server=server)
-    #'''
+    '''
 
 #%%
 def loginProcess():
