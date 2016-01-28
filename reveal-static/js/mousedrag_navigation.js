@@ -1,3 +1,5 @@
+var myviewer;
+
 function zoomin() {
     temp = $j('section.present').children("img").panzoom("getTransform");
     ratio = parseFloat(temp.match(/\(([^)]+)\)/)[1].split(",")[0])
@@ -23,61 +25,66 @@ function contrast(){
 
 
 function fitImage() {
-    doc_w = $j(document).width();
-    doc_h = window.innerHeight;
-    img = vid = [];
-    img = $j('section.present').children('img');
-    vid = $j('section.present').children('video');
-    if(img.length != 0) {
-        element = img;
-        img_w = element.prop('naturalWidth');
-        img_h = element.prop('naturalHeight');
-    } else {
-        img = []
-    }
-    if(vid.length != 0) {
-        element = vid;
-        img_w = element.innerWidth();
-        img_h = element.innerHeight();
-        doc_h = doc_h - 100;
-    } else {
-        vid = []
-    }
-    
-    var ratio;
-    if((img_w/img_h) < (doc_w/doc_h)) {
-        ratio = doc_h / img_h;    
-    }
-    else if((img_w/img_h) > (doc_w/doc_h)) {
-        ratio = doc_w / img_w;
-    }
+    if ($j('section.present.mview').length > 0){
 
-    offset_h = img_h/2 - doc_h/2;
-    if(img_w < doc_w) {
-        offset_w = 0;
     }
     else {
-        offset_w = img_w/2 - doc_w/2;
-    }
+        doc_w = $j(document).width();
+        doc_h = window.innerHeight;
+        img = vid = [];
+        img = $j('section.present').children('img');
+        vid = $j('section.present').children('video');
+        if(img.length != 0) {
+            element = img;
+            img_w = element.prop('naturalWidth');
+            img_h = element.prop('naturalHeight');
+        } else {
+            img = []
+        }
+        if(vid.length != 0) {
+            element = vid;
+            img_w = element.innerWidth();
+            img_h = element.innerHeight();
+            doc_h = doc_h - 100;
+        } else {
+            vid = []
+        }
+        
+        var ratio;
+        if((img_w/img_h) < (doc_w/doc_h)) {
+            ratio = doc_h / img_h;    
+        }
+        else if((img_w/img_h) > (doc_w/doc_h)) {
+            ratio = doc_w / img_w;
+        }
+
+        offset_h = img_h/2 - doc_h/2;
+        if(img_w < doc_w) {
+            offset_w = 0;
+        }
+        else {
+            offset_w = img_w/2 - doc_w/2;
+        }
 
 
-    element.panzoom({
-        minScale: 0,
-    });
-
-    element.panzoom('zoom', ratio);
-    element.panzoom('pan', -offset_w, -offset_h);
-    element.on('mousewheel.focal', function(e) {
-        e.preventDefault();
-        var delta = e.delta || e.originalEvent.wheelDelta;
-        var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
-        element.panzoom('zoom', zoomOut, {
-          increment: 0.05,
-          animate: false,
-          focal: e,
+        element.panzoom({
+            minScale: 0,
         });
-    });     
-   $j(".present").css("overflow", "visible");
+
+        element.panzoom('zoom', ratio);
+        element.panzoom('pan', -offset_w, -offset_h);
+        element.on('mousewheel.focal', function(e) {
+            e.preventDefault();
+            var delta = e.delta || e.originalEvent.wheelDelta;
+            var zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
+            element.panzoom('zoom', zoomOut, {
+              increment: 0.05,
+              animate: false,
+              focal: e,
+            });
+        });     
+       $j(".present").css("overflow", "visible");
+   }
 
 }
 
@@ -102,6 +109,40 @@ function updateInfo() {
     $j('div.info_date').append(date);
 }
 
+function loadMarmoset() {
+    doc_w = $j(document).width();
+    doc_h = window.innerHeight;
+    setTimeout( function () {
+        $j('section.present').children('section.mview').children('div.marmoset').empty();        
+        mview_url = $j('section.present').children('section.present.mview').attr('url');
+        mview_url = "http://vg.com/assets/" + mview_url;
+        
+        var myviewer = new marmoset.WebViewer( doc_w, doc_h, mview_url);
+        $j('section.present.mview').children('div.marmoset').append(myviewer.domRoot);   
+        $j('div.marmoset').children('div').children('canvas').css("left", 0);   
+        myviewer.loadScene();
+
+        $j('div#marmosetUI').children('text').css('bottom',65);
+        logo = $j('div#marmosetUI').children('div')[5];
+        controls = $j('div#marmosetUI').children('div')[6];
+        $j(controls).css('right',35).css('top',125);
+        $j(logo).remove();
+        
+    }, 0 );
+
+
+    /*myviewer.onLoad = function() {console.log(mview_url);};*/
+
+
+    //remove past or future mview, too heavy
+    if ($j('section.past').children('section.mview').children('div.marmoset').children().length > 0){
+        $j('section.past').children('section.mview').children('div.marmoset').empty();
+    }
+
+    else if ($j('section.future').children('section.mview').children('div.marmoset').children().length > 0){
+        $j('section.future').children('section.mview').children('div.marmoset').empty();
+    }    
+}
 function updateCursor() {
     current = $j('div.slides').children('section.future').length;
     item_count = $j('div.slides').children('.section_top').length;
@@ -163,3 +204,43 @@ function updateCursor() {
         $j('.navHint').children('img').attr('src','/assets/scripts/reveal-static/icons/left-up-down.png');
     }        
 }
+
+function touchControl() {
+   $j(document).mousedown(function(e) { e.preventDefault(); pos=e.pageX; dragging = true })
+    if($j('section.present.mview').length == 0){
+        $j('.reveal').on('mousedown', function(e) {
+            $j(this).data('p0', { x: e.pageX, y: e.pageY});
+        }).on('mouseup', function(e) {
+            if(e.which == 1) {
+                var p0 = $j(this).data('p0'),
+                    p1 = { x: e.pageX, y: e.pageY },
+                    d = Math.sqrt(Math.pow(p1.x - p0.x, 2) + Math.pow(p1.y - p0.y, 2));
+
+                x_diff = (p0.x - p1.x);
+                y_diff = (p0.y - p1.y);
+            
+                if (Math.abs(x_diff) > Math.abs(y_diff) && Math.abs(x_diff) > 6) {
+                    if (x_diff < 0) {
+                        Reveal.left();    
+                    }
+                    else if (x_diff > 0) {
+                        Reveal.right();
+                    }
+                }
+
+                else if (Math.abs(y_diff) > Math.abs(x_diff) && Math.abs(y_diff) > 6) {
+                    if (y_diff < 0) {
+                        Reveal.up();    
+                    }
+                    else if (y_diff > 0) {
+                        Reveal.down();
+                    }
+                }            
+            }
+        });
+    }
+    else{
+        $j('.reveal').unbind();
+    }
+}
+

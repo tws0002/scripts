@@ -8,7 +8,9 @@
     <meta http-equiv="pragma" content="no-cache"/>
     <script src="http://vg.com/assets/scripts/adobe_scripts/jquery-1.9.1.min.js"></script>
     <!-- <link rel="stylesheet" href="http://vg.com/assets/scripts/adobe_scripts/reset.css"> -->
-    <script type="text/javascript" src="http://vg.com/assets/scripts/adobe_scripts/CSInterface.js"></script> 
+    <!-- <link rel="stylesheet" href="http://vg.com/assets/scripts/animate/animate.min.css"> -->
+
+    <script type="text/javascript" src="http://vg.com/assets/scripts/adobe_scripts/CSInterface.js"></script>
     <script type="text/javascript" src="http://vg.com/assets/scripts/js-cookie/src/js.cookie.js"></script>
 
     <script>var $j = jQuery.noConflict();</script>
@@ -37,7 +39,6 @@
     <script src="http://vg.com/context/spt_js/api/api.js?ver=4.1.0.v03" ></script>
     <script src="http://vg.com/context/spt_js/load-image.min.js?ver=4.1.0.v03" ></script>
     <style>
-
         body {
             font-family: helvetica, arial, "細明體";
             color: #b1b1b1;
@@ -73,7 +74,7 @@
 
         ::-webkit-scrollbar-button:end:increment {
             /*background-image: url(../../adobe_scripts/icons/chevron-down.png);*/
-        }        
+        }
 
 
         input{
@@ -168,7 +169,7 @@
             cursor: pointer;
             border: 1px solid #111;
             background: linear-gradient(to bottom, #525252, #484848);
-            border-radius: 3px;             
+            border-radius: 3px;
             height: 26px;
             box-sizing: border-box;
         }
@@ -176,15 +177,16 @@
         .button:hover{
             border: 2px solid #F39814;
             height: 26px;
-            -webkit-filter: grayscale(0%) brightness(100%);            
+            -webkit-filter: grayscale(0%) brightness(100%);
 
-        }        
+        }
 
         .button_on{
+            border: 2px solid #F39814;
         }
 
         .button_off{
-            -webkit-filter: grayscale(100%) brightness(50%);            
+            -webkit-filter: grayscale(100%) brightness(50%);
         }
 
         .sign_out {
@@ -227,7 +229,7 @@
             font-size: 10px;
             line-height: 22px;
             vertical-align: middle;
-            width: 75%;
+            width: 82%;
             border: 1px solid #111111;
             border-radius: 3px;
         }
@@ -242,7 +244,7 @@
         .app_filter{
             display: block;
             margin: auto;
-            width: 134.5px;
+            width: 209px;
         }
 
         .row_div{
@@ -250,6 +252,21 @@
             width: 100%;
             height: 26px;
             display: block;
+        }
+
+        .process_status{
+            vertical-align: middle;
+            margin-left: 1px;
+            margin-right: 2px;            
+        }
+
+        .datetime {
+            margin-right: 10px;
+            display: inline;
+        }
+
+        .filename {
+            display: inline;
         }
     </style>
     <script>
@@ -300,7 +317,7 @@
     </tr>
     <tr>
         <td>
-            <div class='panel'>
+            <div class='panel '>
                 <div class='tab'>
                     <div class='tab_label'>Projects</div>
                 </div>
@@ -308,7 +325,7 @@
             </div>
         </td>
         <td>
-            <div class='panel' id='asset_panel'>
+            <div class='panel ' id='asset_panel'>
                 <div class='tab'>
                     <div class='tab_label assets_tab'>Assets</div>
                     <div class='tab_label shots_tab'>Shots</div>
@@ -324,7 +341,7 @@
             </div>
         </td>
         <td>
-            <div class='panel' id='asset_process_panel'>
+            <div class='panel ' id='asset_process_panel'>
                 <div class='tab'>
                     <div class='tab_label'>Process</div>
                 </div>
@@ -340,30 +357,48 @@
     </tr>
     <tr>
         <td colspan='3'>
-            <div class='row_div'>
+            <div class=''>
                 <div class='text_label' id='final_path_label'>存檔路徑:</div>
                 <input class='text_input' id="final_path" autofocus value="value text" onfocus="this.value = this.value;" spellcheck="false"/>
-                <div class='inline'>
-                    <img src="http://vg.com/assets/scripts/adobe_scripts/icons/fa-folder-open-o.png" class='button' name='folder_open'/>                    
-                </div>
+<!--                 <div class='inline'>
+                    <img src="http://vg.com/assets/scripts/adobe_scripts/icons/fa-folder-open-o.png" class='button' name='folder_open'/>
+                </div> -->
             </div>
         </td>
     </tr>
     <tr>
         <td colspan='3'>
-            <div>
-                <div class='text_label' id='final_path_label'>存檔名:</div>
+            <div class=''>
+                <div class='text_label' id='final_file_label'>存檔名:</div>
                 <input class='text_input' id="final_file_name"/>
-                <div class='inline'>
+<!--                 <div class='inline'>
                     <img src="http://vg.com/assets/scripts/adobe_scripts/icons/fa-save.png" class='button' id='folder_open' onclick='javascript:tacticUI.saveFile()'/>
-                </div>
+                </div> -->
+            </div>
+        </td>
+    </tr>
+        <tr>
+        <td colspan='3'>
+            <div class=''>
+                <div class='text_label' id='final_file_label'>TESTING:</div>
+                <input class='text_input' id="testing"/>
+<!--                 <div class='inline'>
+                    <img src="http://vg.com/assets/scripts/adobe_scripts/icons/fa-save.png" class='button' id='folder_open' onclick='javascript:tacticUI.saveFile()'/>
+                </div> -->
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td colspan='3'>
+        <div class=''>
+                <button class='text_button' onclick='javascript:tacticUI.saveFile()'>Save</button>
             </div>
         </td>
     </tr>
 
     <tr>
         <td colspan='3'>
-            <div class='full_panel'>
+            <div class='full_panel '>
                 <div class='panel_label'>
                     Files
                 </div>
@@ -381,18 +416,18 @@
     <tr>
         <td colspan='3'>
             <div class='app_filter'>
-                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ps_icon.png" class='button button_off app' name='PHXS'/>
-                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ae_icon.png" class='button button_off app' name='AEFT'/>
-                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ai_icon.png" class='button button_off app' name='ILST'/>                    
-                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_fl_icon.png" class='button button_off app' name='FLPR'/>
-            </div>        
-        </td>    
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ps_icon_off.png" class='button button_off app' name='PHXS'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ae_icon_off.png" class='button button_off app' name='AEFT'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ai_icon_off.png" class='button button_off app' name='ILST'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_fl_icon_off.png" class='button button_off app' name='FLPR'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/maya_icon_off.png" class='button button_off app' name='MAYA'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/max_icon_off.png" class='button button_off app' name='MAX'/>
+                <img src="http://vg.com/assets/scripts/adobe_scripts/icons/nuke_icon_off.png" class='button button_off app' name='NUKE'/>
+            </div>
+        </td>
     </tr>
-
-
-
-
 </table>
+
 </div>
     <script>
         $j("input").keypress(function(event) {
@@ -432,6 +467,7 @@
             $j('#shot_process_panel').css('display','none');
             $j('#asset_process_panel').css('display','');
         });
+
         $j('.shots_tab').on('click', function(event, ui) {
             production_type = 'shot';
             $j('.shots_tab').css('color', '#b1b1b1');
@@ -443,12 +479,7 @@
             tacticUI.getItems();
         });
 
-/*        $j('.selectable li').on('click', function( event, ui ) {
-            $j('.selectable li').removeClass("ui-selected");
-            $j(this).addClass("ui-selected");
-        });*/
-
-        $j('.img.proj_status').on('click', function(event, ui){
+        $j('img.proj_status').on('click', function(event, ui){
             $j('.inline img.button_on').removeClass('button_on').addClass('button_off');
             $j(this).addClass('button_on').removeClass('button_off');
             filter = $j(this).attr('name');
@@ -458,11 +489,19 @@
         $j('img.app').on('click', function(event, ui){
             if($j(this).hasClass('button_on') == true){
                 tacticUI.resetAppFilter();
+                img = $j(this).attr('src');
+                on_img = img.replace("icon.png","icon_off.png");
+                $j(this).attr('src',on_img);
+
             } else if($j(this).hasClass('button_off') == true){
                 tacticUI.resetAppFilter();
-                $j(this).addClass('button_on').removeClass('button_off');    
+                $j(this).addClass('button_on').removeClass('button_off');
+                img = $j(this).attr('src');
+                off_img = img.replace("_off.png","") + ".png";
+                $j(this).attr('src',off_img);
             }
-            tacticUI.appId = $j(this).attr('name');
+            /*tacticUI.appId = $j(this).attr('name');*/
+            tacticUI.appId = '';
             tacticUI.getFiles();
         });
 
@@ -473,20 +512,8 @@
 
         var CSLibrary = new CSInterface();
         var tacticUI = new mainWindow();
-        try{
-            tacticUI.appId = CSLibrary.getHostEnvironment().appId;
-            if(tacticUI.appId == 'PHXS'){
-                $j("img.button[name='PHXS']").addClass('button_on').removeClass('button_off');
-            } else if(tacticUI.appId == 'AEFT'){
-                $j("img.button[name='AEFT']").addClass('button_on').removeClass('button_off');
-            } else if(tacticUI.appId == 'ILST'){
-                $j("img.button[name='ILST']").addClass('button_on').removeClass('button_off');
-            } else if(tacticUI.appId == 'FLPR'){
-                $j("img.button[name='FLPR']").addClass('button_on').removeClass('button_off');
-            }            
-        }catch(err){
 
-        }        
+        tacticUI.setAppId();
         tacticUI.getProjects();
 
     function mainWindow(){
@@ -505,13 +532,13 @@
 
         self.item_task_details = "";
         self.process = "";
-        
+
         self.final_path = "";
         self.base_filename = "";
         self.save_filename = "";
 
         self.file_list = "";
-        self.appId = "web";
+        self.appId = "";
     /*    self.item_process = '';
         self.item_code = '';
         self.assigned = '';
@@ -592,7 +619,7 @@
             /* select default */
             selected = $j('ul.selectable#projects li.ui-selected');
             if(selected.length == 0) {
-                temp = $j("ul.selectable#projects li:contains('fishing_joy_cf')");
+                temp = $j("ul.selectable#projects li:contains('jia_test')");
                 $j(temp).addClass('ui-selected');
                 self.game = $j(temp).text();
                 self.getItems();
@@ -729,25 +756,35 @@
                 for(task = 0; task < self.item_tasks.length; task++){
                     if(self.item_tasks[task]['process'] == ordered[order]){
                         self.item_task_details = self.item_tasks[task];
-                        asset_process_list = asset_process_list + "<li>" + self.item_tasks[task]['process'] + "</li>";
+                        process = self.item_tasks[task]['process'];
+                        status = self.item_tasks[task]['status'];
+                        status_icon = "<img src=" + self.statusIcon(status) + ">";
+                        asset_process_list = asset_process_list + "<li>" +self.statusIcon(status) + process + "</li>";
                     }
                 }
             }
 
             $j('ul.selectable#asset_process').append(asset_process_list);
 
+            /*bind click behavior*/
             $j('.selectable#asset_process li').on('click', function( event, ui ) {
                 $j('.selectable#asset_process li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
                 self.process = $j(this).text();
                 self.finalPath(production_type = 'assets', stype = stype);
-
             });
 
+            /*select default*/
+            selectedProcess = self.process;
+
             if($j('.selectable#asset_process li.ui-selected').length == 0){
-                selected = $j('.selectable#asset_process li')[0];
-                $j(selected).addClass("ui-selected");
-                self.process = $j(selected).text();
+                selector = '.selectable#asset_process li:contains(\"' + selectedProcess + '\")';
+                if($j(selector).length == 0){
+                    $j('.selectable#asset_process li')[0].addClass("ui-selected");
+                } else {
+                    $j(selector).addClass("ui-selected");
+                }
+                self.process = $j('.selectable#asset_process li.ui-selected').text();
                 self.finalPath(production_type = 'assets', stype = stype);
             }
         }
@@ -766,7 +803,10 @@
                 for(task = 0; task < self.item_tasks.length; task++){
                     if(self.item_tasks[task]['process'] == ordered[order]){
                         self.item_task_details = self.item_tasks[task];
-                        shot_process_list = shot_process_list + "<li>" + self.item_tasks[task]['process'] + "</li>";
+                        process = self.item_tasks[task]['process'];
+                        status = self.item_tasks[task]['status'];
+                        status_icon = "<img src=" + self.statusIcon(status) + ">";
+                        shot_process_list = shot_process_list + "<li>" +self.statusIcon(status) + process + "</li>";                        
                     }
                 }
             }
@@ -781,13 +821,38 @@
 
             });
 
+            selectedProcess = self.process;
+
             if($j('.selectable#shot_process li.ui-selected').length == 0){
-                selected = $j('.selectable#shot_process li')[0];
-                $j(selected).addClass("ui-selected");
-                self.process = $j(selected).text();
+                selector = '.selectable#shot_process li:contains(\"' + selectedProcess + '\")';
+                if($j(selector).length == 0){
+                    $j('.selectable#shot_process li')[0].addClass("ui-selected");
+                } else {
+                    $j(selector).addClass("ui-selected");
+                }                
+                $j(selector).addClass("ui-selected");
+                self.process = $j(selector).text();
                 self.finalPath(production_type = 'shot', stype = stype);
             }
         }
+
+        self.statusIcon = function(status){
+            if(status == '.Not Ready'){
+                icon = "notready.png";
+            } else if(status == '.Ready'){
+                icon = "ready.png";
+            } else if(status == '.In Progress'){
+                icon = "inprogress.png";
+            } else if(status == '.Stand By'){
+                icon = "standby.png";
+            } else if(status == '.Review'){
+                icon = "review.png";
+            } else if(status == '.Complete'){
+                icon = "complete.png";
+            }
+            return "<img src=\"http://vg.com/assets/scripts/adobe_scripts/icons/proc_list/" + icon + "\" class='process_status'>";            
+        }
+
 
         self.assetTypeCode = function(code){
             if(code == "ASSET_TYPE00002"){
@@ -900,7 +965,7 @@
             versions = [];
             matchedFiles = [];
             for(i=0;i<self.file_list.length;i++){
-                if(self.file_list[i].indexOf(base_filename) > -1) {
+                if(self.file_list[i]['filename'].indexOf(base_filename) > -1) {
                     matchedFiles.push(self.file_list[i]);
                 }
             }
@@ -908,22 +973,30 @@
                 next_version = "v001";
             } else {
                 for(j=0;j<matchedFiles.length;j++){
-                    savedFile = matchedFiles[j].replace((base_filename + "_"), "");
+                    savedFile = matchedFiles[j]['filename'].replace((base_filename + "_"), "");
                     temp = savedFile.split("_").length; /*temp is length of remaining string, find the max length for the version*/
                     version = savedFile.split(".")[0].split("_")[0];
                     version = version.replace("v","");
                     versions.push(parseInt(version));
                     next_version = getMaxOfArray(versions) + 1;
                     if(next_version > 9){
-                        next_version = ("v0" + next_version).slice(-4);    
+                        next_version = ("v0" + next_version).slice(-4);
                     } else {
                         next_version = ("v00" + next_version).slice(-4);
                     }
                 }
             }
-            return next_version;            
+            return next_version;
 
-        }  
+        }
+
+        self.reloadAnimation = function(id){
+            el_name = '#' + id;
+            el = $j(el_name).clone();
+            $j(el_name).remove();
+            $j('#final_file_label').parent().append(el);
+
+        }
 
         self.finalPath = function(production_type, stype){
             $j('#final_path').empty();
@@ -937,7 +1010,7 @@
                     self.base_filename = self.abbrName(self.game) + "_" + self.abbrItemType(item_type) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
                 } else {
                     self.final_path = base_path + self.game + "/" + stype + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
-                    self.base_filename = self.abbrName(self.game) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);                    
+                    self.base_filename = self.abbrName(self.game) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
                 }
             } else if(self.project_info['game_type'] == 'casino') {
                 item_type = self.assetTypeCode(self.item_details['3d_type_code']);
@@ -947,62 +1020,94 @@
 
             $j('#final_path').val(self.final_path);
             $j('#final_path').focus();
-            
-            self.getFiles();    
+            self.reloadAnimation('final_file_name');
+            self.getFiles();
         }
         self.resetAppFilter = function(){
-            $j("img.button[name='AEFT']").removeClass('button_on');
-            $j("img.button[name='PHXS']").removeClass('button_on');
-            $j("img.button[name='ILST']").removeClass('button_on');
-            $j("img.button[name='FLPR']").removeClass('button_on');
-            $j("img.button[name='AEFT']").addClass('button_off');
-            $j("img.button[name='PHXS']").addClass('button_off');
-            $j("img.button[name='ILST']").addClass('button_off');
-            $j("img.button[name='FLPR']").addClass('button_off');            
+            $j("img.button.app").removeClass('button_on');
+            $j("img.button.app").addClass('button_off');
+
+            $j("img.button[name='AEFT']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ae_icon_off.png')
+            $j("img.button[name='PHXS']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ps_icon_off.png')
+            $j("img.button[name='ILST']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_ai_icon_off.png')
+            $j("img.button[name='FLPR']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/adobe_cc_fl_icon_off.png')
+            $j("img.button[name='MAYA']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/maya_icon_off.png')
+            $j("img.button[name='MAX']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/max_icon_off.png')
+            $j("img.button[name='NUKE']").attr('src','http://vg.com/assets/scripts/adobe_scripts/icons/nuke_icon_off.png')
+
         }
 
+
         self.getFiles = function(){
-            if(self.appId == 'AEFT'){
+            appFilter = $j("img.app.button_on").attr('name');
+
+            if(appFilter == 'AEFT'){
                 ext = 'aep';
-            } else if(self.appId == 'PHXS'){
+            } else if(appFilter == 'PHXS'){
                 ext = 'psd';
-            } else if(self.appId == 'ILST'){
+            } else if(appFilter == 'ILST'){
                 ext = 'ai';
-            } else if(self.appId == 'FLPR'){
-                ext = 'flv';                                
+            } else if(appFilter == 'FLPR'){
+                ext = 'flv';
+            } else if(appFilter == 'MAYA'){
+                ext = 'mb';
+            } else if(appFilter == 'MAX'){
+                ext = 'max';
+            } else if(appFilter == 'NUKE'){
+                ext = 'nk';
             } else {
                 ext = "";
-            }            
+            }
+
+            if(self.appId != ''){
+                selector = "img.button[name=\'" + self.appId + "\']";
+                $j(selector).addClass('button_on').removeClass('button_off');
+                img = $j(selector).attr('src');
+                on_img = img.replace("_off.png",".png");
+                $j(selector).attr('src',on_img);
+            }
 
             new_file_list = [];
             self.file_list = [];
             $j('.selectable#files').empty();
-            data = {'path': self.final_path};
+            data = {'final_path': self.final_path, 'base_filename': self.base_filename};
             self.file_list = server.execute_python_script('/scripts/py_listdir', data).info.spt_ret_val;
-            
+
+            /*build list of all files OR build list based on current selected extension */
             for(i=0;i<self.file_list.length;i++){
-                if(self.file_list[i].indexOf(self.base_filename) > -1){
-                    if(self.appId == ""){
-                        new_file_list.push(self.file_list[i]);    
+                if(self.file_list[i]['filename'].indexOf(self.base_filename) > -1){
+                    if(ext == ""){
+                        new_file_list.push(self.file_list[i]);
                     }
-                    else if(self.file_list[i].indexOf(ext) > -1){
-                        new_file_list.push(self.file_list[i]);    
+                    else if(self.file_list[i]['filename'].indexOf(ext) > -1){
+                        new_file_list.push(self.file_list[i]);
                     }
                 }
             }
 
             self.file_list = new_file_list;
-            file_list = self.buildList(self.file_list);
+            /*file_list = self.buildList(self.file_list);*/
 
-            $j('.selectable#files').append(file_list);
+            flist = "";
+            for(y=0;y<self.file_list.length;y++){
+                    flist = flist + "<li><div class=\"datetime\">" + self.file_list[y]['filedate'] + "</div><div class=\"filename\">" + self.file_list[y]['filename'] + "</div></li>";
+            }
 
-            self.save_filename = self.base_filename + "_" + self.maxVersion(self.base_filename) + "_" + server.login;            
-            $j('#final_file_name').val(self.save_filename);            
+            $j('.selectable#files').append(flist);
+
+            self.save_filename = self.base_filename + "_" + self.maxVersion(self.base_filename) + "_" + server.login;
+            $j('#final_file_name').val(self.save_filename);
 
             $j('.selectable#files li').on('click', function( event, ui ) {
                 $j('.selectable#files li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
-            });            
+            });
+
+            $j('.selectable#files li').removeClass("ui-selected");
+            $j('ul.selectable#files').children('li')[$j('ul.selectable#files').children('li').length - 1].addClass('ui-selected')
+            $j('ul.selectable#files').scrollTop(200);
+
+            //$j('#testing').val('ok');
 
         }
 
@@ -1012,28 +1117,51 @@
         }
 
         self.saveFile = function(){
-            savePath = self.final_path + "/" + self.save_filename;
+            savePath = self.final_path + self.save_filename;
+            /*$j('#testing').val(savePath);*/
             script = 'app.project.save(File(\'' + savePath + '\'));';
             if(self.appId == 'AEFT'){
                 script = 'app.project.save(File(\'' + savePath + '\'));';
             } else if(self.appId == 'PHXS'){
                 script = 'var saveOptions = new PhotoshopSaveOptions();  app.activeDocument.saveAs(File(\'' + savePath + '\'), saveOptions, false);';
             }
-            CSLibrary.evalScript(script);
-            self.getFiles();
+
+            CSLibrary.evalScript(script, function(res){
+                t = res;
+                $j('#testing').val(t);
+                self.getFiles();
+            });
         }
 
         self.openFile = function(){
-            selectedFile = $j('.selectable#files .ui-selected').text();
-            openPath = self.final_path + "/" + selectedFile;
+            selectedFile = $j('.selectable#files .ui-selected').children('div.filename').text();
+            selectedfile = 
+            openPath = self.final_path + selectedFile;
 
             if(self.appId == 'AEFT'){
-                
+                script = 'app.open(File(\'' + openPath + '\'));';
             } else if(self.appId == 'PHXS'){
                 script = 'app.open(File(\'' + openPath + '\'));';
             }
             CSLibrary.evalScript(script);
         }
+
+        self.setAppId = function(){
+            try{
+                self.appId = CSLibrary.getHostEnvironment().appId;
+                if(tacticUI.appId == 'PHXS'){
+                    $j("img.button[name='PHXS']").addClass('button_on').removeClass('button_off');
+                } else if(tacticUI.appId == 'AEFT'){
+                    $j("img.button[name='AEFT']").addClass('button_on').removeClass('button_off');
+                } else if(tacticUI.appId == 'ILST'){
+                    $j("img.button[name='ILST']").addClass('button_on').removeClass('button_off');
+                } else if(tacticUI.appId == 'FLPR'){
+                    $j("img.button[name='FLPR']").addClass('button_on').removeClass('button_off');
+                }
+            }catch(err){
+
+            }
+        }        
     }
 </script>
 
