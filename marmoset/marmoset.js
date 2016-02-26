@@ -3238,7 +3238,9 @@ marmoset = {};
     };
     marmoset = "undefined" == typeof marmoset ? {} : marmoset;
     marmoset.WebViewer = WebViewer;
-    marmoset.dataLocale = (0 == window.location.protocol.indexOf("https") ? "https:" : "http:") + "//vg.com/assets/scripts/marmoset/";
+    var hosturl = window.location.host;
+    marmoset.dataLocale = (0 == window.location.protocol.indexOf("https") ? "https:" : "http:") + "//" + hosturl + "/assets/scripts/marmoset/";
+    /*marmoset.dataLocale == "http://" + hostname + "/assets/scripts/marmoset/";*/
     var ShaderTable = {
         "aaresolve.glsl": "precision mediump float;uniform sampler2D tInput0;uniform sampler2D tInput1;uniform sampler2D tInput2;\n#ifdef HIGHQ\nuniform sampler2D tInput3;\n#endif\nuniform vec4 uSamplesValid;varying highp vec2 d;void main(void){vec3 e=texture2D(tInput0,d).xyz;vec3 f=texture2D(tInput1,d).xyz;vec3 h=texture2D(tInput2,d).xyz;\n#ifdef HIGHQ\nvec3 i=texture2D(tInput3,d).xyz;gl_FragColor.xyz=e*uSamplesValid.x+f*uSamplesValid.y+h*uSamplesValid.z+i*uSamplesValid.w;\n#else\ngl_FragColor.xyz=e*uSamplesValid.x+f*uSamplesValid.y+h*uSamplesValid.z;\n#endif\ngl_FragColor.w=1.0;}",
         "alphaprepassfrag.glsl": "precision mediump float;\n#include <matdither.glsl>\nuniform sampler2D tAlbedo;varying mediump vec2 j;void main(){float k=texture2D(tAlbedo,j).a;if(k<=l(j.x)){discard;}gl_FragColor=vec4(0.0);}",

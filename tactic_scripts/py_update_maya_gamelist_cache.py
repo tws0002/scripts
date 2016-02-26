@@ -24,9 +24,8 @@ import datetime
 now = datetime.datetime.now()
 from dateutil import parser
 
-
-
 def gamelist(items):
+    now = datetime.datetime.now()
     names = ""
     names_chn = ""
     games_type = ""
@@ -35,30 +34,37 @@ def gamelist(items):
     bed_string = ""
 
     for game in items:
+        bsd = []
+        bed = []            
         name = game.get("name")
         name_chn = game.get("name_chn")
         search_code = game.get("code")
         expr = "@SOBJECT(sthpw/task['search_code','" + search_code + "'])"
         depts = server.eval(expr)
-    
+
         expr = "@GET(simpleslot/game['name','" + name + "'].simpleslot/game_type.name)"
         game_type = server.eval(expr)
         for dept in depts:
-            dept_name = dept.get("process")
-            if dept_name == "3d":
-                bsd = dept.get("bid_start_date")
-                bsd = parser.parse(bsd)
-                bsd = bsd.strftime("%m/%d/%y")
-                bed = dept.get("bid_end_date")
-                bed = parser.parse(bed)
-                bed = bed.strftime("%m/%d/%y")
-                bsd_string = bsd_string + "__" + (bsd)
-                bed_string = bed_string + "__ " + (bed)
-                assignment = dept.get("assigned")
-                assignments = assignments + "__" + assignment
-                names = names + "__" + name
-                games_type = games_type + "__" + game_type[0]
-                names_chn = names_chn + "__" + name_chn
+            bsd.append(parser.parse(dept.get("bid_start_date")))
+            bed.append(parser.parse(dept.get("bid_end_date")))
+        try:
+            bsd = min(bsd)
+            bsd = bsd.strftime("%m/%d/%y")
+        except:
+            bsd = ""
+        try:
+            bed = max(bed)
+            bed = bed.strftime("%m/%d/%y")
+        except:
+            bed = ""
+        bsd_string = bsd_string + "__" + (bsd)
+        bed_string = bed_string + "__ " + (bed)
+            
+        assignment = game.get("project_coordinator")
+        assignments = assignments + "__" + assignment
+        names = names + "__" + name
+        games_type = games_type + "__" + game_type[0]
+        names_chn = names_chn + "__" + name_chn
     data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
     return data
 
@@ -73,12 +79,15 @@ def run():
     complete = server.eval(expr)
     data = gamelist(inprogress)    
     test1 = server.update("simpleslot/plan?project=simpleslot&id=8", data)
-    
+    print "in progress complete"
     data = gamelist(ready)
     test2 = server.update("simpleslot/plan?project=simpleslot&id=10",data)
-    
+    print "ready complete"
+
     data = gamelist(complete)
     test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
+    print "complete complete"
     
-
+if __name__ == "__main__":
+    run() # for addCustomShelf, the rule is filename + Main()
 

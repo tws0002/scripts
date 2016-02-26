@@ -444,8 +444,6 @@ class mainWindow(QtGui.QDialog):
                 selectedProcess = i
                 break
 
-        print self.item_process
-
         if production_type == "assets":
             if self.ui.asset_list.count() != 0:
                 self.ui.asset_process_list.setCurrentRow(selectedProcess)     # select first in process list if it contains anything
@@ -735,7 +733,11 @@ class mainWindow(QtGui.QDialog):
 
         print "saved, task status set to in progress"
 
-        self.prev_selection = self.ui.asset_process_list.currentItem().text()
+        production_type = self.productionType()
+        if production_type == 'assets':
+            self.prev_selection = self.ui.asset_process_list.currentItem().text()
+        elif production_type == 'shot':
+            self.prev_selection = self.ui.shot_process_list.currentItem().text()
 
         self.finalPath()
         self.updateStatus()
@@ -852,8 +854,14 @@ class mainWindow(QtGui.QDialog):
         assignments = ""
         bsd_string = ""
         bed_string = ""
+        cf_type = ['cf','video_conf', 'database']
+        casino_type = ['casino']
+        stype = ""
+        temp = []
 
         for game in items:
+            bsd = []
+            bed = []            
             name = game.get("name")
             name_chn = game.get("name_chn")
             search_code = game.get("code")
@@ -861,23 +869,38 @@ class mainWindow(QtGui.QDialog):
             depts = self.server.eval(expr)
 
             expr = "@GET(simpleslot/game['name','" + name + "'].simpleslot/game_type.name)"
-            game_type = self.server.eval(expr)
-            for dept in depts:
-                dept_name = dept.get("process")
-                if dept_name == "3d":
-                    bsd = dept.get("bid_start_date")
-                    bsd = parser.parse(bsd)
+            game_type = self.server.eval(expr)[0]
+
+            if game_type in cf_type:
+                stype = 'assets'
+            elif game_type in casino_type:
+                stype = '3d'
+
+            expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
+            temp = self.server.eval(expr)                 
+
+            if len(temp) > 0:
+                for dept in depts:
+                    bsd.append(parser.parse(dept.get("bid_start_date")))
+                    bed.append(parser.parse(dept.get("bid_end_date")))
+                try:
+                    bsd = min(bsd)
                     bsd = bsd.strftime("%m/%d/%y")
-                    bed = dept.get("bid_end_date")
-                    bed = parser.parse(bed)
+                except:
+                    bsd = ""
+                try:
+                    bed = max(bed)
                     bed = bed.strftime("%m/%d/%y")
-                    bsd_string = bsd_string + "__" + (bsd)
-                    bed_string = bed_string + "__ " + (bed)
-                    assignment = dept.get("assigned")
-                    assignments = assignments + "__" + assignment
-                    names = names + "__" + name
-                    games_type = games_type + "__" + game_type[0]
-                    names_chn = names_chn + "__" + name_chn
+                except:
+                    bed = ""
+                bsd_string = bsd_string + "__" + (bsd)
+                bed_string = bed_string + "__ " + (bed)
+                    
+                assignment = game.get("project_coordinator")
+                assignments = assignments + "__" + assignment
+                names = names + "__" + name
+                games_type = games_type + "__" + game_type
+                names_chn = names_chn + "__" + name_chn
         data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
         return data
 

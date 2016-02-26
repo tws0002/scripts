@@ -465,7 +465,14 @@
             </div>
         </td>
     </tr>
-
+    <tr>
+        <td colspan='3'>
+            <div class=''>
+                <div class='text_label' id='final_file_label'>TESTING:</div>
+                <input class='text_input' id="testing"/>
+            </div>
+        </td>
+    </tr>
 <!--     <tr>
         <td colspan='3'>
         <div class=''>
@@ -587,8 +594,8 @@
         server.set_project("simpleslot");
         login = Cookies.get('login');
         password = Cookies.get('password');
-/*        login = 'julio';
-        password = '1234';*/
+        login = 'julio';
+        password = '1234';
         server.login = login;
 
         try {

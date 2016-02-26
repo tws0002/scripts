@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.adobe.htmlsample.tactic" ExtensionBundleVersion="1.0" Version="5.0">
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.adobe.htmlsample.tactic_dev" ExtensionBundleVersion="1.0" Version="5.0">
     <ExtensionList>
-        <Extension Id="com.adobe.htmlsample.tactic.panel" Version="1.0"/>
+        <Extension Id="com.adobe.htmlsample.tactic_dev.panel" Version="1.0"/>
     </ExtensionList>
     <ExecutionEnvironment>
         <HostList>
@@ -28,7 +28,7 @@
         </RequiredRuntimeList>
     </ExecutionEnvironment>
     <DispatchInfoList>
-        <Extension Id="com.adobe.htmlsample.tactic.panel">
+        <Extension Id="com.adobe.htmlsample.tactic_dev.panel">
             <DispatchInfo>
                 <Resources>
                     <MainPath>./html/index.html</MainPath>
@@ -43,15 +43,15 @@
                 </Lifecycle>
                 <UI>
                     <Type>Panel</Type>
-                    <Menu>TACTIC</Menu>
+                    <Menu>TACTIC-DEV</Menu>
                     <Geometry>
                         <Size>
-                            <Height>750</Height>
-                            <Width>468</Width>
+                            <Height>800</Height>
+                            <Width>475</Width>
                         </Size>
                         <MinSize>
-                            <Height>750</Height>
-                            <Width>468</Width>
+                            <Height>800</Height>
+                            <Width>475</Width>
                         </MinSize>
                     </Geometry>
                     <Icons />					

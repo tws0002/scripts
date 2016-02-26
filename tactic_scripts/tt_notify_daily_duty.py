@@ -7,7 +7,7 @@ import socket
 sys.path.append("//Art-1405260002/d/assets/client")
 
 from tactic_client_lib import TacticServerStub
-server = TacticServerStub()
+server = TacticServerStub(setup=False)
 
 tactic_server_ip = socket.gethostbyname("vg.com")
 

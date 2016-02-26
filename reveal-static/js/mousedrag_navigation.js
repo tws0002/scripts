@@ -25,10 +25,8 @@ function contrast(){
 
 
 function fitImage() {
-    if ($j('section.present.mview').length > 0){
-
-    }
-    else {
+    mview_url = $j('section.present').children('section.present.mview').attr('url');
+    if(mview_url == null){    
         doc_w = $j(document).width();
         doc_h = window.innerHeight;
         img = vid = [];
@@ -85,7 +83,6 @@ function fitImage() {
         });     
        $j(".present").css("overflow", "visible");
    }
-
 }
 
 function updateInfo() {
@@ -110,39 +107,43 @@ function updateInfo() {
 }
 
 function loadMarmoset() {
-    doc_w = $j(document).width();
-    doc_h = window.innerHeight;
-    setTimeout( function () {
-        $j('section.present').children('section.mview').children('div.marmoset').empty();        
-        mview_url = $j('section.present').children('section.present.mview').attr('url');
-        mview_url = "http://vg.com/assets/" + mview_url;
-        
-        var myviewer = new marmoset.WebViewer( doc_w, doc_h, mview_url);
-        $j('section.present.mview').children('div.marmoset').append(myviewer.domRoot);   
-        $j('div.marmoset').children('div').children('canvas').css("left", 0);   
-        myviewer.loadScene();
+    mview_url = $j('section.present').children('section.present.mview').attr('url');
+    if(mview_url != null){
+        doc_w = $j(document).width();
+        doc_h = window.innerHeight;
+        setTimeout( function () {
+            $j('section.present').children('section.mview').children('div.marmoset').empty();        
+            
+            mview_url = "/assets/" + mview_url;
+            
+            var myviewer = new marmoset.WebViewer( doc_w, doc_h, mview_url);
+            $j('section.present.mview').children('div.marmoset').append(myviewer.domRoot);   
+            $j('div.marmoset').children('div').children('canvas').css("left", 0);   
+            myviewer.loadScene();
 
-        $j('div#marmosetUI').children('text').css('bottom',65);
-        logo = $j('div#marmosetUI').children('div')[5];
-        controls = $j('div#marmosetUI').children('div')[6];
-        $j(controls).css('right',35).css('top',125);
-        $j(logo).remove();
-        
-    }, 0 );
+            $j('div#marmosetUI').children('text').css('bottom',65);
+            logo = $j('div#marmosetUI').children('div')[5];
+            controls = $j('div#marmosetUI').children('div')[6];
+            $j(controls).css('right',35).css('top',125);
+            $j(logo).remove();
+            
+        }, 0 );
 
 
-    /*myviewer.onLoad = function() {console.log(mview_url);};*/
+        /*myviewer.onLoad = function() {console.log(mview_url);};*/
 
 
-    //remove past or future mview, too heavy
-    if ($j('section.past').children('section.mview').children('div.marmoset').children().length > 0){
-        $j('section.past').children('section.mview').children('div.marmoset').empty();
+        //remove past or future mview, too heavy
+        if ($j('section.past').children('section.mview').children('div.marmoset').children().length > 0){
+            $j('section.past').children('section.mview').children('div.marmoset').empty();
+        }
+
+        else if ($j('section.future').children('section.mview').children('div.marmoset').children().length > 0){
+            $j('section.future').children('section.mview').children('div.marmoset').empty();
+        }    
     }
-
-    else if ($j('section.future').children('section.mview').children('div.marmoset').children().length > 0){
-        $j('section.future').children('section.mview').children('div.marmoset').empty();
-    }    
 }
+
 function updateCursor() {
     current = $j('div.slides').children('section.future').length;
     item_count = $j('div.slides').children('.section_top').length;
