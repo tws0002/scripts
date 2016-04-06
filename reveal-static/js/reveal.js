@@ -3374,7 +3374,7 @@
 
     }
 
-    function fitImage() {
+/*    function fitImage() {
         mview_url = $j('section.present').children('section.present.mview').attr('url');
         if(mview_url == null){
             doc_w = $j(document).width();
@@ -3433,7 +3433,7 @@
             });
            $j(".present").css("overflow", "visible");
        }
-    }
+    }*/
 
     function navigateLeft() {
 

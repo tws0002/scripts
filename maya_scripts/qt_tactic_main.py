@@ -1,4 +1,4 @@
-'''
+﻿'''
 import subprocess
 import fileinput
 
@@ -9,7 +9,7 @@ subprocess.call("C:/Python27/scripts/pyside-uic -o %s %s" % (output, input))
 with open(output, 'r') as data:
     filedata = data.read()
 
-header = "# -*- coding: utf-8 -*-\n" 
+header = "# -*- coding: utf-8 -*-\n"
 header = header + "import sys\nsys.path.append(\"//Art-1405260002/d/assets/scripts/maya_scripts/lib\")\n"
 
 filedata = filedata.replace('../', '//Art-1405260002/d/assets/scripts/maya_scripts/')
@@ -21,7 +21,7 @@ filedata = header + filedata
 with open(output, 'w') as data:
     data.write(filedata)
 
-'''    
+'''
 scripts_path = "//Art-1405260002/d/assets"
 import sys
 tactic_client_path = scripts_path + "/client"
@@ -181,11 +181,28 @@ class mainWindow(QtGui.QDialog):
         #self.ui.save_note.clicked.connect(self.saveNotes)
         self.ui.note_list.itemDoubleClicked.connect(self.delNotes)
         self.ui.note.returnPressed.connect(self.saveNotes)
-        self.ui.note.setStyleSheet("""
-            background-color: rgb(170,170,170);
-            color: black;
-        """)
+        self.ui.note.setStyleSheet("""background-color: rgb(170,170,170);color: black;""")
         self.ui.update_cache.clicked.connect(self.updateCache)
+
+        self.ui.colorCode1.setStyleSheet("""background-color: rgb(97,78,78);padding: 0;""")
+        self.ui.colorCode2.setStyleSheet("""background-color: rgb(78,97,87);padding: 0;""")
+        self.ui.colorCode3.setStyleSheet("""background-color: rgb(97,78,97);padding: 0;""")
+        self.ui.colorCode4.setStyleSheet("""background-color: rgb(87,97,78);padding: 0;""")
+        self.ui.colorCode5.setStyleSheet("""background-color: rgb(78,78,97);padding: 0;""")
+        self.ui.colorCode6.setStyleSheet("""background-color: rgb(97,87,78);padding: 0;""")
+        self.ui.colorCode7.setStyleSheet("""background-color: rgb(78,78,97);padding: 0;""")
+        self.ui.colorCode8.setStyleSheet("""background-color: rgb(97,78,87);padding: 0;""")
+
+        self.ui.colorCode1.clicked.connect(lambda: self.showItemByType(1))
+        self.ui.colorCode2.clicked.connect(lambda: self.showItemByType(2))
+        self.ui.colorCode3.clicked.connect(lambda: self.showItemByType(3))
+        self.ui.colorCode4.clicked.connect(lambda: self.showItemByType(4))
+        self.ui.colorCode5.clicked.connect(lambda: self.showItemByType(5))
+        self.ui.colorCode6.clicked.connect(lambda: self.showItemByType(6))
+        self.ui.colorCode7.clicked.connect(lambda: self.showItemByType(7))
+        self.ui.colorCode8.clicked.connect(lambda: self.showItemByType(8))
+        self.ui.colorCode9.clicked.connect(lambda: self.showItemByType(9))                
+
 
         if "Nuke" in appName:
             pass
@@ -193,6 +210,36 @@ class mainWindow(QtGui.QDialog):
             sshFile = scripts_path + "/scripts/maya_scripts/lib/darkorange.stylesheet"
             with open(sshFile, "r") as fh:
                 self.setStyleSheet(fh.read())
+    def showItemByType(self, id):
+        count = self.ui.asset_list.count()
+        for i in range(0, count):
+            self.ui.asset_list.item(i).setHidden(0)
+            if id == 1:
+                if self.ui.asset_list.item(i).background().color().name() != '#614e4e':
+                    self.ui.asset_list.item(i).setHidden(1)
+            elif id == 2:
+                if self.ui.asset_list.item(i).background().color().name() != '#4e6157':
+                    self.ui.asset_list.item(i).setHidden(1)
+            elif id == 3:
+                if self.ui.asset_list.item(i).background().color().name() != '#614e61':
+                    self.ui.asset_list.item(i).setHidden(1)    
+            elif id == 4:
+                if self.ui.asset_list.item(i).background().color().name() != '#57614e':
+                    self.ui.asset_list.item(i).setHidden(1)    
+            elif id == 5:
+                if self.ui.asset_list.item(i).background().color().name() != '#4e4e61':
+                    self.ui.asset_list.item(i).setHidden(1) 
+            elif id == 6:
+                if self.ui.asset_list.item(i).background().color().name() != '#61574e':
+                    self.ui.asset_list.item(i).setHidden(1)
+            elif id == 7:
+                if self.ui.asset_list.item(i).background().color().name() != '#4e6161':
+                    self.ui.asset_list.item(i).setHidden(1)    
+            elif id == 8:
+                if self.ui.asset_list.item(i).background().color().name() != '#614e57':
+                    self.ui.asset_list.item(i).setHidden(1)    
+            elif id == 9:
+                self.ui.asset_list.item(i).setHidden(0)
 
     def getNotes(self):
         self.ui.note_list.clear()
@@ -341,7 +388,7 @@ class mainWindow(QtGui.QDialog):
             #if temp[x][5] in game:  # if selected is in inprogress list
             # make sure game is an exact match to temp[x][5], otherwise projects with _app or _cf suffix will aggregate
             if self.game == temp[x][5]:
-                if temp[x][1] == "casino":  # if selected is casino or shot or assets
+                if temp[x][1] == "casino" or temp[x][1] == "lottery":  # if selected is casino or shot or assets
                     self.updateList(name=temp[x][5], stype="3d", production_type="assets")
 
                 elif temp[x][1] == "sports" or temp[x][1] == "cf" or temp[x][1] == "video_conf" or temp[x][1] == "database":
@@ -370,25 +417,101 @@ class mainWindow(QtGui.QDialog):
         except:
             pass
 
+    def updateCasinoItemHelp(self):
+        self.ui.colorCode1.setText('C')
+        self.ui.colorCode2.setText('S')
+        self.ui.colorCode3.setText('UI')
+        self.ui.colorCode4.setText('B1')
+        self.ui.colorCode5.setText('B2')
+        self.ui.colorCode6.setText('F')
+        self.ui.colorCode7.setText('J')
+        self.ui.colorCode8.setText('I')
+
+        self.ui.colorCode1.setToolTip(u'角色');
+        self.ui.colorCode2.setToolTip(u'符號');
+        self.ui.colorCode3.setToolTip(u'介面');
+        self.ui.colorCode4.setToolTip(u'彩金1');
+        self.ui.colorCode5.setToolTip(u'彩金2');
+        self.ui.colorCode6.setToolTip(u'Freegame');
+        self.ui.colorCode7.setToolTip(u'Jackpot');
+        self.ui.colorCode8.setToolTip(u'開場動畫');
+
+    def updateAssetItemHelp(self):
+        self.ui.colorCode1.setText('C')
+        self.ui.colorCode2.setText('V')
+        self.ui.colorCode3.setText('S')
+        self.ui.colorCode4.setText('P')
+        self.ui.colorCode5.setText('O')
+        self.ui.colorCode6.setText('')
+        self.ui.colorCode7.setText('')
+        self.ui.colorCode8.setText('')
+
+        self.ui.colorCode1.setToolTip(u"角色");
+        self.ui.colorCode2.setToolTip(u"車");
+        self.ui.colorCode3.setToolTip(u"場景");
+        self.ui.colorCode4.setToolTip(u"道具");
+        self.ui.colorCode5.setToolTip(u"其它");
+        self.ui.colorCode6.setToolTip(u"");
+        self.ui.colorCode7.setToolTip(u"");
+        self.ui.colorCode8.setToolTip(u"");
+
     def updateList(self, name=None, stype=None, production_type=None):
         expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
         temp = self.server.eval(expr)
 
         items = sorted(temp, key=lambda k: k['name'])
-
-        if stype == "3d" or stype == "assets":
+        if stype == "3d":
+            items = sorted(temp, key=lambda k: k['3d_type_code'])
             self.asset_item_details = items
-            names = [y['name'] for y in self.asset_item_details]
+            names = [[y['name'], y['3d_type_code']] for y in self.asset_item_details]
+            self.updateCasinoItemHelp();
 
         else:
-            self.shot_item_details = items
-            names = [y['name'] for y in self.shot_item_details]
+            if production_type == "assets":
+                items = sorted(temp, key=lambda k: k['asset_type_code'])
+                self.asset_item_details = items
+                names = [[y['name'], y['asset_type_code']] for y in self.asset_item_details]
+                self.updateAssetItemHelp();
 
+            elif production_type == "shot":
+                names = [[y['name'], ] for y in self.asset_item_details]
+                #items = sorted(temp, key=lambda k: k['asset_type_code'])
+
+        list_index = 0
         for name in names:
             if production_type == "assets":
-                self.ui.asset_list.addItem(name)
+                self.ui.asset_list.addItem(name[0])
+                if name[1] == "3D_TYPE00002":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e4e'))
+                elif name[1] == "3D_TYPE00003":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6157'))
+                elif name[1] == "3D_TYPE00004":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e61'))
+                elif name[1] == "3D_TYPE00005":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#57614e'))
+                elif name[1] == "3D_TYPE00006":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e4e61'))
+                elif name[1] == "3D_TYPE00007":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#61574e'))
+                elif name[1] == "3D_TYPE00008":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6161'))
+                elif name[1] == "3D_TYPE00009":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e57'))
+                elif name[1] == "ASSET_TYPE00002":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e4e'))
+                elif name[1] == "ASSET_TYPE00003":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6157'))
+                elif name[1] == "ASSET_TYPE00004":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e61'))
+                elif name[1] == "ASSET_TYPE00005":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#57614e'))
+                elif name[1] == "ASSET_TYPE00006":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e4e61'))
+
+                list_index = list_index+1
+
             else:
-                self.ui.shot_list.addItem(name)
+                self.ui.shot_list.addItem(name[0])
 
     def productionType(self):
         if self.ui.tabProductionType.currentIndex() == 0:
@@ -411,7 +534,7 @@ class mainWindow(QtGui.QDialog):
             self.item_name = self.ui.asset_list.currentItem().text()
             self.item_name_chn = self.asset_item_details[selected].get('description')
             self.item_code = self.asset_item_details[selected].get('code')
-            if self.project_info[1] == "casino":
+            if self.project_info[1] == "casino" or self.project_info[1] == "lottery":
                 stype = "3d"
                 self.item_type = self.asset_item_details[selected].get('3d_type_code')
             else:
@@ -422,7 +545,7 @@ class mainWindow(QtGui.QDialog):
             self.item_type = self.assetTypeCode(self.item_type)
 
         elif production_type == "shot":
-            if self.ui.shot_list.count() != 0:            
+            if self.ui.shot_list.count() != 0:
                 selected = self.ui.shot_list.currentRow()
                 self.item_name = self.ui.shot_list.currentItem().text()
                 self.item_name_chn = self.shot_item_details[selected].get('description')
@@ -598,8 +721,8 @@ class mainWindow(QtGui.QDialog):
                 filename =      jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
                 project_type = "assets"
 
-            elif project_type == "casino":
-                final_path = base_path + project + "/casino/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
+            elif project_type == "casino" or project_type == "lottery":
+                final_path = base_path + project + "/" + project_type + "/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
                 base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
 
                 filename = jc.abbrName(project) + "_"  + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
@@ -671,12 +794,12 @@ class mainWindow(QtGui.QDialog):
             elif status == '.In Progress':
                 icon = inprogress_icon
             elif status == '.Stand By':
-                icon = standby_icon                
+                icon = standby_icon
             elif status == '.Review':
                 icon = review_icon
             elif status == '.Complete':
                 icon = complete_icon
-               
+
             if production_type == "assets" and self.ui.asset_list.count() != 0:
                 item = QtGui.QListWidgetItem(icon, process)
                 self.ui.asset_process_list.addItem(item)
@@ -746,7 +869,7 @@ class mainWindow(QtGui.QDialog):
     def publishMaster(self, arg=None):
         def hasNumbers(inputString):
             return any(char.isdigit() for char in inputString)
-            
+
         path = self.ui.save_path.text()
         filename = self.ui.file_list.currentItem().text().split("  ")[1]
 
@@ -798,8 +921,8 @@ class mainWindow(QtGui.QDialog):
         elif "Nuke" in appName:
             import nuke
             nuke.scriptOpen(path + filename)
-            nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
-            self.setNukeProject()
+            #nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
+            #self.setNukeProject()
 
     def setNukeProject(self, arg=None):
         import nuke
@@ -861,7 +984,7 @@ class mainWindow(QtGui.QDialog):
 
         for game in items:
             bsd = []
-            bed = []            
+            bed = []
             name = game.get("name")
             name_chn = game.get("name_chn")
             search_code = game.get("code")
@@ -877,7 +1000,7 @@ class mainWindow(QtGui.QDialog):
                 stype = '3d'
 
             expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
-            temp = self.server.eval(expr)                 
+            temp = self.server.eval(expr)
 
             if len(temp) > 0:
                 for dept in depts:
@@ -895,7 +1018,7 @@ class mainWindow(QtGui.QDialog):
                     bed = ""
                 bsd_string = bsd_string + "__" + (bsd)
                 bed_string = bed_string + "__ " + (bed)
-                    
+
                 assignment = game.get("project_coordinator")
                 assignments = assignments + "__" + assignment
                 names = names + "__" + name

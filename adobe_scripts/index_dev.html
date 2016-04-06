@@ -258,6 +258,7 @@
             width: 100%;
             margin: auto;
             height: 26px;
+            position: relative;
         }
 
         .row_div{
@@ -339,6 +340,12 @@
 
 <div class='mainUI'>
 <table>
+    <tr>
+        <td colspan='3'>
+        sdfsdf
+        asfsdf
+        </td>
+    </tr>
     <tr>
         <td colspan='3'>
             <div class='top'>
@@ -465,14 +472,7 @@
             </div>
         </td>
     </tr>
-    <tr>
-        <td colspan='3'>
-            <div class=''>
-                <div class='text_label' id='final_file_label'>TESTING:</div>
-                <input class='text_input' id="testing"/>
-            </div>
-        </td>
-    </tr>
+
 <!--     <tr>
         <td colspan='3'>
         <div class=''>
@@ -706,7 +706,7 @@
         self.asset_process_list = [];
         self.shot_process_list = [];
 
-        self.cftype = ['sports', 'cf', 'video_conf', 'database', 'lottery'];
+        self.cftype = ['sports', 'cf', 'video_conf', 'database'];
 
         self.buildList = function(alist){
             flist = "";
@@ -785,7 +785,7 @@
         self.getItems = function(){
             for(x=0;x<self.projects_data.length;x++){
                 if(self.game == self.projects_data[x]['name']){
-                    if(self.projects_data[x]['game_type'] == 'casino'){
+                    if(self.projects_data[x]['game_type'] == 'casino' || self.projects_data[x]['game_type'] == 'lottery'){
                         self.project_info = self.projects_data[x];
                         self.updateAssetList(stype="3d");
                     }
@@ -1215,8 +1215,8 @@
             $j('#final_file_name').empty();
             base_path = "//art-render/art_3d_project/";
 
-
-            if(self.cftype.indexOf(self.project_info['game_type']) >= 0){
+            if(self.cftype.indexOf(self.project_info['game_type']) != -1){
+                console.log('assets');
                 if(stype == 'assets'){
                     item_type = self.assetTypeCode(self.item_details['asset_type_code']);
                     self.final_path = base_path + self.game + "/" + stype + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
@@ -1225,9 +1225,10 @@
                     self.final_path = base_path + self.game + "/" + stype + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
                     self.base_filename = self.abbrName(self.game) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
                 }
-            } else if(self.project_info['game_type'] == 'casino') {
+            } else if(self.project_info['game_type'] == 'casino' || self.project_info['game_type'] == 'lottery') {
+                console.log(self.project_info['game_type']);
                 item_type = self.assetTypeCode(self.item_details['3d_type_code']);
-                self.final_path = base_path + self.game + "/casino/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
+                self.final_path = base_path + self.game + "/" + self.project_info['game_type'] + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
                 self.base_filename = self.abbrName(self.game) + "_" + self.abbrItemType(item_type) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
             }
 
@@ -1420,7 +1421,7 @@
 
                     save_path = qc_path + "/" + current_filename.split(".")[0] + "_" + next_version + ".jpg";
                     if(self.appId == 'PHXS'){
-                        script = "saveFile=File(\"" + save_path + "\"); jpgSaveOptions=new JPEGSaveOptions; jpgSaveOptions.embedColorProfile=!0; jpgSaveOptions.formatOptions=FormatOptions.STANDARDBASELINE; jpgSaveOptions.matte=MatteType.WHITE; jpgSaveOptions.quality=6; activeDocument.saveAs(saveFile,jpgSaveOptions,!0,Extension.LOWERCASE);"
+                        script = "var bpfile=File(\"" + backplatepath + "\"),current=app.activeDocument,current_name=current.name,current_bits=current.bitsPerChannel;app.preferences.rulerUnits=Units.PIXELS,app.preferences.typeUnits=TypeUnits.PIXELS,app.displayDialogs=DialogModes.NO,doc_w=2e3,doc_h=1042,img_w=current.width,img_h=current.height;var ratio;img_w/img_h<doc_w/doc_h?ratio=doc_h/img_h:img_w/img_h>doc_w/doc_h&&(ratio=doc_w/img_w),offset_h=img_h/2-doc_h/2,img_w<doc_w?offset_w=0:offset_w=img_w/2-doc_w/2,final_w=img_w*ratio,final_h=img_h*ratio,$.writeln(final_w),$.writeln(final_h),current.selection.selectAll(),current.selection.copy(!0),app.documents.add(img_w,img_h,72,'copied',NewDocumentMode.RGB,DocumentFill.WHITE,1,current_bits),app.activeDocument.paste(),app.activeDocument.bitsPerChannel=BitsPerChannelType.EIGHT,app.activeDocument.resizeImage(final_w),app.activeDocument.selection.selectAll(),app.activeDocument.activeLayer.isBackgroundLayer&&(app.activeDocument.activeLayer.isBackgroundLayer=!1),app.activeDocument.activeLayer.allLocked&&(app.activeDocument.activeLayer.allLocked=!1),app.activeDocument.selection.copy(!0),app.activeDocument.close(SaveOptions.DONOTSAVECHANGES),app.open(bpfile),app.activeDocument.paste(),app.activeDocument.artLayers[0].translate(0,-41),app.activeDocument.flatten(),app.activeDocument.activeLayer.isBackgroundLayer&&(app.activeDocument.activeLayer.isBackgroundLayer=!1),app.activeDocument.activeLayer.allLocked&&(app.activeDocument.activeLayer.allLocked=!1);saveFile=File(\"" + save_path + "\"),jpgSaveOptions=new JPEGSaveOptions,jpgSaveOptions.embedColorProfile=!0,jpgSaveOptions.formatOptions=FormatOptions.STANDARDBASELINE,jpgSaveOptions.matte=MatteType.WHITE,jpgSaveOptions.quality=6,activeDocument.saveAs(saveFile,jpgSaveOptions,!0,Extension.LOWERCASE),app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);"
                     } else if(self.appId == 'ILST'){
                         script = "saveFile=File(\"" + save_path + ".jpg" + "\"); jpgSaveOptions=new ExportOptionsJPEG(); jpgSaveOptions.antiAliasing=!0; jpgSaveOptions.artBoardClipping=!0; app.activeDocument.exportFile(saveFile, ExportType.JPEG , jpgSaveOptions);"                    
                     }
@@ -1492,15 +1493,26 @@
                         }
                     }
 
+                    if(self.osInfo.indexOf('Mac OS X') > -1){
+                        backplatepath = "/Volumes/D/assets/scripts/adobe_scripts/plate/backplate.psd";
+                    } else {
+                        backplatepath = "//art-1405260002/D/assets/scripts/adobe_scripts/plate/backplate.psd";
+                    }                    
                     save_path = qc_path + "/" + current_filename.split(".")[0] + "_" + next_version + ".jpg";
+
                     if(self.appId == 'PHXS'){
-                        script = "saveFile=File(\"" + save_path + "\"); jpgSaveOptions=new JPEGSaveOptions; jpgSaveOptions.embedColorProfile=!0; jpgSaveOptions.formatOptions=FormatOptions.STANDARDBASELINE; jpgSaveOptions.matte=MatteType.WHITE; jpgSaveOptions.quality=6; activeDocument.saveAs(saveFile,jpgSaveOptions,!0,Extension.LOWERCASE);"
+                        script = "var bpfile=File(\"" + backplatepath + "\"),current=app.activeDocument,current_name=current.name,current_bits=current.bitsPerChannel;app.preferences.rulerUnits=Units.PIXELS,app.preferences.typeUnits=TypeUnits.PIXELS,app.displayDialogs=DialogModes.NO,doc_w=2e3,doc_h=1042,img_w=current.width,img_h=current.height;var ratio;img_w/img_h<doc_w/doc_h?ratio=doc_h/img_h:img_w/img_h>doc_w/doc_h&&(ratio=doc_w/img_w),offset_h=img_h/2-doc_h/2,img_w<doc_w?offset_w=0:offset_w=img_w/2-doc_w/2,final_w=img_w*ratio,final_h=img_h*ratio,$.writeln(final_w),$.writeln(final_h),current.selection.selectAll(),current.selection.copy(!0),app.documents.add(img_w,img_h,72,'copied',NewDocumentMode.RGB,DocumentFill.WHITE,1,current_bits),app.activeDocument.paste(),app.activeDocument.bitsPerChannel=BitsPerChannelType.EIGHT,app.activeDocument.resizeImage(final_w),app.activeDocument.selection.selectAll(),app.activeDocument.activeLayer.isBackgroundLayer&&(app.activeDocument.activeLayer.isBackgroundLayer=!1),app.activeDocument.activeLayer.allLocked&&(app.activeDocument.activeLayer.allLocked=!1),app.activeDocument.selection.copy(!0),app.activeDocument.close(SaveOptions.DONOTSAVECHANGES),app.open(bpfile),app.activeDocument.paste(),app.activeDocument.artLayers[0].translate(0,-41),app.activeDocument.flatten(),app.activeDocument.activeLayer.isBackgroundLayer&&(app.activeDocument.activeLayer.isBackgroundLayer=!1),app.activeDocument.activeLayer.allLocked&&(app.activeDocument.activeLayer.allLocked=!1);saveFile=File(\"" + save_path + "\"),jpgSaveOptions=new JPEGSaveOptions,jpgSaveOptions.embedColorProfile=!0,jpgSaveOptions.formatOptions=FormatOptions.STANDARDBASELINE,jpgSaveOptions.matte=MatteType.WHITE,jpgSaveOptions.quality=6,activeDocument.saveAs(saveFile,jpgSaveOptions,!0,Extension.LOWERCASE),app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);"
                     } else if(self.appId == 'ILST'){
                         script = "saveFile=File(\"" + save_path + ".jpg" + "\"); jpgSaveOptions=new ExportOptionsJPEG(); jpgSaveOptions.antiAliasing=!0; jpgSaveOptions.artBoardClipping=!0; app.activeDocument.exportFile(saveFile, ExportType.JPEG , jpgSaveOptions);"                    
                     }
                     CSLibrary.evalScript(script);
                 });
             });
+            return save_path;
+        }
+
+        self.qcBackplate = function(){
+            var save_path = self.uploadQc();
         }
 
         self.openQc = function(){

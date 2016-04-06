@@ -25,8 +25,9 @@ function contrast(){
 
 
 function fitImage() {
-    mview_url = $j('section.present').children('section.present.mview').attr('url');
-    if(mview_url == null){    
+    var mview_url = $j('section.present').children('section.present.mview').attr('url');
+    var mp3_url = $j('section.present').children('section.present.mp3').attr('url');
+    if(mview_url == null && mp3_url == null){    
         doc_w = $j(document).width();
         doc_h = window.innerHeight;
         img = vid = [];
@@ -144,6 +145,105 @@ function loadMarmoset() {
     }
 }
 
+function playButton(){
+    var current_slide = $j('section.present').children('section.present');
+    var play_button = $j(current_slide).find('div.center-button#play-button');
+    if($j(play_button).hasClass('on')){
+        $j(play_button).removeClass('on').addClass('off');
+        $j(play_button).children('awe.fa-play').removeClass('fa-play').addClass('fa-pause');
+    } else if($j(play_button).hasClass('off')) {
+        $j(play_button).removeClass('off').addClass('on');
+        $j(play_button).children('awe.fa-pause').removeClass('fa-pause').addClass('fa-play');
+    }
+}
+
+function loopButton(){
+    var current_slide = $j('section.present').children('section.present');
+    var loop_button = $j(current_slide).find('div.center-button#loop-button');
+    var repeat = $j(loop_button).hasClass('on');
+    if(repeat == true){
+        $j(loop_button).removeClass('on').addClass('off');
+        $j(loop_button).find('awe.btn_off').removeClass('btn_off').addClass('btn_on');
+    } else if(repeat == false){
+        $j(loop_button).removeClass('off').addClass('on');
+        $j(loop_button).find('awe.btn_on').removeClass('btn_on').addClass('btn_off');
+    }
+}
+
+function stopButton(){
+    var current_slide = $j('section.present').children('section.present');
+    var play_button = $j(current_slide).find('div.center-button#play-button');
+    if($j(play_button).hasClass('on')){    
+        $j(play_button).removeClass('off').addClass('on');
+        $j(play_button).children('awe.fa-pause').removeClass('fa-pause').addClass('fa-play');
+    }
+}
+
+function resetWaveSurfer(){
+    wavesurfer.un('finish');
+    wavesurfer.un('ready');
+    wavesurfer.unAll();
+    wavesurfer.destroy();
+}
+
+function formatTime(time){
+    time = Math.round(time);
+    var minutes = Math.floor(time / 60),
+        seconds = time - minutes * 60;
+    seconds = seconds < 10 ? '0' + seconds : seconds;
+    return minutes + ":" + seconds;
+}
+
+var wavesurfer;
+function loadMp3() {
+    if (wavesurfer){
+        resetWaveSurfer();
+    }
+    var timer = 0;
+    var current_slide = $j('section.present').children('section.present');
+    var mp3_url = $j('section.present').children('section.present.mp3').attr('url');
+    if(mp3_url){
+        var current_container = $j(current_slide).find('#waveform');
+        wavesurfer = WaveSurfer.create({
+            container: current_container[0],
+            cursorColor: '#6BC19E',
+            cursorWidth: 2,
+            height: 75,
+            waveColor: '#547992',
+            progressColor: '#579E81',
+            interact: true,
+            splitChannels: true
+        });
+        wavesurfer.load(mp3_url);    
+
+        var play_button = $j(current_slide).find('div.center-button#play-button');
+        var loop_button = $j(current_slide).find('div.center-button#loop-button');
+
+        wavesurfer.on('finish', function () {
+            var repeat = $j(loop_button).hasClass('on');
+            if (repeat == false) {
+                $j(play_button).removeClass('off').addClass('on');
+                $j(play_button).children('awe.fa-pause').removeClass('fa-pause').addClass('fa-play');
+                wavesurfer.stop();
+            }
+            else if (repeat == true) {
+                wavesurfer.play();
+            }
+        });  
+
+        wavesurfer.on('ready', function () {
+            var duration = wavesurfer.getDuration();
+            $j(current_slide).find('span#current').text('0:00');
+            $j(current_slide).find('span#total').text(formatTime(duration));
+
+            clearInterval(timer);
+            timer = setInterval(function() {
+                $j(current_slide).find('#current').text(formatTime(wavesurfer.getCurrentTime()));
+            }, 1000);
+        });        
+    }
+}
+
 function updateCursor() {
     current = $j('div.slides').children('section.future').length;
     item_count = $j('div.slides').children('.section_top').length;
@@ -208,7 +308,7 @@ function updateCursor() {
 
 function touchControl() {
    $j(document).mousedown(function(e) { e.preventDefault(); pos=e.pageX; dragging = true })
-    if($j('section.present.mview').length == 0){
+    if($j('section.present.mview').length == 0 || $j('section.present.mp3').length == 0){
         $j('.reveal').on('mousedown', function(e) {
             $j(this).data('p0', { x: e.pageX, y: e.pageY});
         }).on('mouseup', function(e) {
@@ -244,4 +344,6 @@ function touchControl() {
         $j('.reveal').unbind();
     }
 }
+
+
 
