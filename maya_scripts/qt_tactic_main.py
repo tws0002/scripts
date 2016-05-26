@@ -59,12 +59,12 @@ reload(jc)
 
 asset_item_details = ""
 shot_item_details = ""
-notready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/notready.png')
-ready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/ready.png')
-inprogress_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/inprogress.png')
-standby_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/standby.png')
-review_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/review.png')
-complete_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/complete.png')
+notready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/notready.png')
+ready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/ready.png')
+inprogress_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/inprogress.png')
+standby_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/standby.png')
+review_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/review.png')
+complete_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/complete.png')
 
 app = QtGui.QApplication.instance()
 if not app:
@@ -201,7 +201,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.colorCode6.clicked.connect(lambda: self.showItemByType(6))
         self.ui.colorCode7.clicked.connect(lambda: self.showItemByType(7))
         self.ui.colorCode8.clicked.connect(lambda: self.showItemByType(8))
-        self.ui.colorCode9.clicked.connect(lambda: self.showItemByType(9))                
+        self.ui.colorCode9.clicked.connect(lambda: self.showItemByType(9))
 
 
         if "Nuke" in appName:
@@ -222,22 +222,22 @@ class mainWindow(QtGui.QDialog):
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 3:
                 if self.ui.asset_list.item(i).background().color().name() != '#614e61':
-                    self.ui.asset_list.item(i).setHidden(1)    
+                    self.ui.asset_list.item(i).setHidden(1)
             elif id == 4:
                 if self.ui.asset_list.item(i).background().color().name() != '#57614e':
-                    self.ui.asset_list.item(i).setHidden(1)    
+                    self.ui.asset_list.item(i).setHidden(1)
             elif id == 5:
                 if self.ui.asset_list.item(i).background().color().name() != '#4e4e61':
-                    self.ui.asset_list.item(i).setHidden(1) 
+                    self.ui.asset_list.item(i).setHidden(1)
             elif id == 6:
                 if self.ui.asset_list.item(i).background().color().name() != '#61574e':
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 7:
                 if self.ui.asset_list.item(i).background().color().name() != '#4e6161':
-                    self.ui.asset_list.item(i).setHidden(1)    
+                    self.ui.asset_list.item(i).setHidden(1)
             elif id == 8:
                 if self.ui.asset_list.item(i).background().color().name() != '#614e57':
-                    self.ui.asset_list.item(i).setHidden(1)    
+                    self.ui.asset_list.item(i).setHidden(1)
             elif id == 9:
                 self.ui.asset_list.item(i).setHidden(0)
 
@@ -865,6 +865,11 @@ class mainWindow(QtGui.QDialog):
         self.finalPath()
         self.updateStatus()
         self.getProcess()
+        self.saveLog()
+
+    def saveLog(self, arg=None):
+        data = {'name': self.project_info[0], 'project': self.game ,'item': self.item_name, 'process': self.item_process, 'item_code': self.item_code,'user': self.server.login,'path': self.ui.save_path.text(),'filename': self.ui.save_file.text()}
+        self.server.insert('simpleslot/save_log', data)
 
     def publishMaster(self, arg=None):
         def hasNumbers(inputString):
@@ -1049,6 +1054,7 @@ class mainWindow(QtGui.QDialog):
 
 #%%
 def qt_tactic_mainMain():
+    global widget
     serverok = 0
     try:
         # short test to see if there's a server
@@ -1075,14 +1081,14 @@ def qt_tactic_mainMain():
         except:
             loginProcess()
 
-    mainProcess(server=server)
-    '''
+    #mainProcess(server=server)
+
     if serverok == 1:
         try:
             widget.show()
         except:
             mainProcess(server=server)
-    '''
+
 
 #%%
 def loginProcess():
@@ -1105,7 +1111,6 @@ def loginProcess():
 
 #%%
 def mainProcess(server=None):
-    global widget
     widget = mainWindow(parent=QtGui.QApplication.activeWindow())
     try:
         login_name = server.login

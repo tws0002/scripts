@@ -42,7 +42,7 @@ for d in duty:
             pass
         else:
             skypename = login.get('skype')
-            final = today_string + "\n" + worker1 + "跟".decode('utf-8') + worker2 + "是今天值日生，請:".decode('utf-8') + "\n" + "1.大門玻璃整潔。".decode('utf-8') + "\n" + "2.冰箱整潔維護與微波爐旁邊檯面整潔。".decode('utf-8') + "\n" + "3.便當桌整潔。".decode('utf-8') + "\n" + "4.公共區域地板整潔。".decode('utf-8') + "\n"
+            final = today_string + "\n" + worker1 + "跟".decode('utf-8') + worker2 + "是今天值日生，請:".decode('utf-8') + "\n" + "1.冰箱整潔維護與微波爐旁邊檯面整潔。".decode('utf-8') + "\n" + "2.便當桌整潔。".decode('utf-8') + "\n" + "3.公共區域地板整潔。".decode('utf-8') + "\n"
             
             skype.SendMessage(skypename, final)
             print skypename
