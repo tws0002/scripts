@@ -281,6 +281,31 @@ class mainWindow(QtGui.QDialog):
             self.getNotes()
             self.ui.note.clear()
 
+    def publishMasterNotes(self, note):
+        now = datetime.datetime.now()
+        name = self.server.login
+
+        if note != "":
+            expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
+            temp = self.server.eval(expr)
+            if temp != []:
+                notes = temp[0].split("\n")
+            if notes[0] == "":
+                notes.pop(0)
+            for task in self.item_tasks:
+                if task.get('process') == self.item_process:
+                    sk = task.get('__search_key__')
+
+            now = now.strftime("%m/%d %H:%M")
+            note = self.ui.file_list.currentItem().text().split("  ")[1] + "#" + now + "(" + name + "):     " + note
+            notes.append(note)
+            notes = "\n".join(notes)
+            data = {'description': notes}
+
+            self.server.update(sk, data)
+            self.getNotes()
+            self.ui.note.clear()
+
     def delNotes(self):
         selected_note = self.ui.note_list.currentItem().text()
         expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
@@ -474,8 +499,8 @@ class mainWindow(QtGui.QDialog):
                 self.updateAssetItemHelp();
 
             elif production_type == "shot":
-                names = [[y['name'], ] for y in self.asset_item_details]
-                #items = sorted(temp, key=lambda k: k['asset_type_code'])
+                self.shot_item_details = items
+                names = [[y['name'], ] for y in self.shot_item_details]
 
         list_index = 0
         for name in names:
@@ -676,7 +701,8 @@ class mainWindow(QtGui.QDialog):
                 self.ui.shot_info.setItem(index, 0, widgetItem)
 
     def finalPath(self):
-        base_path = "//art-render/art_3d_project/"
+        #base_path = "//art-render/art_3d_project/"
+        base_path = "//mcd-server/art_3d_project/"
         name = self.server.login
 
         project = self.project_info[5]
@@ -894,9 +920,14 @@ class mainWindow(QtGui.QDialog):
         user = base.split(version)[1][1:]
         final = base.split(process)[0][:-1]
 
-        destination = base_path + "rigging/scenes/" + final + "_master." + ext
+        master_path = base_path + "master"
+        if os.path.exists(master_path) is False:
+            os.makedirs(master_path)
+
+        destination = master_path + "/" + final + "_master." + ext
         source = path + filename
-        print source, destination
+        self.publishMasterNotes(filename + u"設為MASTER檔")
+        #print source, destination
         shutil.copy2(source, destination)
 
 

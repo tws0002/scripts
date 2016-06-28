@@ -25,12 +25,12 @@ class Black_UI(qg.QDialog):
         cmds.loadPlugin('RenderMan_for_Maya',qt=True)
         self.nameSpace='lightHdrSys'
         self.nameSpaceFull=self.nameSpace+':'
-        self.img_fold = r"\\ART-RENDER\art_3d_project\maya_asset_globle\casino\introduction\light_hdr\concept\sourceimages\shaderLookDev\HDRI"
+        self.img_fold = r"\\mcd-server\art_3d_project\maya_asset_globle\casino\introduction\light_hdr\concept\sourceimages\shaderLookDev\HDRI"
         self.key_light_dic={'name':'key light','transform':'look_dev_key','shape':'look_dev_keyShape'}
         self.fill_light_dic={'name':'fill light','transform':'look_dev_fill','shape':'look_dev_fillShape'}
         self.back_light_dic={'name':'back light','transform':'look_dev_back','shape':'look_dev_backShape'}
         self.env_light_dic={'name':'env light','transform':'look_dev_env','shape':'look_dev_envShape'}
-        self.mbFile=r'\\art-render\art_3d_project\maya_asset_globle\casino\introduction\light_hdr\concept\scenes\mag_i_light_hdr_master.mb'
+        self.mbFile=r'\\mcd-server\art_3d_project\maya_asset_globle\casino\introduction\light_hdr\concept\scenes\mag_i_light_hdr_master.mb'
 
         #定義上方按鈕UI
         top_button_layout = qg.QHBoxLayout()

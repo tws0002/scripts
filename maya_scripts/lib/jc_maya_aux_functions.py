@@ -185,7 +185,7 @@ def getNextFileName(current):
         filename_details = filename.split("_")
         project_name_abbr = abbrName(project_name)  # aoml
         process_abbr = abbrName(process)            # rig
-        
+
         if project_type == "shot":
             temp = filename.replace(project_name_filter,"").replace(item_name_filter,"").replace(process_filter,"").replace(".mb","")
 
@@ -236,9 +236,13 @@ def maxWorkspaceFileRule(project_path):
     cmd = "pathConfig.setCurrentProjectFolder(\"" + project_path + "\")"
     MaxPlus.Core.EvalMAXScript(cmd)
 
+    import getpass
+    user = getpass.getuser()
+    autobakpath = "C:\\Users\\" + user + "\\Documents\\3dsMax\\autoback"
+
     MaxPlus.PathManager.SetAnimationDir(".\\data\\others")
     MaxPlus.PathManager.SetArchivesDir(".\\data\\others")
-    MaxPlus.PathManager.SetAutobackDir(".\\data\\others")
+    MaxPlus.PathManager.SetAutobackDir(autobakpath)
     MaxPlus.PathManager.SetProxiesDir(".\\data\\others")
     MaxPlus.PathManager.SetDownloadDir(".\\data\\others")
     MaxPlus.PathManager.SetExportDir(".\\data\\export")

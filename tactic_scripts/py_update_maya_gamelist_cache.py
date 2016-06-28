@@ -34,7 +34,7 @@ assetcodenames = ["character", "vehicle", "set", "prop", "other"]
 assetcodes = ["ASSET_TYPE00002","ASSET_TYPE00003", "ASSET_TYPE00004", "ASSET_TYPE00005", "ASSET_TYPE00006"]
 
 #%%
-def gamelist(items):
+def gamelist(games, game_tasks):
     now = datetime.datetime.now()
     names = ""
     names_chn = ""
@@ -42,18 +42,21 @@ def gamelist(items):
     assignments = ""
     bsd_string = ""
     bed_string = ""
-
-    for game in items:
+    depts = []
+    for game in games:
         bsd = []
         bed = []
         name = game.get("name")
         name_chn = game.get("name_chn")
         search_code = game.get("code")
-        expr = "@SOBJECT(sthpw/task['search_code','" + search_code + "'])"
-        depts = server.eval(expr)
 
-        expr = "@GET(simpleslot/game['name','" + name + "'].simpleslot/game_type.name)"
-        game_type = server.eval(expr)
+        for task in game_tasks:
+            if task['search_code'] == search_code:
+                depts.append(task)
+
+        game_type = game_type_code_converter(game.get("game_type_code"))
+
+
         for dept in depts:
             bsd.append(parser.parse(dept.get("bid_start_date")))
             bed.append(parser.parse(dept.get("bid_end_date")))
@@ -73,9 +76,11 @@ def gamelist(items):
         assignment = game.get("project_coordinator")
         assignments = assignments + "__" + assignment
         names = names + "__" + name
-        games_type = games_type + "__" + game_type[0]
+        games_type = games_type + "__" + game_type
         names_chn = names_chn + "__" + name_chn
     data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
+    diff = datetime.datetime.now() - now
+    print diff
     return data
 
 def htmlCache():
@@ -174,6 +179,7 @@ def htmlCache():
             html.append("<img class= 'loadReveal' src='%s'></img>" % full_path.encode("utf-8"))
             html.append("<h3 class='links'>%s</h3>" % game_name_chn.encode("utf-8"))
             html.append("<span>%s</span>" % str(game_name.encode("utf-8")))
+            html.append("<div><table class='gantt_or_reveal'><tr><td><h3 class='loadGantt'>甘特圖</h3><awe class='fa1 fa-tasks fa-3x loadGantt' style='color=#fff' aria-hidden='true'></awe></td><td><h3 class='loadReveal'>多媒體</h3><awe class='fa1 fa-picture-o fa-3x loadReveal' style='color=#fff' aria-hidden='true'></awe></td></tr></table></div>")
             html.append(str("</li>".encode("utf-8")))
         return html
 
@@ -422,6 +428,10 @@ def gameObjectCount(plan_id):
     return game_item_count
 
 def run():
+
+    expr = "@SOBJECT(simpleslot/game.sthpw/task)"
+    game_tasks = server.eval(expr)
+
     expr = "@SOBJECT(simpleslot/game['project_status','.In Progress'])"
     inprogress = server.eval(expr)
 
@@ -431,14 +441,14 @@ def run():
     expr = "@SOBJECT(simpleslot/game['project_status','.Complete'])"
     complete = server.eval(expr)
 
-    data = gamelist(inprogress)
+    data = gamelist(inprogress, game_tasks)
     test1 = server.update("simpleslot/plan?project=simpleslot&id=8", data)
     print "in progress complete"
-    data = gamelist(ready)
+    data = gamelist(ready, game_tasks)
     test2 = server.update("simpleslot/plan?project=simpleslot&id=10",data)
     print "ready complete"
 
-    data = gamelist(complete)
+    data = gamelist(complete, game_tasks)
     test3 = server.update("simpleslot/plan?project=simpleslot&id=11", data)
     print "complete complete"
 

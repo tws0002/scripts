@@ -342,12 +342,6 @@
 <table>
     <tr>
         <td colspan='3'>
-        sdfsdf
-        asfsdf
-        </td>
-    </tr>
-    <tr>
-        <td colspan='3'>
             <div class='top'>
                 <div class='inline'>
                     <img src="/assets/scripts/adobe_scripts/icons/play.png" class='button button_on proj_status' name='inprogress'/>
@@ -1213,10 +1207,10 @@
         self.finalPath = function(production_type, stype){
             $j('#final_path').empty();
             $j('#final_file_name').empty();
-            base_path = "//art-render/art_3d_project/";
+            //base_path = "//mcd-server/art_3d_project/";
+            base_path = "//mcd-server/art_3d_project/";
 
             if(self.cftype.indexOf(self.project_info['game_type']) != -1){
-                console.log('assets');
                 if(stype == 'assets'){
                     item_type = self.assetTypeCode(self.item_details['asset_type_code']);
                     self.final_path = base_path + self.game + "/" + stype + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
@@ -1226,7 +1220,6 @@
                     self.base_filename = self.abbrName(self.game) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
                 }
             } else if(self.project_info['game_type'] == 'casino' || self.project_info['game_type'] == 'lottery') {
-                console.log(self.project_info['game_type']);
                 item_type = self.assetTypeCode(self.item_details['3d_type_code']);
                 self.final_path = base_path + self.game + "/" + self.project_info['game_type'] + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
                 self.base_filename = self.abbrName(self.game) + "_" + self.abbrItemType(item_type) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
@@ -1262,7 +1255,7 @@
             } else if(appFilter == 'ILST'){
                 ext = 'ai';
             } else if(appFilter == 'FLPR'){
-                ext = 'flv';
+                ext = 'fla';
             } else if(appFilter == 'MAYA'){
                 ext = 'mb';
             } else if(appFilter == 'MAX'){
@@ -1329,43 +1322,71 @@
             self.getItemInfo();
         }
 
-
-
-        self.saveFile = function(){
+        self.createFolder = function(){
             if(self.osInfo.indexOf('Mac OS X') > -1){
-                final_path = self.final_path.replace("//art-render", "/Volumes")
+                final_path = self.final_path.replace("//mcd-server", "/Volumes")
             } else {
                 final_path = self.final_path;
             }
 
             savePath = final_path + self.save_filename;
             script = "var saveFolder = Folder(\"" + final_path + "\");if(!saveFolder.exists) saveFolder.create();";
-            CSLibrary.evalScript(script);
+            CSLibrary.evalScript(script, function(res){
+            });
+        }
 
-            script = 'app.project.save(File(\'' + savePath + '\'));';
-            if(self.appId == 'AEFT'){
-                script = 'app.project.save(File(\'' + savePath + '\'));';
-            } else if(self.appId == 'PHXS'){
-                script = 'var saveOptions = new PhotoshopSaveOptions();  app.activeDocument.saveAs(File(\'' + savePath + '\'), saveOptions, false);';
-            } else if(self.appId == 'ILST'){
-                script = 'var saveOptions = new IllustratorSaveOptions(); app.activeDocument.saveAs(File(\'' + savePath + '\'), saveOptions, false);';
-            }
 
-            if(self.appId != ''){
-                CSLibrary.evalScript(script, function(res){
-                    t = res;
-                    self.getFiles();
-                });
+        self.saveFile = function(){
+            if(self.osInfo.indexOf('Mac OS X') > -1){
+                final_path = self.final_path.replace("//mcd-server", "/Volumes")
             } else {
-                alert('ok');
+                final_path = self.final_path;
             }
+
+            savePath = final_path + self.save_filename;
+            if(self.appId == 'AEFT' || self.appId == 'PHXS' || self.appId == 'ILST'){
+                script = "var saveFolder = Folder(\"" + final_path + "\");if(!saveFolder.exists) saveFolder.create();";
+            } else if(self.appId == 'FLPR'){
+                script = 'FLfile.createFolder("file:' + final_path + '");';
+            }
+
+            CSLibrary.evalScript(script, function(){
+                script = 'app.project.save(File(\'' + savePath + '\'));';
+                if(self.appId == 'AEFT'){
+                    script = 'app.project.save(File(\'' + savePath + '\'));';
+                } else if(self.appId == 'PHXS'){
+                    script = 'var saveOptions = new PhotoshopSaveOptions();  app.activeDocument.saveAs(File(\'' + savePath + '\'), saveOptions, false);';
+                } else if(self.appId == 'ILST'){
+                    script = 'var saveOptions = new IllustratorSaveOptions(); app.activeDocument.saveAs(File(\'' + savePath + '\'), saveOptions, false);';
+                } else if(self.appId == 'FLPR'){
+                    script = 'fl.getDocumentDOM().saveAsCopy("file:' + savePath + '.fla");fl.getDocumentDOM().close(false);';
+                    //script = 'fl.saveDocument("file:' + savePath + '.fla");';
+                }
+
+                if(self.appId == 'AEFT' || self.appId == 'PHXS' || self.appId == 'ILST'){
+                    CSLibrary.evalScript(script, function(res){
+                        self.getFiles();
+                    });
+                } else if(self.appId == 'FLPR'){
+                    CSLibrary.evalScript(script, function(res){
+                        self.getFiles();
+                        self.openFile();
+                    });
+                }
+                else {
+                    alert('ok');
+                }
+            });
         }
 
         self.openFolder = function(){
             var script = 'Folder(\"' + self.final_path + '\").execute();'
-            if(self.appId != ''){
+            if(self.appId == 'AEFT' || self.appId == 'PHXS' || self.appId == 'ILST'){
                 CSLibrary.evalScript(script, function(res){
+                    t = res;
                 });
+            } else if(self.appId == 'FLPR'){
+                alert('Flash Pro/Animate CC 沒有此功能，請手動開吧');
             } else {
                 alert('ok');
             }
@@ -1381,7 +1402,7 @@
             if(self.osInfo.indexOf('Mac OS X') > -1){
                 qc_path = "/Volumes/art_3d_project/" + project_name + "/qc/" + date_folder ;
             } else {
-                qc_path = "//art-render/art_3d_project/" + project_name + "/qc/" + date_folder ;
+                qc_path = "//mcd-server/art_3d_project/" + project_name + "/qc/" + date_folder ;
             }
 
             script = "var saveFolder = Folder(\"" + qc_path + "\");if(!saveFolder.exists) saveFolder.create();";
@@ -1429,7 +1450,7 @@
                         sk = self.item_task_details['__search_key__'];
                         process = self.process;
                         if(self.osInfo.indexOf('Mac OS X') > -1){
-                            data = {'save_path': save_path.replace("/Volumes","//art-render"), 'sk': sk, 'process':self.process}
+                            data = {'save_path': save_path.replace("/Volumes","//mcd-server"), 'sk': sk, 'process':self.process}
                         }
                         else {
                             data = {'save_path': save_path, 'sk': sk, 'process':self.process}
@@ -1455,7 +1476,7 @@
             if(self.osInfo.indexOf('Mac OS X') > -1){
                 qc_path = "/Volumes/art_3d_project/" + project_name + "/qc/" + date_folder ;
             } else {
-                qc_path = "//art-render/art_3d_project/" + project_name + "/qc/" + date_folder ;
+                qc_path = "//mcd-server/art_3d_project/" + project_name + "/qc/" + date_folder ;
             }
 
             script = "var saveFolder = Folder(\"" + qc_path + "\");if(!saveFolder.exists) saveFolder.create();";
@@ -1524,7 +1545,7 @@
             if(self.osInfo.indexOf('Mac OS X') > -1){
                 qc_path = "/Volumes/art_3d_project/" + project_name + "/qc/" + date_folder ;
             } else {
-                qc_path = "//art-render/art_3d_project/" + project_name + "/qc/" + date_folder ;
+                qc_path = "//mcd-server/art_3d_project/" + project_name + "/qc/" + date_folder ;
             }
             var script = 'Folder(\"' + qc_path + '\").execute();';
             CSLibrary.evalScript(script);
@@ -1563,10 +1584,13 @@
             openPath = self.final_path + selectedFile;
 
             if(self.osInfo.indexOf('Mac OS X') > -1){
-                openPath = openPath.replace("//art-render", "/Volumes")
+                openPath = openPath.replace("//mcd-server", "/Volumes")
             }
+
             if(self.appId == 'AEFT' || self.appId == 'PHXS' || self.appId == 'ILST'){
                 script = 'app.open(File(\'' + openPath + '\'));';
+            } else if(self.appId == 'FLPR'){
+                script = 'fl.openDocument("file:' + openPath + '");'
             }
             CSLibrary.evalScript(script);
         }

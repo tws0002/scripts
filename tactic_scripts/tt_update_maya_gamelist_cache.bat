@@ -1,0 +1,1 @@
+C:\Python27\python.exe "\\Art-1405260002\d\assets\scripts\tactic_scripts\py_update_maya_gamelist_cache.py"
