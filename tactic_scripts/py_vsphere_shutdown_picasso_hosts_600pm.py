@@ -2,7 +2,6 @@
 from pyVim.connect import SmartConnect
 import time
 import requests
-import subprocess
 
 requests.packages.urllib3.disable_warnings()
 
@@ -20,40 +19,55 @@ datacenters = content.rootFolder.childEntity
 picasso = datacenters[3].hostFolder.childEntity[0]
 hosts = picasso.host
 
-#%%
-
-#hosts[0].vm[0].ShutdownGuest()
-#hosts[0].Shutdown(1)
-
-
-#%%
-#dir(hosts[0].vm[0].runtime.powerState)
-#hosts[0].vm[0].runtime.powerState
-
-#%%
-#Shut down all the guest vms
-for host in hosts:
-    host.vm[0].ShutdownGuest()
-
-time.sleep(30)
-
-for host in hosts:    
-    while host.vm[0].runtime.powerState == "poweredOn":
-        host.vm[0].ShutdownGuest()
-        time.sleep(30)
-
-#%%    
 def shutDownPicasso():
     for host in hosts:
         host.Shutdown(1)    
         time.sleep(5)
 
-shutDownPicasso()
+
+hosts[0].vm[0].name        
+#%%
+#Shut down all the guest vms
+
+try:
+    for host in hosts:
+        if host.vm[0].runtime.powerState == "poweredOff":
+            print host.vm[0].name + " us Powered Off"
+            pass
+        else:
+            host.vm[0].ShutdownGuest()
+            print "Shutting Down " + host.vm[0].name
+except:
+    print "All ok"
 time.sleep(30)
+try:
+    for host in hosts:    
+        while host.vm[0].runtime.powerState == "poweredOn":
+            host.vm[0].ShutdownGuest()
+            print "Trying to Shut Down " + host.vm[0].name + " again."
+            time.sleep(30)
+except:
+    print "All ok"
+#%%    
+
 
 for host in hosts:
+    if host.runtime.powerState == "poweredOff":
+        print "ESXI Host " + host.name + " is powered off."
+        pass
+    else:
+        print "Shutting Down ESXI Host " + host.name
+        host.Shutdown(1)
+
+time.sleep(60)
+#check again
+for host in hosts:
     while host.runtime.powerState == "poweredOn":
+        print "Shutting Down ESXI Host " + host.name + " again."
         host.Shutdown(1)
         time.sleep(30)
-            
-#%%
+
+
+
+           
+
