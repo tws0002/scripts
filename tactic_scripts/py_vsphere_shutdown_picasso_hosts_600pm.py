@@ -35,10 +35,11 @@ try:
             print host.vm[0].name + " us Powered Off"
             pass
         else:
-            host.vm[0].ShutdownGuest()
             print "Shutting Down " + host.vm[0].name
+            host.vm[0].ShutdownGuest()
 except:
-    print "All ok"
+    e = sys.exc_info()[0]
+    print e
 time.sleep(30)
 try:
     for host in hosts:    

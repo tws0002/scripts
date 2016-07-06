@@ -16,6 +16,11 @@ import datetime
 import logging
 import time
 
+x_min = 0
+x_max = 0
+y_min = 0
+y_max = 0
+
 sequencePath = "d:/sequence"
 images = [x for x in os.listdir(sequencePath) if 'tga' in x]
 
@@ -76,6 +81,7 @@ subprocess.call(imageMagickCMD)
 
 #%%
 
+#%%
 def findMinMax(image):
     im = cv2.imread(image)
     height, width, channels = im.shape
@@ -98,29 +104,52 @@ def findMinMax(image):
     return (x_min, x_max, y_min, y_max)
 
 #%%
-x_min = 0
-x_max = 0
-y_min = 0
-y_max = 0
-
 sequencePath = "d:/sequence/convert"
 images = [x for x in os.listdir(sequencePath) if 'tif' in x]
 
-for image in images:
-    image = sequencePath + "/" + image
-    print image
-    
-    a,b,c,d = findMinMax(image)
+q = ""
+q = Queue.Queue(maxsize = 0)
 
-    if a > x_min:
-        x_min = a
-    if b < x_max:
-        x_max = b
-    if c > y_min:
-        y_min = c
-    if d < y_max:
-        y_max = d    
-    print x_min, x_max, y_min, y_max
+for image in images:
+    q.put(image)
+
+q.qsize()
+#%%
+
+
+
+workers = []
+for x in range(1):
+    worker = threading.Thread(target=sequenceMinMax, args=(q,))
+    worker.setDaemon(True)
+    worker.start()
+
+q.join()
+
+
+
+#%%
+def sequenceMinMax(q):
+    
+    global x_min
+    global x_max
+    global y_min
+    global y_max
+    while True:
+        image = q.get()
+        image = sequencePath + "/" + image
+        
+        a,b,c,d = findMinMax(image)
+    
+        if a > x_min:
+            x_min = a
+        if b < x_max:
+            x_max = b
+        if c > y_min:
+            y_min = c
+        if d < y_max:
+            y_max = d    
+        print x_min, x_max, y_min, y_max
 
 #%%
 def findWhite(im):
@@ -129,6 +158,7 @@ def findWhite(im):
         if np.sum(column)/3/255 > 0:
             break
     return count
+    
 #%%
 images = [x for x in os.listdir(sequencePath) if 'tif' in x]
 image = r"d:/sequence/merged/merged.tif"
