@@ -326,7 +326,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Shutter Angle", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBox_2.setItemText(0, QtGui.QApplication.translate("MainWindow", "Frame", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBox_2.setItemText(1, QtGui.QApplication.translate("MainWindow", "Subframe", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_01.setText(QtGui.QApplication.translate("MainWindow", "Generate RIB Archive", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_01.setText(QtGui.QApplication.translate("MainWindow", "Generate RIBArchive", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setText(QtGui.QApplication.translate("MainWindow", "Note:", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Cache time range", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_A01.setText(QtGui.QApplication.translate("MainWindow", "Current Frame", None, QtGui.QApplication.UnicodeUTF8))
@@ -340,7 +340,7 @@ class Ui_MainWindow(object):
         self.checkBox_D01.setText(QtGui.QApplication.translate("MainWindow", "Delayed Read Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_D02.setText(QtGui.QApplication.translate("MainWindow", "Read Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.toolButton_01.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_02.setText(QtGui.QApplication.translate("MainWindow", "Get RIB Archive root", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_02.setText(QtGui.QApplication.translate("MainWindow", "Get ShaveRIBArchive", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_03.setText(QtGui.QApplication.translate("MainWindow", "Publish RIB Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton.setText(QtGui.QApplication.translate("MainWindow", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("MainWindow", "Percentage", None, QtGui.QApplication.UnicodeUTF8))
@@ -869,6 +869,11 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
+
+
+
+
+
 #---------------------------------------------------選擇物件shape定義 Start---由所選的group中選出 shape------------------------------------------------------       
 
  
@@ -898,9 +903,9 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         print "run createSelectFolder Function Completed"
 #-----------------------------------------define create folder End------------------------------------------------
         
-        
-        
-        
+   
+   
+
    
 
 #--------------------------------------------Define RIB Archive and GPUCache File Name Begin------------------------------------------------------------        
@@ -958,7 +963,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 #---------------------------------------------------export Cmd Start--------------------------------------------------------------------
     def getRibExportCmd(self,exportCmd): 
         print "run getRibExportCmd Function"
-         
+
         #定義輸出資料夾與檔案名稱  
         self.cacheFileName(self)  
         
@@ -1002,6 +1007,78 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
+
+
+#---------------------------------------------------shaveRibExport Start--------------------------------------------------------------------
+
+
+    def shaveRibExport(self,singleGrp):
+
+        print "run shaveRibExport Function start"
+        #定義輸出資料夾與檔案名稱  
+        ribArchiveFileName = str(self.singleGrp)
+        if self.ribGenDict['currentFrameCheck'] == '0':
+
+            
+            exportRibNamePath = self.ribGenDict['cacheForder']+'/' + ribArchiveFileName
+
+            shaveStartFrame = int(float(self.ribGenDict['startFrameValue']))
+            shaveEndFrame = int(float(self.ribGenDict['endFrameValue']))
+
+            
+            while (shaveStartFrame <= shaveEndFrame):
+                exportFrame = str('%04d'%shaveStartFrame)
+                print exportFrame
+                shaveEcportCmd = "shaveWriteRib -opa -rtc -b -gz -f"+" "+"%s"%exportFrame +" "+"\""+ exportRibNamePath+".%s"%exportFrame+".rib"+"\""
+                shaveStartFrame = shaveStartFrame + 1
+                print shaveEcportCmd
+                pm.mel.eval(shaveEcportCmd)   #create shave and Haircur Rib Archive 
+                
+            print shaveStartFrame
+            print shaveEndFrame
+           # print endFrameReal
+                   
+            pm.mel.eval('%s'%self.ribGenDict['finalGpuExportCmd'])  #create Gpu Cache
+
+
+        if self.ribGenDict['currentFrameCheck'] == '1':
+
+            
+            exportRibNamePath = self.ribGenDict['cacheForder']+'/' + ribArchiveFileName
+            
+            currentShaveFrame = int(float(self.ribGenDict['currentFrameValue']))
+            
+            exportFrame = str('%04d'%currentShaveFrame)
+
+
+            shaveEcportCmd = "shaveWriteRib -opa -rtc -b -gz -f"+" "+"%s"%exportFrame +" "+"\""+ exportRibNamePath +".rib"+"\""
+            print shaveEcportCmd
+
+            pm.mel.eval(shaveEcportCmd)   #create shave and Haircur Rib Archive 
+
+
+                   
+            pm.mel.eval('%s'%self.ribGenDict['finalGpuExportCmd'])  #create Gpu Cache
+
+
+      #  self.connectGpuRib(self)
+      #  if self.ribGenDict['shutterTiming'] == "frameCenter":
+      #      self.batchRename(self)
+
+       # self.batchRename(self)
+
+        self.bBoxFind(self)
+
+        self.zipRibFiles(self)
+
+        
+
+        print "run shaveRibExport Function Completed"
+
+
+
+
+#---------------------------------------------------shaveRibExport End--------------------------------------------------------------------
 
 #---------------------------------------------------賦予 SubD Start-----------------------------------------------------------
     def addSubD(self,singleShape):
@@ -1323,23 +1400,15 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             pm.currentTime(j,e=True)  # 跳至下一格
             
           #  print self.singleGrp
-            bbSize = pm.getAttr("%s.boundingBoxSize"%self.singleGrp)  # 獲得bbBox資訊
-            bbSizeX = '%.6f'%(bbSize[0]/2)
-            bbSizeY = '%.6f'%(bbSize[1]/2)
-            bbSizeZ = '%.6f'%(bbSize[2]/2)
+            bbSize = pm.xform(self.singleGrp,bb=True,q=True)  # 獲得bbBox資訊
+                       
+            self.bbMinX = '%.6f'%(bbSize[0])
+            self.bbMinY = '%.6f'%(bbSize[1])
+            self.bbMinZ = '%.6f'%(bbSize[2])
+            self.bbMaxX = '%.6f'%(bbSize[3])
+            self.bbMaxY = '%.6f'%(bbSize[4])
+            self.bbMaxZ = '%.6f'%(bbSize[5])
             
-        #    print bbSizeX
-            
-        #    print type(bbSizeX)
- 
-            
-            
-            self.bbMinX = "-"+bbSizeX
-            self.bbMinY = "-"+bbSizeY
-            self.bbMinZ = "-"+bbSizeZ
-            self.bbMaxX = bbSizeX
-            self.bbMaxY = bbSizeY
-            self.bbMaxZ = bbSizeZ
             self.bBoxValue = self.bbMinX +" "+ self.bbMaxX+ " "+ self.bbMinY +" "+ self.bbMaxY +" "+ self.bbMinZ +" "+ self.bbMaxZ
             currentRibFrame = str("%04d"%j)
             #ribFileName = path+'/' + self.ribGenDict['gpuCacheFileName']+'.' +currentRibFrame +'.zip'
@@ -1607,8 +1676,16 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
     def modpushButton_02(self):
-        self.gpuCacheMeshReduce()
+        print "aaaaa"
+        self.selectGrpList(self)  
+        for self.singleGrp in self.selectedTGrpList:    #個別選取Group                              
 
+            pm.select(self.singleGrp)
+            self.createSelectFolder(self)               # define create folder def 創建所選取的grp folder
+            self.cacheFileName(self)                    # Define RIB Archive and GPUCache File Name   def
+            self.getRibExportCmd(self)                  # export command def
+            self.shaveRibExport(self)   
+            self.connectGpuRib(self)
 
         
 #----------------------------------------------------button 3------------------------------------------------- 
@@ -1639,7 +1716,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-
+#def main():
 def rib_genMain():
     global ui
     app = QtGui.QApplication.instance()

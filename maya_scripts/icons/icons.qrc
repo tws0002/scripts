@@ -1,5 +1,11 @@
 <RCC>
-  <qresource prefix="Art-1405260002/d/assets/scripts/maya_scripts/icons/">
+  <qresource prefix="//Art-1405260002/d/assets/scripts/maya_scripts/icons/">
     <file>check_off_24.png</file>
+    <file>floppy-o_d7801a_12.png</file>
+    <file>folder-o_c8c8c8_12.png</file>
+    <file>folder-open_000000_16.png</file>
+    <file>folder-open-o_222222_12.png</file>
+    <file>folder-open-o_d7801a_12.png</file>
+    <file>rib_gen.png</file>
   </qresource>
 </RCC>

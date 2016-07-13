@@ -5,7 +5,7 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/image_scripts/ui/sequence_crop.ui'
 #
-# Created: Tue Jul 05 15:19:23 2016
+# Created: Tue Jul 12 16:05:36 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -15,7 +15,7 @@ from PySide import QtCore, QtGui
 class Ui_SequenceCrop(object):
     def setupUi(self, SequenceCrop):
         SequenceCrop.setObjectName("SequenceCrop")
-        SequenceCrop.resize(633, 187)
+        SequenceCrop.resize(633, 151)
         self.gridLayout_2 = QtGui.QGridLayout(SequenceCrop)
         self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setSpacing(0)
@@ -24,8 +24,8 @@ class Ui_SequenceCrop(object):
         self.gridLayout.setSpacing(0)
         self.gridLayout.setObjectName("gridLayout")
         self.verticalLayout_2 = QtGui.QVBoxLayout()
-        self.verticalLayout_2.setSpacing(14)
-        self.verticalLayout_2.setContentsMargins(6, 6, 6, 6)
+        self.verticalLayout_2.setSpacing(2)
+        self.verticalLayout_2.setContentsMargins(6, 12, 6, 12)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(6)
@@ -94,8 +94,16 @@ class Ui_SequenceCrop(object):
         self.progress_bar.setEnabled(True)
         self.progress_bar.setProperty("value", 24)
         self.progress_bar.setObjectName("progress_bar")
-        self.progress_bar.setVisible(1)
         self.verticalLayout_2.addWidget(self.progress_bar)
+        self.status_line = QtGui.QLabel(SequenceCrop)
+        self.status_line.setMinimumSize(QtCore.QSize(0, 23))
+        self.status_line.setMaximumSize(QtCore.QSize(16777215, 23))
+        self.status_line.setFrameShape(QtGui.QFrame.Panel)
+        self.status_line.setLineWidth(1)
+        self.status_line.setMidLineWidth(0)
+        self.status_line.setAlignment(QtCore.Qt.AlignCenter)
+        self.status_line.setObjectName("status_line")
+        self.verticalLayout_2.addWidget(self.status_line)
         self.convert_button = QtGui.QPushButton(SequenceCrop)
         self.convert_button.setObjectName("convert_button")
         self.verticalLayout_2.addWidget(self.convert_button)
@@ -109,6 +117,7 @@ class Ui_SequenceCrop(object):
         SequenceCrop.setWindowTitle(QtGui.QApplication.translate("SequenceCrop", "SequenceCrop - by Julio", None, QtGui.QApplication.UnicodeUTF8))
         self.input_label.setText(QtGui.QApplication.translate("SequenceCrop", "Input Path", None, QtGui.QApplication.UnicodeUTF8))
         self.input_label_2.setText(QtGui.QApplication.translate("SequenceCrop", "Output Path", None, QtGui.QApplication.UnicodeUTF8))
+        self.status_line.setText(QtGui.QApplication.translate("SequenceCrop", "Status", None, QtGui.QApplication.UnicodeUTF8))
         self.convert_button.setText(QtGui.QApplication.translate("SequenceCrop", "Convert", None, QtGui.QApplication.UnicodeUTF8))
 
 
