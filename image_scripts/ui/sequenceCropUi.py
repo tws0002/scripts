@@ -5,7 +5,7 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/image_scripts/ui/sequence_crop.ui'
 #
-# Created: Thu Jul 14 16:09:05 2016
+# Created: Fri Jul 15 12:25:11 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -15,7 +15,7 @@ from PySide import QtCore, QtGui
 class Ui_SequenceCrop(object):
     def setupUi(self, SequenceCrop):
         SequenceCrop.setObjectName("SequenceCrop")
-        SequenceCrop.resize(633, 151)
+        SequenceCrop.resize(633, 164)
         self.gridLayout_2 = QtGui.QGridLayout(SequenceCrop)
         self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setSpacing(0)
@@ -62,11 +62,6 @@ class Ui_SequenceCrop(object):
         self.output_label.setIndent(0)
         self.output_label.setObjectName("output_label")
         self.horizontalLayout_5.addWidget(self.output_label)
-        self.output_path = QtGui.QLineEdit(SequenceCrop)
-        self.output_path.setMinimumSize(QtCore.QSize(400, 0))
-        self.output_path.setMaximumSize(QtCore.QSize(16777215, 16777215))
-        self.output_path.setObjectName("output_path")
-        self.horizontalLayout_5.addWidget(self.output_path)
         self.verticalLayout_2.addLayout(self.horizontalLayout_5)
         self.progress_bar = QtGui.QProgressBar(SequenceCrop)
         self.progress_bar.setEnabled(True)
@@ -93,9 +88,9 @@ class Ui_SequenceCrop(object):
 
     def retranslateUi(self, SequenceCrop):
         SequenceCrop.setWindowTitle(QtGui.QApplication.translate("SequenceCrop", "SequenceCrop - by Julio", None, QtGui.QApplication.UnicodeUTF8))
-        self.input_label.setText(QtGui.QApplication.translate("SequenceCrop", "Input Path", None, QtGui.QApplication.UnicodeUTF8))
-        self.output_label.setText(QtGui.QApplication.translate("SequenceCrop", "Output Path", None, QtGui.QApplication.UnicodeUTF8))
+        self.input_label.setText(QtGui.QApplication.translate("SequenceCrop", "圖串路徑", None, QtGui.QApplication.UnicodeUTF8))
+        self.output_label.setText(QtGui.QApplication.translate("SequenceCrop", "輸出路徑", None, QtGui.QApplication.UnicodeUTF8))
         self.status_line.setText(QtGui.QApplication.translate("SequenceCrop", "Status", None, QtGui.QApplication.UnicodeUTF8))
-        self.convert_button.setText(QtGui.QApplication.translate("SequenceCrop", "Convert", None, QtGui.QApplication.UnicodeUTF8))
+        self.convert_button.setText(QtGui.QApplication.translate("SequenceCrop", "裁切圖串", None, QtGui.QApplication.UnicodeUTF8))
 
 

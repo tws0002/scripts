@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>633</width>
-    <height>151</height>
+    <height>164</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -79,7 +79,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Input Path</string>
+            <string>圖串路徑</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -122,29 +122,13 @@
             </font>
            </property>
            <property name="text">
-            <string>Output Path</string>
+            <string>輸出路徑</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
            <property name="indent">
             <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="output_path">
-           <property name="minimumSize">
-            <size>
-             <width>400</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
            </property>
           </widget>
          </item>
@@ -194,7 +178,7 @@
        <item>
         <widget class="QPushButton" name="convert_button">
          <property name="text">
-          <string>Convert</string>
+          <string>裁切圖串</string>
          </property>
         </widget>
        </item>

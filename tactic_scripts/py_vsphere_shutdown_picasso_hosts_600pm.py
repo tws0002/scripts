@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Wed Jul 22 10:55:06 2015
+
+@author: julio
+This script should be run after 9am everyday, it will shutdown machines if its on weekends or holidays
+"""
+
+
 from pyVim.connect import SmartConnect
 import time
 import requests
@@ -21,14 +29,14 @@ hosts = picasso.host
 
 def shutDownPicasso():
     for host in hosts:
-        host.Shutdown(1)    
+        host.Shutdown(1)
         time.sleep(5)
 
 
-hosts[0].vm[0].name        
+hosts[0].vm[0].name
 #%%
 #Shut down all the guest vms
-
+'''
 try:
     for host in hosts:
         if host.vm[0].runtime.powerState == "poweredOff":
@@ -42,14 +50,14 @@ except:
     print e
 time.sleep(30)
 try:
-    for host in hosts:    
+    for host in hosts:
         while host.vm[0].runtime.powerState == "poweredOn":
             host.vm[0].ShutdownGuest()
             print "Trying to Shut Down " + host.vm[0].name + " again."
             time.sleep(30)
 except:
     print "All ok"
-#%%    
+#%%
 
 
 for host in hosts:
@@ -70,5 +78,6 @@ for host in hosts:
 
 
 
-           
 
+
+'''

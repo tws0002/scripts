@@ -7,12 +7,10 @@ This script should be run after 9am everyday, it will shutdown machines if its o
 """
 
 
-from pyVim.connect import SmartConnect, Disconnect
-import datetime
-import subprocess
+from pyVim.connect import SmartConnect
 import time
-
 import requests
+
 requests.packages.urllib3.disable_warnings()
 
 import ssl
@@ -50,26 +48,44 @@ if today in holidays:
 #%%
 def shutDownPicasso():
     for host in hosts:
-        host.Shutdown(1)    
+        host.Shutdown(1)
         time.sleep(5)
 
 
 if shutdown == True:
-    still_on = ['first']
-    while len(still_on) > 0:
-        still_on = []
-        time.sleep(30)
+    try:
         for host in hosts:
-            ping = subprocess.Popen(["ping", "-n", "1",host.name], stdout=subprocess.PIPE)    
-            for line in ping.stdout.readlines():
-                if "Reply from" in line:
-                    if "Destination host unreachable" in line:
-                        pass
-                    else:
-                        print host.name + "is still on"
-                        still_on.append(host.name)
-        
+            if host.vm[0].runtime.powerState == "poweredOff":
+                print host.vm[0].name + " us Powered Off"
+                pass
+            else:
+                print "Shutting Down " + host.vm[0].name
+                host.vm[0].ShutdownGuest()
+    except:
+        e = sys.exc_info()[0]
+        print e
+    time.sleep(30)
+    try:
         for host in hosts:
-            if host.name in still_on:
-                host.Shutdown(1)
-                time.sleep(5)
+            while host.vm[0].runtime.powerState == "poweredOn":
+                host.vm[0].ShutdownGuest()
+                print "Trying to Shut Down " + host.vm[0].name + " again."
+                time.sleep(30)
+    except:
+        print "All ok"
+
+    for host in hosts:
+        if host.runtime.powerState == "poweredOff":
+            print "ESXI Host " + host.name + " is powered off."
+            pass
+        else:
+            print "Shutting Down ESXI Host " + host.name
+            host.Shutdown(1)
+
+    time.sleep(60)
+    #check again
+    for host in hosts:
+        while host.runtime.powerState == "poweredOn":
+            print "Shutting Down ESXI Host " + host.name + " again."
+            host.Shutdown(1)
+            time.sleep(30)
