@@ -2,8 +2,8 @@
 import subprocess
 import fileinput
 
-input = "//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui.ui"
-output = "//Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui.py"
+input = "//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v02.ui"
+output = "//Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui_v02.py"
 subprocess.call("C:/Python27/scripts/pyside-uic -o %s %s" % (output, input))
 
 with open(output, 'r') as data:
@@ -40,7 +40,7 @@ from PySide import QtCore, QtGui
 from tactic_client_lib import TacticServerStub
 
 import ctypes
-import qt_main_ui as qt_main_ui
+import qt_main_ui_v02 as qt_main_ui
 import qt_login_ui
 import os, shutil
 import subprocess
@@ -126,31 +126,8 @@ class loginWindow(QtGui.QDialog):
         file_object.close()
 
         mainProcess(server=server)
-#%%
 
 class mainWindow(QtGui.QDialog):
-    asset_item_details = None
-    shot_item_details = None
-    server = None
-    item_tasks = None
-
-    game = None
-    projects_data = None
-    #projects_data = {'name': names, 'login': bsd, 'keywords': bed, 'game_name_chn': names_chn, 'description': game_type, 'process': assigned}
-    project_info = []
-
-    item_name = None
-    item_name_chn = None
-    item_type = None
-    item_process = None
-    item_code = None
-    assigned = None
-    bsd = None
-    bed = None
-    sk = None
-    processes = None
-    prev_selection = 0
-
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Tool)
@@ -183,27 +160,18 @@ class mainWindow(QtGui.QDialog):
         self.ui.note_list.itemDoubleClicked.connect(self.delNotes)
         self.ui.note.returnPressed.connect(self.saveNotes)
         self.ui.note.setStyleSheet("""background-color: rgb(170,170,170);color: black;""")
-        self.ui.update_cache.clicked.connect(self.updateCache)
 
-        self.ui.colorCode1.setStyleSheet("""background-color: rgb(97,78,78);padding: 0;""")
-        self.ui.colorCode2.setStyleSheet("""background-color: rgb(78,97,87);padding: 0;""")
-        self.ui.colorCode3.setStyleSheet("""background-color: rgb(97,78,97);padding: 0;""")
-        self.ui.colorCode4.setStyleSheet("""background-color: rgb(87,97,78);padding: 0;""")
-        self.ui.colorCode5.setStyleSheet("""background-color: rgb(78,78,97);padding: 0;""")
-        self.ui.colorCode6.setStyleSheet("""background-color: rgb(97,87,78);padding: 0;""")
-        self.ui.colorCode7.setStyleSheet("""background-color: rgb(78,78,97);padding: 0;""")
-        self.ui.colorCode8.setStyleSheet("""background-color: rgb(97,78,87);padding: 0;""")
+        self.ui.filter_character.setToolTip(u"角色");
+        self.ui.filter_vehicle.setToolTip(u"車");
+        self.ui.filter_sets.setToolTip(u"場景");
+        self.ui.filter_prop.setToolTip(u"道具");
+        self.ui.filter_other.setToolTip(u"其它");
 
-        self.ui.colorCode1.clicked.connect(lambda: self.showItemByType(1))
-        self.ui.colorCode2.clicked.connect(lambda: self.showItemByType(2))
-        self.ui.colorCode3.clicked.connect(lambda: self.showItemByType(3))
-        self.ui.colorCode4.clicked.connect(lambda: self.showItemByType(4))
-        self.ui.colorCode5.clicked.connect(lambda: self.showItemByType(5))
-        self.ui.colorCode6.clicked.connect(lambda: self.showItemByType(6))
-        self.ui.colorCode7.clicked.connect(lambda: self.showItemByType(7))
-        self.ui.colorCode8.clicked.connect(lambda: self.showItemByType(8))
-        self.ui.colorCode9.clicked.connect(lambda: self.showItemByType(9))
-
+        self.ui.filter_character.clicked.connect(lambda: self.showItemByType(1))
+        self.ui.filter_vehicle.clicked.connect(lambda: self.showItemByType(2))
+        self.ui.filter_prop.clicked.connect(lambda: self.showItemByType(3))
+        self.ui.filter_sets.clicked.connect(lambda: self.showItemByType(4))
+        self.ui.filter_other.clicked.connect(lambda: self.showItemByType(5))
 
         if "Nuke" in appName:
             pass
@@ -211,40 +179,32 @@ class mainWindow(QtGui.QDialog):
             sshFile = scripts_path + "/scripts/maya_scripts/lib/darkorange.stylesheet"
             with open(sshFile, "r") as fh:
                 self.setStyleSheet(fh.read())
+
     def showItemByType(self, id):
         count = self.ui.asset_list.count()
         for i in range(0, count):
             self.ui.asset_list.item(i).setHidden(0)
             if id == 1:
-                if self.ui.asset_list.item(i).background().color().name() != '#614e4e':
+                if self.ui.asset_list.item(i).background().color().name() != '#525252':
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 2:
-                if self.ui.asset_list.item(i).background().color().name() != '#4e6157':
+                if self.ui.asset_list.item(i).background().color().name() != '#494949':
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 3:
-                if self.ui.asset_list.item(i).background().color().name() != '#614e61':
+                if self.ui.asset_list.item(i).background().color().name() != '#424242':
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 4:
-                if self.ui.asset_list.item(i).background().color().name() != '#57614e':
+                if self.ui.asset_list.item(i).background().color().name() != '#393939':
                     self.ui.asset_list.item(i).setHidden(1)
             elif id == 5:
-                if self.ui.asset_list.item(i).background().color().name() != '#4e4e61':
+                if self.ui.asset_list.item(i).background().color().name() != '#323232':
                     self.ui.asset_list.item(i).setHidden(1)
-            elif id == 6:
-                if self.ui.asset_list.item(i).background().color().name() != '#61574e':
-                    self.ui.asset_list.item(i).setHidden(1)
-            elif id == 7:
-                if self.ui.asset_list.item(i).background().color().name() != '#4e6161':
-                    self.ui.asset_list.item(i).setHidden(1)
-            elif id == 8:
-                if self.ui.asset_list.item(i).background().color().name() != '#614e57':
-                    self.ui.asset_list.item(i).setHidden(1)
-            elif id == 9:
-                self.ui.asset_list.item(i).setHidden(0)
+
 
     def getNotes(self):
         self.ui.note_list.clear()
-        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
+
+        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item['code'], self.task['process'])
         temp = self.server.eval(expr)[0]
 
         if temp != "":
@@ -256,45 +216,24 @@ class mainWindow(QtGui.QDialog):
                     self.ui.note_list.addItem(note)
                     self.ui.note_list.scrollToItem(self.ui.note_list.item(self.ui.note_list.count() - 1))
 
-    def saveNotes(self):
-        note = self.ui.note.text().replace("\n","")
+    def saveNotes(self, *args):
+        if args:
+            note = args
+        else:
+            note = self.ui.note.text().replace("\n","")
+
         now = datetime.datetime.now()
         name = self.server.login
 
         if note != "":
-            expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
+            expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item['code'], self.task['process'])
             temp = self.server.eval(expr)
             if temp != []:
                 notes = temp[0].split("\n")
             if notes[0] == "":
                 notes.pop(0)
-            for task in self.item_tasks:
-                if task.get('process') == self.item_process:
-                    sk = task.get('__search_key__')
-
-            now = now.strftime("%m/%d %H:%M")
-            note = self.ui.file_list.currentItem().text().split("  ")[1] + "#" + now + "(" + name + "):     " + note
-            notes.append(note)
-            notes = "\n".join(notes)
-            data = {'description': notes}
-
-            self.server.update(sk, data)
-            self.getNotes()
-            self.ui.note.clear()
-
-    def publishMasterNotes(self, note):
-        now = datetime.datetime.now()
-        name = self.server.login
-
-        if note != "":
-            expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
-            temp = self.server.eval(expr)
-            if temp != []:
-                notes = temp[0].split("\n")
-            if notes[0] == "":
-                notes.pop(0)
-            for task in self.item_tasks:
-                if task.get('process') == self.item_process:
+            for task in self.tasks:
+                if task.get('process') == self.task['process']:
                     sk = task.get('__search_key__')
 
             now = now.strftime("%m/%d %H:%M")
@@ -309,12 +248,12 @@ class mainWindow(QtGui.QDialog):
 
     def delNotes(self):
         selected_note = self.ui.note_list.currentItem().text()
-        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item_code, self.item_process)
+        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item['code'], self.task['process'])
         temp = self.server.eval(expr)
         notes = temp[0].split("\n")
         new_notes = []
-        for task in self.item_tasks:
-            if task.get('process') == self.item_process:
+        for task in self.tasks:
+            if task.get('process') == self.task['process']:
                 sk = task.get('__search_key__')
         for note in notes:
             filename = note.split("#")[0]
@@ -330,6 +269,29 @@ class mainWindow(QtGui.QDialog):
         self.getNotes()
         self.ui.note.clear()
 
+    def game_type_code_converter(self, game_type_code):
+        game_type = ""
+        if game_type_code == "GAME_TYPE00002":
+            game_type = "casino"
+        elif game_type_code == "GAME_TYPE00005":
+            game_type = "video_conf"
+        elif game_type_code == "GAME_TYPE00007":
+            game_type = "training"
+        elif game_type_code == "GAME_TYPE00009":
+            game_type = "others"
+        elif game_type_code == "GAME_TYPE00010":
+            game_type = "cf"
+        elif game_type_code == "GAME_TYPE00011":
+            game_type = "sports"
+        elif game_type_code == "GAME_TYPE00012":
+            game_type = "lottery"
+        elif game_type_code == "GAME_TYPE00014":
+            game_type = "IPL"
+        elif game_type_code == "GAME_TYPE00021":
+            game_type = "database"
+        return game_type
+
+
     def getProjects(self):
         #openRecent()
         recent = self.ui.recent_button.isChecked()
@@ -338,106 +300,100 @@ class mainWindow(QtGui.QDialog):
         complete = self.ui.complete_button.isChecked()
 
         self.ui.project_list.clear()
+        expr = "@UNIQUE(@GET(simpleslot/save_log['timestamp','>','$10_DAY_AGO'].project))"
+        recentG = self.server.eval(expr)
 
-        expr = "@UNIQUE(@GET(simpleslot/save_log['timestamp','>','$PREV_MONTH'].project))"
-        recent_projects = self.server.eval(expr)
+        expr = "@SOBJECT(simpleslot/game)"
+        self.games = self.server.eval(expr)
+
+        inprogressGames = []
+        completeGames = []
+        readyGames = []
+        recentGames = []
+
+        for game in self.games:
+            if game['name'] in recentG:
+                recentGames.append(game)
+            if game['project_status'] == '.In Progress':
+                inprogressGames.append(game)
+            elif game['project_status'] == '.Complete':
+                completeGames.append(game)
+            elif game['project_status'] == '.Ready':
+                readyGames.append(game)
+
+
+        def projectList(games):
+            games = sorted(games, key=lambda k:k['name'])
+            for game in games:
+                self.ui.project_list.addItem(game['name'])
 
         if inprogress == True:
-            inprogress_filter = "['id','8']"
-        else:
-            inprogress_filter = ""
-        if ready == True:
-            ready_filter = "['id','10']"
-        else:
-            ready_filter = ""
-        if complete == True:
-            complete_filter = "['id','11']"
-        else:
-            complete_filter = ""
-        if recent == True:
-            inprogress_filter = "['id','8']"
-        else:
-            recent_filter = ""
+            projectList(inprogressGames)
+        elif ready == True:
+            projectList(readyGames)
+        elif complete == True:
+            projectList(completeGames)
+        elif recent == True:
+            projectList(recentGames)
 
-        expr = "@SOBJECT(simpleslot/plan['begin']" + inprogress_filter + ready_filter + complete_filter + "['or'])"
-        temp = self.server.eval(expr)
+    def setProjectInfo(self, game):
+        name_chn = QtGui.QTableWidgetItem(game['name_chn'])
+        name_chn.setTextAlignment(QtCore.Qt.AlignHCenter)
+        self.ui.project_info.setItem(0,0,name_chn)
 
-        if inprogress == ready == complete == False:
-            temp = ""
+        game_type = QtGui.QTableWidgetItem(self.game_type_code_converter(game['game_type_code']))
+        game_type.setTextAlignment(QtCore.Qt.AlignHCenter)
+        self.ui.project_info.setItem(1,0,game_type)
 
-        names = bsd = bed = names_chn = game_type = assigned = ""
-
-        for x in temp:
-            names = names + x.get('name')
-            bsd = bsd + x.get('login')
-            bed = bed + x.get('keywords')
-            names_chn = names_chn + x.get('game_name_chn')
-            game_type = game_type + x.get('description')
-            assigned = assigned + x.get('process')
-
-        self.projects_data = {'name': names, 'login': bsd, 'keywords': bed, 'game_name_chn': names_chn, 'description': game_type, 'process': assigned}
-
-        names = self.projects_data.get('name')
-        names = names.split("__")  # list is a space separated string
-        names.pop(0)
-
-        if recent == True:
-            names = sorted(recent_projects)
-        else:
-            names = sorted(names)
-
-        for name in names:
-            self.ui.project_list.addItem(name)
+        project_coordinator = QtGui.QTableWidgetItem(game['project_coordinator'])
+        project_coordinator.setTextAlignment(QtCore.Qt.AlignHCenter)
+        self.ui.project_info.setItem(2,0,project_coordinator)
 
 
-    def getItems(self):
+        expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_start_date), '12-31-1999')"
+        bsd = self.server.eval(expr)[0]
+        bid_start_date = QtGui.QTableWidgetItem(bsd)
+        bid_start_date.setTextAlignment(QtCore.Qt.AlignHCenter)
+        self.ui.project_info.setItem(3,0,bid_start_date)
+
+        expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_end_date), '12-31-1999')"
+        bed = self.server.eval(expr)[0]
+        bid_end_date = QtGui.QTableWidgetItem(bed)
+        bid_end_date.setTextAlignment(QtCore.Qt.AlignHCenter)
+        self.ui.project_info.setItem(4,0,bid_end_date)
+
+    def clearUI(self):
         self.ui.asset_list.clear()
         self.ui.shot_list.clear()
+        self.ui.asset_process_list.clear()
+        self.ui.shot_process_list.clear()
+        self.ui.file_list.clear()
+        self.ui.note_list.clear()
 
-        self.game = self.ui.project_list.currentItem().text()
+    def getItems(self):
+        self.clearUI()
+        selected_game = self.ui.project_list.currentItem().text()
+        for game in self.games:
+            if selected_game == game['name']:
+                self.game = game
 
-        names = self.projects_data.get('name')
-        names = names.split("__")
+        self.setProjectInfo(self.game)
 
-        bsd = self.projects_data.get('login')
-        bsd = bsd.split("__")
+        expr = "@SOBJECT(simpleslot/game['name','" + self.game['name'] + "'].simpleslot/3d)"
+        self.casinos = sorted(self.server.eval(expr), key=lambda k:k['name'])
+        self.casinos = sorted(self.casinos, key=lambda k:k['3d_type_code'])
+        self.updateItemList(self.casinos)
 
-        bed = self.projects_data.get('keywords')
-        bed = bed.split("__")
 
-        names_chn = self.projects_data.get('game_name_chn')
-        names_chn = names_chn.split("__")
+        expr = "@SOBJECT(simpleslot/game['name','" + self.game['name'] + "'].simpleslot/assets)"
+        self.assets = sorted(self.server.eval(expr), key=lambda k:k['name'])
+        self.assets = sorted(self.assets, key=lambda k: k['asset_type_code'])
+        self.updateItemList(self.assets)
 
-        games_type = self.projects_data.get('description')
-        games_type = games_type.split("__")
-
-        assigned = self.projects_data.get('process')
-        assigned = assigned.split("__")
-
-        temp = zip(names_chn, games_type, assigned, bsd, bed, names)
-        temp.pop(0)
-
-        def getNameKey(item):
-            return item[0]
-
-        temp = sorted(temp, key=getNameKey, reverse=False)
-        self.project_info = []
-        for x in range(len(temp)):
-            #if temp[x][5] in game:  # if selected is in inprogress list
-            # make sure game is an exact match to temp[x][5], otherwise projects with _app or _cf suffix will aggregate
-            if self.game == temp[x][5]:
-                if temp[x][1] == "casino" or temp[x][1] == "lottery":  # if selected is casino or shot or assets
-                    self.updateList(name=temp[x][5], stype="3d", production_type="assets")
-
-                elif temp[x][1] == "sports" or temp[x][1] == "cf" or temp[x][1] == "video_conf" or temp[x][1] == "database":
-                    self.updateList(name=temp[x][5], stype="assets", production_type="assets")
-                    self.updateList(name=temp[x][5], stype="shot", production_type="shot")
-
-                for z in range(len(temp[x])):
-                    self.project_info.append(temp[x][z])
-                    widgetItem = QtGui.QTableWidgetItem(temp[x][z])
-                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                    self.ui.project_info.setItem(z,0,widgetItem)
+        expr = "@SOBJECT(simpleslot/game['name','" + self.game['name'] + "'].simpleslot/shot)"
+        self.shots = sorted(self.server.eval(expr), key=lambda k:k['name'])
+        for shot in self.shots:
+            self.ui.shot_list.addItem(shot['name'])
 
         # select first in item list if it contains anything
         production_type = self.productionType()
@@ -455,101 +411,40 @@ class mainWindow(QtGui.QDialog):
         except:
             pass
 
-    def updateCasinoItemHelp(self):
-        self.ui.colorCode1.setText('C')
-        self.ui.colorCode2.setText('S')
-        self.ui.colorCode3.setText('UI')
-        self.ui.colorCode4.setText('B1')
-        self.ui.colorCode5.setText('B2')
-        self.ui.colorCode6.setText('F')
-        self.ui.colorCode7.setText('J')
-        self.ui.colorCode8.setText('I')
-
-        self.ui.colorCode1.setToolTip(u'角色');
-        self.ui.colorCode2.setToolTip(u'符號');
-        self.ui.colorCode3.setToolTip(u'介面');
-        self.ui.colorCode4.setToolTip(u'彩金1');
-        self.ui.colorCode5.setToolTip(u'彩金2');
-        self.ui.colorCode6.setToolTip(u'Freegame');
-        self.ui.colorCode7.setToolTip(u'Jackpot');
-        self.ui.colorCode8.setToolTip(u'開場動畫');
-
-    def updateAssetItemHelp(self):
-        self.ui.colorCode1.setText('C')
-        self.ui.colorCode2.setText('V')
-        self.ui.colorCode3.setText('S')
-        self.ui.colorCode4.setText('P')
-        self.ui.colorCode5.setText('O')
-        self.ui.colorCode6.setText('')
-        self.ui.colorCode7.setText('')
-        self.ui.colorCode8.setText('')
-
-        self.ui.colorCode1.setToolTip(u"角色");
-        self.ui.colorCode2.setToolTip(u"車");
-        self.ui.colorCode3.setToolTip(u"場景");
-        self.ui.colorCode4.setToolTip(u"道具");
-        self.ui.colorCode5.setToolTip(u"其它");
-        self.ui.colorCode6.setToolTip(u"");
-        self.ui.colorCode7.setToolTip(u"");
-        self.ui.colorCode8.setToolTip(u"");
-
-    def updateList(self, name=None, stype=None, production_type=None):
-        expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
-        temp = self.server.eval(expr)
-
-        items = sorted(temp, key=lambda k: k['name'])
-        if stype == "3d":
-            items = sorted(temp, key=lambda k: k['3d_type_code'])
-            self.asset_item_details = items
-            names = [[y['name'], y['3d_type_code']] for y in self.asset_item_details]
-            self.updateCasinoItemHelp();
-
-        else:
-            if production_type == "assets":
-                items = sorted(temp, key=lambda k: k['asset_type_code'])
-                self.asset_item_details = items
-                names = [[y['name'], y['asset_type_code']] for y in self.asset_item_details]
-                self.updateAssetItemHelp();
-
-            elif production_type == "shot":
-                self.shot_item_details = items
-                names = [[y['name'], ] for y in self.shot_item_details]
-
+    def updateItemList(self, items):
         list_index = 0
-        for name in names:
-            if production_type == "assets":
-                self.ui.asset_list.addItem(name[0])
-                if name[1] == "3D_TYPE00002":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e4e'))
-                elif name[1] == "3D_TYPE00003":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6157'))
-                elif name[1] == "3D_TYPE00004":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e61'))
-                elif name[1] == "3D_TYPE00005":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#57614e'))
-                elif name[1] == "3D_TYPE00006":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e4e61'))
-                elif name[1] == "3D_TYPE00007":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#61574e'))
-                elif name[1] == "3D_TYPE00008":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6161'))
-                elif name[1] == "3D_TYPE00009":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e57'))
-                elif name[1] == "ASSET_TYPE00002":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e4e'))
-                elif name[1] == "ASSET_TYPE00003":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e6157'))
-                elif name[1] == "ASSET_TYPE00004":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#614e61'))
-                elif name[1] == "ASSET_TYPE00005":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#57614e'))
-                elif name[1] == "ASSET_TYPE00006":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#4e4e61'))
+        for item in items:
+            self.ui.asset_list.addItem(item['name'])
+            if '3d_type_code' in item:
+                if item['3d_type_code'] == "3D_TYPE00002":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#525252'))
+                elif item['3d_type_code'] == "3D_TYPE00003":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
+                elif item['3d_type_code'] == "3D_TYPE00004":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['3d_type_code'] == "3D_TYPE00005":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['3d_type_code'] == "3D_TYPE00006":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['3d_type_code'] == "3D_TYPE00007":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['3d_type_code'] == "3D_TYPE00008":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['3d_type_code'] == "3D_TYPE00009":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+            elif 'asset_type_code' in item:
+                if item['asset_type_code'] == "ASSET_TYPE00002":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#525252'))
+                elif item['asset_type_code'] == "ASSET_TYPE00003":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#494949'))
+                elif item['asset_type_code'] == "ASSET_TYPE00004":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
+                elif item['asset_type_code'] == "ASSET_TYPE00005":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                elif item['asset_type_code'] == "ASSET_TYPE00006":
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#323232'))
+            list_index = list_index + 1
 
-                list_index = list_index+1
-
-            else:
-                self.ui.shot_list.addItem(name[0])
 
     def productionType(self):
         if self.ui.tabProductionType.currentIndex() == 0:
@@ -559,57 +454,80 @@ class mainWindow(QtGui.QDialog):
         return production_type
 
     def getProcess(self):
+        task_assigned = ""
+        bid_start_date = ""
+        bid_end_date = ""
+
         production_type = self.productionType()
-        # if production_type == "shot":
-        #     ordered = ['layout','animation','lighting','effects','comp','final']
-        # else:
-        #     ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
-
-        selected = ""
-
         if production_type == "assets":
-            selected = self.ui.asset_list.currentRow()
-            self.item_name = self.ui.asset_list.currentItem().text()
-            self.item_name_chn = self.asset_item_details[selected].get('description')
-            self.item_code = self.asset_item_details[selected].get('code')
-            if self.project_info[1] == "casino" or self.project_info[1] == "lottery":
-                stype = "3d"
-                self.item_type = self.asset_item_details[selected].get('3d_type_code')
-            else:
-                stype = "assets"
-                self.item_type = self.asset_item_details[selected].get('asset_type_code')
-
-            # item_type is retrieved here instead of in final path
-            self.item_type = self.assetTypeCode(self.item_type)
-
+            selected = self.ui.asset_list.currentItem().text()
+            items = self.casinos + self.assets
         elif production_type == "shot":
-            if self.ui.shot_list.count() != 0:
-                selected = self.ui.shot_list.currentRow()
-                self.item_name = self.ui.shot_list.currentItem().text()
-                self.item_name_chn = self.shot_item_details[selected].get('description')
-                self.item_type = "None"
-                self.item_code = self.shot_item_details[selected].get('code')
-            stype = "shot"
+            selected = self.ui.shot_list.currentItem().text()
+            items = self.shots
 
-        expr = "@SOBJECT(simpleslot/" + stype + "['code','" + self.item_code + "'].sthpw/task)"
-        tasks = self.server.eval(expr)
+        self.item = [d for d in items if d['name'] == selected][0]
 
-        self.item_tasks = self.orderTasksByProcesses(tasks)
+        expr = "@SOBJECT(sthpw/task['search_code','" + self.item['code'] + "'])"
+        self.tasks = self.server.eval(expr)
+        self.tasks = self.orderTasksByProcesses(self.tasks)
 
-        self.updateProcessList()
+        if self.ui.asset_process_list.count() != 0:
+            self.ui.asset_process_list.clear()
+        if self.ui.shot_process_list.count() != 0:
+            self.ui.shot_process_list.clear()
 
+        for task in self.tasks:
+            task_assigned = task.get('assigned')
+            bid_start_date = task['bid_start_date'][5:-9]
+            bid_end_date = task['bid_end_date'][5:-9]
+
+            process = task.get('process')
+            status = task.get('status')
+            if status == '.Not Ready':
+                icon = notready_icon
+            elif status == '.Ready':
+                icon = ready_icon
+            elif status == '.In Progress':
+                icon = inprogress_icon
+            elif status == '.Stand By':
+                icon = standby_icon
+            elif status == '.Review':
+                icon = review_icon
+            elif status == '.Complete':
+                icon = complete_icon
+
+            qitem = QtGui.QListWidgetItem(icon, process)
+            self.ui.asset_process_list.addItem(qitem)
+
+            qitem = QtGui.QListWidgetItem(icon, process)
+            self.ui.shot_process_list.addItem(qitem)
+
+        item_name_chn = self.item['description']
+
+        if self.item.get('asset_type_code') != None:
+            self.item_type_code = self.item.get('asset_type_code')
+        elif self.item.get('3d_type_code') != None:
+            self.item_type_code = self.item.get('3d_type_code')
+
+        # get the current process list index from self.task, which is from the future
         selectedProcess = 0
-        # check if previous selection exists in current process list
-        for i, task in enumerate(self.item_tasks):
-            if task.get('process') == self.item_process:
-                selectedProcess = i
-                break
+        if hasattr(self, 'task'):
+            for i, task in enumerate(self.tasks):
+                if task.get('process') == self.task.get('process'):
+                    selectedProcess = i
+                    break
+        else:
+            selectedProcess = 0
 
+        # update item info table
         if production_type == "assets":
+            self.item_type = self.assetTypeCode(self.item_type_code)
+
             if self.ui.asset_list.count() != 0:
                 self.ui.asset_process_list.setCurrentRow(selectedProcess)     # select first in process list if it contains anything
 
-                widgetItem = QtGui.QTableWidgetItem(self.item_name_chn)
+                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(0,0,widgetItem)
 
@@ -617,17 +535,42 @@ class mainWindow(QtGui.QDialog):
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(1,0,widgetItem)
 
+                widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.asset_info.setItem(2,0,widgetItem)
+
+                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.asset_info.setItem(3,0,widgetItem)
+
+                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.asset_info.setItem(4,0,widgetItem)
+
         elif production_type == "shot":
             if self.ui.shot_list.count() != 0:
                 self.ui.shot_process_list.setCurrentRow(selectedProcess)
 
-                widgetItem = QtGui.QTableWidgetItem(self.item_name_chn)
+                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(0,0,widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(self.item_type)
+                widgetItem = QtGui.QTableWidgetItem("None")
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1,0,widgetItem)
+
+                widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.shot_info.setItem(2,0,widgetItem)
+
+                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.shot_info.setItem(3,0,widgetItem)
+
+                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                self.ui.shot_info.setItem(4,0,widgetItem)
+
         try:
             self.finalPath()
         except:
@@ -646,7 +589,40 @@ class mainWindow(QtGui.QDialog):
                     new.append(task)
         return new
 
+
+    # convert casino item type to new asset types
     def assetTypeCode(self, code):
+        if code == "ASSET_TYPE00002":
+            asset_type = "character"
+        elif code == "ASSET_TYPE00003":
+            asset_type = "vehicle"
+        elif code == "ASSET_TYPE00004":
+            asset_type = "set"
+        elif code == "ASSET_TYPE00005":
+            asset_type = "prop"
+        elif code == "ASSET_TYPE00006":
+            asset_type = "other"
+        elif code == "3D_TYPE00002":
+            asset_type = "character"
+        elif code == "3D_TYPE00003":
+            asset_type = "prop"
+        elif code == "3D_TYPE00004":
+            asset_type = "set"
+        elif code == "3D_TYPE00005":
+            asset_type = "set"
+        elif code == "3D_TYPE00006":
+            asset_type = "set"
+        elif code == "3D_TYPE00007":
+            asset_type = "set"
+        elif code == "3D_TYPE00008":
+            asset_type = "set"
+        elif code == "3D_TYPE00009":
+            asset_type = "set"
+        else:
+            asset_type = ""
+        return asset_type
+
+    def oldAssetTypeCode(self, code):
         if code == "ASSET_TYPE00002":
             asset_type = "character"
         elif code == "ASSET_TYPE00003":
@@ -677,67 +653,28 @@ class mainWindow(QtGui.QDialog):
             asset_type = ""
         return asset_type
 
-    def updateProcessInfo(self):
-        production_type = self.productionType()
-        selected_process = ""
-        if production_type == "assets":
-            if self.ui.asset_process_list.count() != 0:
-                selected_process = self.ui.asset_process_list.currentItem().text()
-        elif production_type == "shot":
-            if self.ui.shot_process_list.count() != 0:
-                selected_process = self.ui.shot_process_list.currentItem().text()
-
-        self.assigned = ""
-        self.bsd = ""
-        self.bed = ""
-        for x in self.item_tasks:
-            if x.get("process") == selected_process:
-                # task_search_key = x.get("__search_key__")
-                self.assigned = self.assigned + ", " + x.get("assigned")
-                self.bsd = self.bsd + ", " + x.get("bid_start_date")[5:-9]
-                self.bed = self.bed + ", " + x.get("bid_end_date")[5:-9]
-                self.sk = x.get('__search_key__')
-
-        self.assigned = self.assigned[2:]
-        self.bsd = self.bsd[2:]
-        self.bed = self.bed[2:]
-
-        process_infos = [self.assigned, self.bsd, self.bed]
-
-        for x in range(0, len(process_infos)):
-            index = 2 + x
-            widgetItem = QtGui.QTableWidgetItem(process_infos[x])
-            widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-            if production_type is "assets":
-                self.ui.asset_info.setItem(index, 0, widgetItem)
-            if production_type is "shot":
-                self.ui.shot_info.setItem(index, 0, widgetItem)
-
     def finalPath(self):
-        #base_path = "//art-render/art_3d_project/"
-        base_path = "//mcd-server/art_3d_project/"
-        name = self.server.login
+        self.old_path = ""
+        self.old_base_filename = ""
+        self.old_filename = ""
 
-        project = self.project_info[5]
-        project_type = self.project_info[1]
+
+        base_path = "//mcd-server/art_3d_project/"
+        login = self.server.login
+
+        project = self.game['name']
+        project_type = self.game_type_code_converter(self.game['game_type_code'])
 
         production_type = self.productionType()
 
-        self.updateProcessInfo()
+        for task in self.tasks:
+            if production_type == 'assets':
+                if task.get('process') == self.ui.asset_process_list.currentItem().text():
+                    self.task = task
+            elif production_type == 'shot':
+                if task.get('process') == self.ui.shot_process_list.currentItem().text():
+                    self.task = task
 
-        if production_type == "assets":
-            try:
-                self.item_process = self.ui.asset_process_list.currentItem().text()
-                #self.prev_selection = self.ui.asset_process_list.currentItem().text()
-            except:
-                pass
-        elif production_type == "shot":
-            try:
-                self.item_process = self.ui.shot_process_list.currentItem().text()
-            except:
-                pass
-
-        #print project, production_type, item_name, item_process
         final_path = ""
         base_filename = ""
         item_type = ""
@@ -752,27 +689,23 @@ class mainWindow(QtGui.QDialog):
         elif appName == "python":
             ext = ""
 
-        if production_type == "assets":
-            if project_type == "cf" or project_type == "sports" or project_type == "video_conf" or project_type == "database":
-                final_path = base_path + project + "/assets/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
-                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
+        old_item_type = self.oldAssetTypeCode(self.item_type_code)
 
-                filename =      jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
-                project_type = "assets"
+        if production_type == 'assets':
+            final_path = base_path + project + "/" + production_type + "/" + self.item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
+            self.old_path = base_path + project + "/casino/" + old_item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
 
-            elif project_type == "casino" or project_type == "lottery":
-                final_path = base_path + project + "/" + project_type + "/" + self.item_type + "/" + self.item_name + "/" + self.item_process + "/scenes/"
-                base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
+            base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            filename =      jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + login + ext
 
-                filename = jc.abbrName(project) + "_"  + jc.abbrItemType(self.item_type) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
-                project_type = "assets"
+            #backwards compat
+            self.old_base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            self.old_filename =      jc.abbrName(project) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(self.old_path, self.old_base_filename, "maya") + "_" + login + ext
 
-        elif production_type == "shot":
-            final_path = base_path + project + "/shot/" + self.item_name + "/" + self.item_process + "/scenes/"
-            base_filename = jc.abbrName(project) + "_" + self.item_name + "_" + jc.abbrName(self.item_process)
-
-            filename = jc.abbrName(project) + "_" + self.item_name + "_" + jc.abbrName(self.item_process) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + name + ext
-            project_type = "shot"
+        elif production_type == 'shot':
+            final_path = base_path + project + "/" + production_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
+            base_filename = jc.abbrName(project) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            filename =      jc.abbrName(project) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + login + ext
 
         final_path = final_path.replace(" ", "")
 
@@ -785,15 +718,24 @@ class mainWindow(QtGui.QDialog):
                 self.ui.save_path.setText(final_path)
                 self.ui.save_file.setText(filename)
 
-        try:
-            self.updateFileList(final_path, base_filename)
-        except:
-            print "updateFilelist failed"
-        #recent_file = ""
+        self.updateFileList(final_path, base_filename)
 
     def updateFileList(self, final_path, base_filename): # use getfilelist() and update ui
         fileList = []
         self.ui.file_list.clear()
+
+        index = 0
+        if os.path.exists(self.old_path) is True:
+            oldFiles = os.listdir(self.old_path)
+            if len(oldFiles) == 0:
+                pass
+            else:
+                fileList = [x for x in oldFiles if self.old_base_filename in x]
+                for filename in fileList:
+                    filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(self.old_path + filename)))
+                    self.ui.file_list.addItem(filedate + "  " + filename)
+                    self.ui.file_list.item(index).setBackground(QtGui.QColor('#725252'))
+                    index = index + 1
 
         if os.path.exists(final_path) is True:
             savedFiles = os.listdir(final_path)
@@ -801,12 +743,10 @@ class mainWindow(QtGui.QDialog):
                 pass
             else:
                 fileList = [x for x in savedFiles if base_filename in x]
-        else:
-            pass
-
-        for filename in fileList:
-            filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(final_path + filename)))
-            self.ui.file_list.addItem(filedate + "  " + filename)
+                for filename in fileList:
+                    filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(final_path + filename)))
+                    self.ui.file_list.addItem(filedate + "  " + filename)
+                    index = index + 1
 
         file_list_count = self.ui.file_list.count()
 
@@ -814,37 +754,6 @@ class mainWindow(QtGui.QDialog):
             self.ui.file_list.setCurrentRow(file_list_count - 1)
 
         self.getNotes()
-
-    def updateProcessList(self):
-        production_type = self.productionType()
-
-        if self.ui.asset_process_list.count() != 0:
-            self.ui.asset_process_list.clear()
-        if self.ui.shot_process_list.count() != 0:
-            self.ui.shot_process_list.clear()
-
-        for task in self.item_tasks:
-            process = task.get('process')
-            status = task.get('status')
-            if status == '.Not Ready':
-                icon = notready_icon
-            elif status == '.Ready':
-                icon = ready_icon
-            elif status == '.In Progress':
-                icon = inprogress_icon
-            elif status == '.Stand By':
-                icon = standby_icon
-            elif status == '.Review':
-                icon = review_icon
-            elif status == '.Complete':
-                icon = complete_icon
-
-            if production_type == "assets" and self.ui.asset_list.count() != 0:
-                item = QtGui.QListWidgetItem(icon, process)
-                self.ui.asset_process_list.addItem(item)
-            elif production_type == "shot" and self.ui.shot_list.count() != 0:
-                item = QtGui.QListWidgetItem(icon, process)
-                self.ui.shot_process_list.addItem(item)
 
     def updateStatus(self):
         tasks = self.item_tasks
@@ -856,7 +765,6 @@ class mainWindow(QtGui.QDialog):
 
         for i, task in enumerate(new):
             process = self.item_process
-            # print i, task.get('process'), process
             if task.get('process') == process:
                 if task.get('status') == '.Not Ready' or task.get('status') == '.Ready':
                     task_sk = task.get('__search_key__')
@@ -902,12 +810,13 @@ class mainWindow(QtGui.QDialog):
             self.prev_selection = self.ui.shot_process_list.currentItem().text()
 
         self.finalPath()
-        self.updateStatus()
+        #self.updateStatus()
         self.getProcess()
         self.saveLog()
 
     def saveLog(self, arg=None):
-        data = {'name': self.project_info[0], 'project': self.game ,'item': self.item_name, 'process': self.item_process, 'item_code': self.item_code,'user': self.server.login,'path': self.ui.save_path.text(),'filename': self.ui.save_file.text()}
+        print "save logged"
+        data = {'name': self.game['name_chn'], 'project': self.game['name'] ,'item': self.item['name'], 'process': self.task['process'], 'item_code': self.item['code'],'user': self.server.login,'path': self.ui.save_path.text(),'filename': self.ui.save_file.text()}
         self.server.insert('simpleslot/save_log', data)
 
     def publishMaster(self, arg=None):
@@ -915,6 +824,9 @@ class mainWindow(QtGui.QDialog):
             return any(char.isdigit() for char in inputString)
 
         path = self.ui.save_path.text()
+        if self.ui.file_list.currentItem().background().color().name() == '#725252':
+            path = self.old_path
+
         filename = self.ui.file_list.currentItem().text().split("  ")[1]
 
         process = self.ui.asset_process_list.currentItem().text()
@@ -939,8 +851,7 @@ class mainWindow(QtGui.QDialog):
 
         destination = master_path + "/" + final + "_master." + ext
         source = path + filename
-        self.publishMasterNotes(filename + u"設為MASTER檔")
-        #print source, destination
+        self.saveNotes(filename + u"設為MASTER檔")
         shutil.copy2(source, destination)
 
 
@@ -951,13 +862,19 @@ class mainWindow(QtGui.QDialog):
 
         if appName == "3dsmax":
             import MaxPlus
+            if self.ui.file_list.currentItem().background().color().name() == '#725252':
+                path = self.old_path
+
             MaxPlus.FileManager.Open(path + filename)
             jc.maxWorkspaceFileRule(path)
 
         elif appName == "maya":
             import maya.cmds as cmds
             import maya.mel as mel
-            print path + filename
+            if self.ui.file_list.currentItem().background().color().name() == '#725252':
+                path = self.old_path
+                #filename = self.old_filename
+
             cmds.file(modified=0)
             cmds.file((path + filename), open=True, ignoreVersion=True)
             setrmsproj = 'rman setvar RMSPROJ \"' + path.replace("scenes/","") + '\"'
@@ -985,7 +902,6 @@ class mainWindow(QtGui.QDialog):
 
         nuke.addFavoriteDir('images', images_path)
         nuke.addFavoriteDir('sourceimages', sourceimages_path)
-
 
     def openPath(self):
         final_path = self.ui.save_path.text()
@@ -1027,85 +943,6 @@ class mainWindow(QtGui.QDialog):
         self.ui.complete_button.setChecked(0)
         self.ui.recent_button.setChecked(1)
         self.getProjects()
-
-    def gamelist(self, items):
-        now = datetime.datetime.now()
-        names = ""
-        names_chn = ""
-        games_type = ""
-        assignments = ""
-        bsd_string = ""
-        bed_string = ""
-        cf_type = ['cf','video_conf', 'database']
-        casino_type = ['casino']
-        stype = ""
-        temp = []
-
-        for game in items:
-            bsd = []
-            bed = []
-            name = game.get("name")
-            name_chn = game.get("name_chn")
-            search_code = game.get("code")
-            expr = "@SOBJECT(sthpw/task['search_code','" + search_code + "'])"
-            depts = self.server.eval(expr)
-
-            expr = "@GET(simpleslot/game['name','" + name + "'].simpleslot/game_type.name)"
-            game_type = self.server.eval(expr)[0]
-
-            if game_type in cf_type:
-                stype = 'assets'
-            elif game_type in casino_type:
-                stype = '3d'
-
-            expr = "@SOBJECT(simpleslot/game['name','" + name + "'].simpleslot/" + stype + ")"
-            temp = self.server.eval(expr)
-
-            if len(temp) > 0:
-                for dept in depts:
-                    bsd.append(parser.parse(dept.get("bid_start_date")))
-                    bed.append(parser.parse(dept.get("bid_end_date")))
-                try:
-                    bsd = min(bsd)
-                    bsd = bsd.strftime("%m/%d/%y")
-                except:
-                    bsd = ""
-                try:
-                    bed = max(bed)
-                    bed = bed.strftime("%m/%d/%y")
-                except:
-                    bed = ""
-                bsd_string = bsd_string + "__" + (bsd)
-                bed_string = bed_string + "__ " + (bed)
-
-                assignment = game.get("project_coordinator")
-                assignments = assignments + "__" + assignment
-                names = names + "__" + name
-                games_type = games_type + "__" + game_type
-                names_chn = names_chn + "__" + name_chn
-        data = {'name': names, 'description': games_type, 'login': bsd_string, 'keywords': bed_string, 'timestamp': str(now), 'game_name_chn': names_chn, 'process': assignments}
-        return data
-
-    def updateCache(self):
-        expr = "@SOBJECT(simpleslot/game['project_status','.In Progress'])"
-        inprogress = self.server.eval(expr)
-
-        expr = "@SOBJECT(simpleslot/game['project_status','.Ready'])"
-        ready = self.server.eval(expr)
-
-        expr = "@SOBJECT(simpleslot/game['project_status','.Complete'])"
-        complete = self.server.eval(expr)
-
-        data = self.gamelist(inprogress)
-        test1 = self.server.update("simpleslot/plan?project=simpleslot&id=8", data)
-
-        data = self.gamelist(ready)
-        test2 = self.server.update("simpleslot/plan?project=simpleslot&id=10",data)
-
-        data = self.gamelist(complete)
-        test3 = self.server.update("simpleslot/plan?project=simpleslot&id=11", data)
-        print "update complete"
-
 #%%
 def qt_tactic_mainMain():
     global widget
