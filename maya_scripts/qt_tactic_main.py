@@ -176,6 +176,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.inprogress_button.clicked.connect(self.setInProgressFilter)
         self.ui.ready_button.clicked.connect(self.setReadyFilter)
         self.ui.complete_button.clicked.connect(self.setCompleteFilter)
+        self.ui.recent_button.clicked.connect(self.setRecentFilter)
 
         self.ui.file_list.itemClicked.connect(self.getNotes)
         #self.ui.save_note.clicked.connect(self.saveNotes)
@@ -331,11 +332,15 @@ class mainWindow(QtGui.QDialog):
 
     def getProjects(self):
         #openRecent()
+        recent = self.ui.recent_button.isChecked()
         inprogress = self.ui.inprogress_button.isChecked()
         ready = self.ui.ready_button.isChecked()
         complete = self.ui.complete_button.isChecked()
 
         self.ui.project_list.clear()
+
+        expr = "@UNIQUE(@GET(simpleslot/save_log['timestamp','>','$PREV_MONTH'].project))"
+        recent_projects = self.server.eval(expr)
 
         if inprogress == True:
             inprogress_filter = "['id','8']"
@@ -349,6 +354,10 @@ class mainWindow(QtGui.QDialog):
             complete_filter = "['id','11']"
         else:
             complete_filter = ""
+        if recent == True:
+            inprogress_filter = "['id','8']"
+        else:
+            recent_filter = ""
 
         expr = "@SOBJECT(simpleslot/plan['begin']" + inprogress_filter + ready_filter + complete_filter + "['or'])"
         temp = self.server.eval(expr)
@@ -371,7 +380,11 @@ class mainWindow(QtGui.QDialog):
         names = self.projects_data.get('name')
         names = names.split("__")  # list is a space separated string
         names.pop(0)
-        names = sorted(names)
+
+        if recent == True:
+            names = sorted(recent_projects)
+        else:
+            names = sorted(names)
 
         for name in names:
             self.ui.project_list.addItem(name)
@@ -991,18 +1004,28 @@ class mainWindow(QtGui.QDialog):
         self.ui.inprogress_button.setChecked(1)
         self.ui.ready_button.setChecked(0)
         self.ui.complete_button.setChecked(0)
+        self.ui.recent_button.setChecked(0)
         self.getProjects()
 
     def setReadyFilter(self):
         self.ui.inprogress_button.setChecked(0)
         self.ui.ready_button.setChecked(1)
         self.ui.complete_button.setChecked(0)
+        self.ui.recent_button.setChecked(0)
         self.getProjects()
 
     def setCompleteFilter(self):
         self.ui.inprogress_button.setChecked(0)
         self.ui.ready_button.setChecked(0)
         self.ui.complete_button.setChecked(1)
+        self.ui.recent_button.setChecked(0)
+        self.getProjects()
+
+    def setRecentFilter(self):
+        self.ui.inprogress_button.setChecked(0)
+        self.ui.ready_button.setChecked(0)
+        self.ui.complete_button.setChecked(0)
+        self.ui.recent_button.setChecked(1)
         self.getProjects()
 
     def gamelist(self, items):

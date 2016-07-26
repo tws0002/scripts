@@ -26,25 +26,17 @@ content = si.RetrieveContent()
 datacenters = content.rootFolder.childEntity
 picasso = datacenters[3].hostFolder.childEntity[0]
 hosts = picasso.host
-
-def shutDownPicasso():
-    for host in hosts:
-        host.Shutdown(1)
-        time.sleep(5)
-
-
-hosts[0].vm[0].name
 #%%
 #Shut down all the guest vms
-'''
 try:
     for host in hosts:
-        if host.vm[0].runtime.powerState == "poweredOff":
-            print host.vm[0].name + " us Powered Off"
-            pass
-        else:
-            print "Shutting Down " + host.vm[0].name
-            host.vm[0].ShutdownGuest()
+        if len(host.vm) != 0:
+            if host.vm[0].runtime.powerState == "poweredOff":
+                print host.vm[0].name + " us Powered Off"
+                pass
+            else:
+                print "Shutting Down " + host.vm[0].name
+                host.vm[0].ShutdownGuest()
 except:
     e = sys.exc_info()[0]
     print e
@@ -71,6 +63,8 @@ for host in hosts:
 time.sleep(60)
 #check again
 for host in hosts:
+    hosts[0].name
+    
     while host.runtime.powerState == "poweredOn":
         print "Shutting Down ESXI Host " + host.name + " again."
         host.Shutdown(1)
@@ -80,4 +74,3 @@ for host in hosts:
 
 
 
-'''

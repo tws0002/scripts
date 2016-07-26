@@ -1457,7 +1457,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         #z = zipfile.ZipFile(zName, 'w')
        # print path
       #  print zName
-        z = zipfile.ZipFile(zName, 'w',compression = zipfile.ZIP_DEFLATED)
+        z = zipfile.ZipFile(zName, 'w',compression = zipfile.ZIP_DEFLATED,allowZip64=True)
 
 
 

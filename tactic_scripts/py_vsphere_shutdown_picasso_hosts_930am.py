@@ -27,8 +27,7 @@ datacenters = content.rootFolder.childEntity
 picasso = datacenters[3].hostFolder.childEntity[0]
 hosts = picasso.host
 #%%
-today = datetime.date.today()
-
+today = datetime.date.today() + 
 holidays = []
 holidays.append(datetime.date(2016,2,29))
 holidays.append(datetime.date(2016,4,4))
@@ -46,21 +45,18 @@ if today.weekday() in [5,6]:
 if today in holidays:
     shutdown = True
 #%%
-def shutDownPicasso():
-    for host in hosts:
-        host.Shutdown(1)
-        time.sleep(5)
 
 
 if shutdown == True:
     try:
         for host in hosts:
-            if host.vm[0].runtime.powerState == "poweredOff":
-                print host.vm[0].name + " us Powered Off"
-                pass
-            else:
-                print "Shutting Down " + host.vm[0].name
-                host.vm[0].ShutdownGuest()
+            if len(host.vm) != 0:
+                if host.vm[0].runtime.powerState == "poweredOff":
+                    print host.vm[0].name + " us Powered Off"
+                    pass
+                else:
+                    print "Shutting Down " + host.vm[0].name
+                    host.vm[0].ShutdownGuest()
     except:
         e = sys.exc_info()[0]
         print e
@@ -73,7 +69,9 @@ if shutdown == True:
                 time.sleep(30)
     except:
         print "All ok"
-
+    #%%
+    
+    
     for host in hosts:
         if host.runtime.powerState == "poweredOff":
             print "ESXI Host " + host.name + " is powered off."
@@ -81,11 +79,16 @@ if shutdown == True:
         else:
             print "Shutting Down ESXI Host " + host.name
             host.Shutdown(1)
-
+    
     time.sleep(60)
     #check again
     for host in hosts:
+        hosts[0].name
+        
         while host.runtime.powerState == "poweredOn":
             print "Shutting Down ESXI Host " + host.name + " again."
             host.Shutdown(1)
             time.sleep(30)
+
+
+    
