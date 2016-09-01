@@ -5,7 +5,7 @@ sys.path.append("//Art-1405260002/d/assets/scripts/maya_scripts/lib")
 
 # Form implementation generated from reading ui file '//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v02.ui'
 #
-# Created: Tue Jul 26 12:03:00 2016
+# Created: Fri Jul 29 16:08:31 2016
 #      by: pyside-uic 0.2.15 running on PySide 1.2.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -415,7 +415,7 @@ class Ui_main_window(object):
         self.note_list.setWordWrap(True)
         self.note_list.setObjectName("note_list")
         self.verticalLayout_7.addWidget(self.note_list)
-        self.note = QtGui.QLineEdit(main_window)
+        self.note = lineEditWidget(main_window)
         self.note.setObjectName("note")
         self.verticalLayout_7.addWidget(self.note)
         self.file_list_layout.addLayout(self.verticalLayout_7)
@@ -474,6 +474,9 @@ class Ui_main_window(object):
         self.note.setToolTip(QtGui.QApplication.translate("main_window", "<html><head/><body><p><span style=\" font-size:10pt;\">這邊輸入備註。</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.note.setPlaceholderText(QtGui.QApplication.translate("main_window", "                                                      這邊輸入備註，按ENTER", None, QtGui.QApplication.UnicodeUTF8))
 
+import lineeditwidget
+from lineeditwidget import lineEditWidget
+reload(lineeditwidget)
 import processlistwidget
 from processlistwidget import processListWidget
 reload(processlistwidget)

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.adobe.resizeOffset" ExtensionBundleVersion="1.0" Version="5.0">
+    <ExtensionList>
+        <Extension Id="com.adobe.resizeOffset.panel" Version="1.0"/>
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="PHXS" Version="16.0"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="6.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.adobe.resizeOffset.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./html/index.html</MainPath>
+                    <ScriptPath>./jsx/PS_resizeOffset.jsx</ScriptPath>
+
+                    <CEFCommandLine>
+                        <Parameter>--enable-speech-input</Parameter>
+                        <Parameter>--enable-media-stream</Parameter>
+                        <Parameter>--cep-disable-authentication</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>Resize Offset</Menu>
+                    <Geometry>
+                        <Size>
+                            <Height>154</Height>
+                            <Width>154</Width>
+                        </Size>
+                        <MaxSize>
+                            <Height>154</Height>
+                            <Width>154</Width>
+                        </MaxSize>
+                        <MinSize>
+                            <Height>154</Height>
+                            <Width>154</Width>
+                        </MinSize>
+                    </Geometry>
+                    <Icons>
+                    </Icons>				
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>

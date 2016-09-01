@@ -1,12 +1,13 @@
 ﻿import datetime
-from dateutil import parser
 import time
-start_time = time.time()
 import sys
-import socket
 sys.path.append("//Art-1405260002/d/assets/client")
-
+import socket
 from tactic_client_lib import TacticServerStub
+import Skype4Py
+
+start_time = time.time()
+
 server = TacticServerStub(setup=False)
 
 tactic_server_ip = socket.gethostbyname("vg.com")
@@ -15,7 +16,7 @@ server.set_server(tactic_server_ip)
 server.set_project("simpleslot")
 ticket = server.get_ticket("julio", "1234")
 server.set_ticket(ticket)
-import Skype4Py
+
 
 skype = Skype4Py.Skype()
 client = skype.Client
@@ -43,7 +44,7 @@ for d in duty:
         else:
             skypename = login.get('skype')
             final = today_string + "\n" + worker1 + "跟".decode('utf-8') + worker2 + "是今天值日生，請:".decode('utf-8') + "\n" + "1.冰箱整潔維護與微波爐旁邊檯面整潔。".decode('utf-8') + "\n" + "2.便當桌整潔。".decode('utf-8') + "\n" + "3.公共區域地板整潔。".decode('utf-8') + "\n"
-            
+
             skype.SendMessage(skypename, final)
             print skypename
 

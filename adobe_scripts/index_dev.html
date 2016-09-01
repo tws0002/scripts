@@ -124,12 +124,14 @@
             display: inline-block;
             width: 175px;
             height: 200px;
+            overflow: hidden;
         }
 
         .full_panel {
             width: 100%;
             height: 150px;
             display: inline-block;
+            margin: 0 0 10px 0;
         }
 
         .panel_label {
@@ -223,6 +225,9 @@
 
         }
 
+        .tab{
+            height: 10%;
+        }
         .text_label{
             text-align: right;
             display: inline-block;
@@ -241,6 +246,17 @@
             border: 1px solid #111111;
             border-radius: 3px;
         }
+
+        .text_input_notes{
+            background: linear-gradient(to bottom, #4d4d4d , #646464 10%, #5d5d5d);
+            color: #b1b1b1;
+            font-size: 12px;
+            line-height: 24px;
+            vertical-align: middle;
+            width: 100%;
+            border: 1px solid #111111;
+            border-radius: 3px;
+        }        
 
         .tool_output{
             width: 100%;
@@ -325,6 +341,10 @@
         .tool_info_in{
             border: 1px dotted #444;
         }
+
+        ::-webkit-input-placeholder {
+           text-align: center;
+        }        
     </style>
 </head>
 
@@ -344,7 +364,8 @@
         <td colspan='3'>
             <div class='top'>
                 <div class='inline'>
-                    <img src="/assets/scripts/adobe_scripts/icons/play.png" class='button button_on proj_status' name='inprogress'/>
+                    <img src="/assets/scripts/adobe_scripts/icons/recent.png" class='button button_on proj_status' name='recent'/>
+                    <img src="/assets/scripts/adobe_scripts/icons/play.png" class='button button_off proj_status' name='inprogress'/>
                     <img src="/assets/scripts/adobe_scripts/icons/pause.png" class='button button_off proj_status' name='standby'/>
                     <img src="/assets/scripts/adobe_scripts/icons/check.png" class='button button_off proj_status' name='complete'/>
                 </div>
@@ -492,9 +513,9 @@
             <div class='row_div'>
                 <button class='text_button' onclick='javascript:tacticUI.openFile()'>開啟</button>
             </div>
-             <div class='row_div'>
+<!--              <div class='row_div'>
                 <div class='row_div_label'>檔案過濾</div>
-            </div>
+            </div> -->
             <div class='row_div'>
                 <img src="/assets/scripts/adobe_scripts/icons/adobe_cc_ps_icon_off.png" class='button button_off app' name='PHXS'/>
                 <img src="/assets/scripts/adobe_scripts/icons/adobe_cc_ae_icon_off.png" class='button button_off app' name='AEFT'/>
@@ -505,6 +526,20 @@
                 <img src="/assets/scripts/adobe_scripts/icons/nuke_icon_off.png" class='button button_off app' name='NUKE'/>
             </div>
         </td>
+    </tr>
+    <tr>
+        <td colspan='3'>
+            <div class='full_panel '>
+                <div class='panel_label'>
+                    Notes
+                </div>
+                <ul class='selectable' id='notes'></ul>
+            </div>
+            <div class='row_div'>
+                <input class='text_input_notes' id="write_note" autofocus value="" placeholder="這邊輸入備註，按ENTER" onfocus="this.value = this.value;" spellcheck="false"/>
+            </div>
+        </td>
+
     </tr>
     <tr>
         <td colspan='3'>
@@ -547,6 +582,11 @@
         else {
             /*$j('#testing').val('should be inside chrome');*/
         }
+        function pad(n, width, z) {
+          z = z || '0';
+          n = n + '';
+          return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+        }
 
         function validateForm() {
             var un = document.loginform.usr.value;
@@ -556,9 +596,6 @@
                 Cookies.set('login', un);
                 Cookies.set('password', pw);
                 server.set_ticket(ticket);
-                $j('.mainUI').css('display','block');
-                $j('.loginUI').css('display','none');
-                $j('#login_name').text(un);
                 server.login = un;
                 ok();
             }
@@ -569,7 +606,6 @@
 
         function ok(){
             if(ticket){
-                tacticUI.getProjects();
                 $j('.mainUI').css('display','block');
                 $j('.loginUI').css('display','none');
                 $j('#login_name').text(server.login);
@@ -588,8 +624,8 @@
         server.set_project("simpleslot");
         login = Cookies.get('login');
         password = Cookies.get('password');
-        login = 'julio';
-        password = '1234';
+        //login = 'julio';
+        //password = '1234';
         server.login = login;
 
         try {
@@ -618,6 +654,7 @@
 
         $j('.shots_tab').on('click', function(event, ui) {
             production_type = 'shot';
+            console.log(production_type);
             $j('.shots_tab').css('color', '#b1b1b1');
             $j('.assets_tab').css('color','#444');
             $j('#shot_panel').css('display','');
@@ -651,18 +688,32 @@
             /*tacticUI.appId = $j(this).attr('name');*/
             tacticUI.appId = '';
             tacticUI.getFiles();
-
         });
+
+        $j('input.text_input_notes').bind("enterKey",function(e){
+           tacticUI.saveNotes();
+        });
+        $j('input.text_input_notes').keyup(function(e){
+            if(e.keyCode == 13)
+            {
+                $j(this).trigger("enterKey");
+            }
+        });        
 
         $j('.sign_out').on('click', function(event, ui){
                 $j('.mainUI').css('display','none');
                 $j('.loginUI').css('display','block');
         });
+        tacticUI.getProjects();
 
-
+    function getByValue(arr, key, value) {
+        for (var i=0; i<arr.length; i++) {
+            if (arr[i][key] == value) return arr[i];
+        }
+    }
 
     function mainWindow(){
-        filter = 'inprogress';
+        filter = 'recent';
         var self = this;
         self.asset_item_details = '';
         self.shot_item_details = '';
@@ -689,14 +740,7 @@
 
         self.next_version = 1;
         self.current_version = 1;
-    /*    self.item_process = '';
-        self.item_code = '';
-        self.assigned = '';
-        self.bsd = '';
-        self.bed = '';
-        self.sk = '';
-        self.processes = '';
-    */
+
         self.asset_process_list = [];
         self.shot_process_list = [];
 
@@ -710,200 +754,242 @@
             return flist;
         }
 
+        function compareName(a,b) {
+          if (a.name < b.name)
+            return -1;
+          if (a.name > b.name)
+            return 1;
+          return 0;
+        }
 
         self.getProjects = function(){
             $j('#projects').empty();
 
-            if(filter == 'inprogress'){
-                filter_id = "['id','8']";
+            expr = "@UNIQUE(@GET(simpleslot/save_log['timestamp','>','$10_DAY_AGO'].project))"
+            recentG = server.eval(expr)
+
+            expr = "@SOBJECT(simpleslot/game)"
+            self.games = server.eval(expr)
+
+            inprogressGames = []
+            completeGames = []
+            readyGames = []
+            recentGames = []
+
+            for(i=0;i<self.games.length;i++){
+                //
+                if(recentG.indexOf(self.games[i]['name']) > -1){
+                    recentGames.push(self.games[i]['name'])
+                }
+                if(self.games[i]['project_status'] == '.In Progress'){
+                    inprogressGames.push(self.games[i]['name'])
+                }
+                else if(self.games[i]['project_status'] == '.Complete'){
+                    completeGames.push(self.games[i]['name'])
+                }
+                else if(self.games[i]['project_status'] == '.Ready'){
+                    readyGames.push(self.games[i]['name'])
+                }
             }
-            else if(filter == 'standby'){
-                filter_id = "['id','10']";
+
+            if(filter == 'recent'){
+                names = recentGames;
+            }
+            else if(filter == 'inprogress'){
+                names = inprogressGames;
             }
             else if(filter == 'complete'){
-                filter_id = "['id','11']";
+                names = completeGames;
             }
-            else {
-                filter_id = "";
-            }
-
-            expr = "@SOBJECT(simpleslot/plan['begin']" + filter_id + "['or'])"
-            temp = server.eval(expr)[0];
-            names = bsd = bed = names_chn = game_type = assigned = "";
-
-            names = temp['name'].split('__');
-            names.shift();
-            bsd = temp['login'].split('__');
-            bsd.shift();
-            bed = temp['keywords'].split('__');
-            bed.shift();
-            names_chn = temp['game_name_chn'].split('__');
-            names_chn.shift();
-            game_type = temp['description'].split('__');
-            game_type.shift();
-            assigned = temp['process'].split('__');
-            assigned.shift();
-
-
-            for(x=0;x<names.length;x++){
-                data = {'name': names[x], 'bsd': bsd[x], 'bed': bed[x], 'game_name_chn': names_chn[x], 'game_type': game_type[x], 'assigned': assigned[x]};
-                self.projects_data.push(data);
+            else if(filter == 'standby'){
+                names = readyGames;
             }
 
             names = names.sort();
 
-            project_list = "";
-            for(i=0;i<names.length;i++){
-                project_list = project_list + "<li>" + names[i] + "</li>";
-            }
+            project_list = self.buildList(names);
+
             $j('ul.selectable#projects').append(project_list);
 
             /* bind behavior */
             $j('.selectable#projects li').on('click', function( event, ui ) {
                 $j('.selectable li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
-                self.game = $j(this).text();
                 self.getItems();
             });
 
             /* select default */
             selected = $j('ul.selectable#projects li.ui-selected');
             if(selected.length == 0) {
-                temp = $j("ul.selectable#projects li:contains('jia_test')");
+                temp = $j("ul.selectable#projects li:contains('fish_battle_cf')");
                 $j(temp).addClass('ui-selected');
-                self.game = $j(temp).text();
                 self.getItems();
             }
         }
 
-        self.getItems = function(){
-            for(x=0;x<self.projects_data.length;x++){
-                if(self.game == self.projects_data[x]['name']){
-                    if(self.projects_data[x]['game_type'] == 'casino' || self.projects_data[x]['game_type'] == 'lottery'){
-                        self.project_info = self.projects_data[x];
-                        self.updateAssetList(stype="3d");
-                    }
-                    else if(self.cftype.indexOf(self.projects_data[x]['game_type']) >= 0){
-                        self.project_info = self.projects_data[x];
-                        shot_panel_selected = $j('.panel#shot_panel').css(['display']).display;
-                        asset_panel_selected = $j('.panel#asset_panel').css(['display']).display;
-                        if(asset_panel_selected != 'none'){
-                            self.updateAssetList(stype="assets");
-                        }
-                        if(shot_panel_selected != 'none'){
-                            self.updateShotList(stype="shot");
-                        }
-                    }
-                }
+        self.gameTypeCodeConverter = function(game_type_code){
+            game_type = "";
+            if (game_type_code == "GAME_TYPE00002") {
+                game_type = "casino";
+            } else if (game_type_code == "GAME_TYPE00005") {
+                game_type = "video_conf";
+            } else if (game_type_code == "GAME_TYPE00007") {
+                game_type = "training";
+            } else if (game_type_code == "GAME_TYPE00009") {
+                game_type = "others";
+            } else if (game_type_code == "GAME_TYPE00010") {
+                game_type = "cf";
+            } else if (game_type_code == "GAME_TYPE00011") {
+                game_type = "sports";
+            } else if (game_type_code == "GAME_TYPE00012") {
+                game_type = "lottery";
+            } else if (game_type_code == "GAME_TYPE00014") {
+                game_type = "IPL";
+            } else if (game_type_code == "GAME_TYPE00021") {
+                game_type = "database";
             }
+            return game_type
         }
 
-        self.updateAssetList = function(stype){
+        self.clearUI = function(){
             $j('#assets').empty();
             $j('#shots').empty();
+            $j('.selectable#asset_process').empty();
+            $j('.selectable#shot_process').empty();
+        }
 
-            assets = []; /*array for sorting*/
-            asset_list = ""; /*long string for insertion into dom*/
-            self.asset_item_details = [];
+        self.getItems = function(){
+            self.clearUI();
+            selected_game = $j('ul.selectable#projects li.ui-selected').text();
 
-            expr = "@SOBJECT(simpleslot/game['name','" + self.game + "'].simpleslot/" + stype + ")";
-            self.asset_item_details = server.eval(expr);
-
-            for(y=0;y<self.asset_item_details.length;y++){
-                assets.push(self.asset_item_details[y]['name']);
+            for(i=0;i<self.games.length;i++){
+                if(selected_game == self.games[i]['name']){
+                    self.game = self.games[i];
+                }
             }
-            assets = assets.sort();
 
-            asset_list = self.buildList(assets);
+            self.setProjectInfo();
 
-            $j('ul.selectable#assets').append(asset_list);
+            expr = "@SOBJECT(simpleslot/game['name','" + self.game['name'] + "'].simpleslot/assets)";
+            self.assets = server.eval(expr);
+            self.assets = self.assets.sort(compareName);
+            self.assets = self.orderListByType(self.assets);
+            self.updateItemList(self.assets, 'assets');
 
+            expr = "@SOBJECT(simpleslot/game['name','" + self.game['name'] + "'].simpleslot/shot)"
+            self.shots = server.eval(expr);
+            self.shots = self.shots.sort(compareName);
+            self.updateItemList(self.shots, 'shots');
+
+            //bind click event
             $j('.selectable#assets li').on('click', function( event, ui ) {
                 $j('.selectable#assets li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
-
-                for(z=0;z<self.asset_item_details.length;z++){
-                    if($j(this).text() == self.asset_item_details[z]['name']){
-                        self.item_details = self.asset_item_details[z];
-                    }
-                }
-                self.getAssetProcess(stype);
+                self.item_selected = $j(this).text();
+                self.getProcess();
             });
-
-            /*set default item to first in list*/
-            if($j('.selectable#assets li.ui-selected').length == 0) {
-                selected = $j('.selectable#assets li')[0];
-                $j('.selectable#assets li').removeClass("ui-selected");
-                $j(selected).addClass("ui-selected");
-                for(z=0;z<self.asset_item_details.length;z++){
-                    if($j(selected).text() == self.asset_item_details[z]['name']){
-                        self.item_details = self.asset_item_details[z];
-
-                    }
-                }
-                self.getAssetProcess(stype);
-            }
-
-        }
-
-        self.updateShotList = function(stype){
-            $j('#shots').empty();
-            shots = []; /*array for sorting*/
-            shot_list = ""; /*long string for insertion into dom*/
-            self.shot_item_details = [];
-
-            expr = "@SOBJECT(simpleslot/game['name','" + self.game + "'].simpleslot/shot)";
-            self.shot_item_details = server.eval(expr);
-
-            for(y=0;y<self.shot_item_details.length;y++){
-                shots.push(self.shot_item_details[y]['name']);
-            }
-            shots = shots.sort();
-
-            shot_list = self.buildList(shots);
-
-            $j('ul.selectable#shots').append(shot_list);
 
             $j('.selectable#shots li').on('click', function( event, ui ) {
                 $j('.selectable#shots li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
-
-                for(z=0;z<self.shot_item_details.length;z++){
-                    if($j(this).text() == self.shot_item_details[z]['name']){
-                        self.item_details = self.shot_item_details[z];
-                    }
-                }
-                self.getShotProcess(stype);
+                self.item_selected = $j(this).text();
+                self.getProcess();
             });
 
-            /*set default item to first in list*/
-            if($j('.selectable#shots li.ui-selected').length == 0) {
-                selected = $j('.selectable#shots li')[0];
-                $j('.selectable#shots li').removeClass("ui-selected");
-                $j(selected).addClass("ui-selected");
-
-                for(z=0;z<self.shot_item_details.length;z++){
-                    if($j(selected).text() == self.shot_item_details[z]['name']){
-                        self.item_details = self.shot_item_details[z];
-                    }
+            //select first in list
+            if(production_type == 'assets'){
+                if($j('.selectable#assets li.ui-selected').length == 0) {
+                    $j('.selectable#assets li')[0].addClass("ui-selected");
+                    self.item_selected = $j('.selectable#assets li').first().text();
                 }
-                self.getShotProcess(stype);
             }
+
+            if(production_type == 'shot'){
+                if($j('.selectable#shots li.ui-selected').length == 0) {
+                    $j('.selectable#shots li')[0].addClass("ui-selected");
+                    self.item_selected = $j('.selectable#shots li').first().text();
+                }
+            }
+
+            self.getProcess();
         }
 
-        self.addContextMenu = function(stype){
-            $j('.selectable#asset_process').contextMenu({
+        //compare function to use with sort
+        function compareName(a,b) {
+          if (a.name < b.name)
+            return -1;
+          if (a.name > b.name)
+            return 1;
+          return 0;
+        }
+
+        self.orderListByType = function(aListDict){
+            character = [];
+            prop = [];
+            environment = [];
+            vehicle = [];
+            other = [];
+            for(i=0;i<aListDict.length;i++){
+                if(aListDict[i].hasOwnProperty('3d_type_code')){
+                    if(aListDict[i]['3d_type_code'] == '3D_TYPE00002'){
+                        character.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00003'){
+                        prop.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00004'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00005'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00006'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00007'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00008'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['3d_type_code'] == '3D_TYPE00009'){
+                        environment.push(aListDict[i]);
+                    }
+                } else if(aListDict[i].hasOwnProperty('asset_type_code')){
+                    if(aListDict[i]['asset_type_code'] == 'ASSET_TYPE00002'){
+                        character.push(aListDict[i]);
+                    } else if(aListDict[i]['asset_type_code'] == 'ASSET_TYPE00003'){
+                        vehicle.push(aListDict[i]);
+                    } else if(aListDict[i]['asset_type_code'] == 'ASSET_TYPE00004'){
+                        environment.push(aListDict[i]);
+                    } else if(aListDict[i]['asset_type_code'] == 'ASSET_TYPE00005'){
+                        prop.push(aListDict[i]);
+                    } else if(aListDict[i]['asset_type_code'] == 'ASSET_TYPE00006'){
+                        other.push(aListDict[i]);
+                    }
+                }
+            }
+            final = [];
+            final = final.concat(character).concat(vehicle).concat(environment).concat(prop).concat(other);
+            return final
+        }
+
+        self.updateItemList = function(items, stype){
+            item_names = []
+            for(x=0;x<items.length;x++){
+                item_names.push(items[x]['name']);
+            }
+            item_list = self.buildList(item_names);
+            $j('ul.selectable#' + stype).append(item_list);
+        }
+
+
+        self.addContextMenu = function(process_id){
+            $j('.selectable#' + process_id).contextMenu({
                 selector: 'li',
                 callback: function(key, options) {
                     /*var m = "clicked: " + key + " on " + $j(this).text();
-                    window.console && console.log(m) || alert(m); */
-                    for(i=0;i<self.item_tasks.length;i++){
-                        if(self.item_tasks[i]['process'] == $j(this).text()){
-                            sk = self.item_tasks[i]['__search_key__'];
+                    window.console && console.log(m) || alert(m);*/
+                    for(i=0;i<self.tasks.length;i++){
+                        if(self.tasks[i]['process'] == $j(this).text()){
+                            sk = self.tasks[i]['__search_key__'];
                             key = '.' + key;
                             data = {'status': key};
                             server.update(sk, data);
-                            self.getAssetProcess(stype);
+                            self.getProcess();
                             break;
                         }
                     }
@@ -921,125 +1007,116 @@
             });
         }
 
-        self.getAssetProcess = function(stype){
-            expr = "@SOBJECT(simpleslot/" + stype + "['code','" + self.item_details['code'] + "'].sthpw/task)";
-            self.item_tasks = server.eval(expr);
+        self.orderTasksByProcesses = function(tasks){
+            newList = [];
+            if(production_type == "shot"){
+                ordered = ['layout', 'animation', 'lighting', 'effects', 'comp', 'final'];
+            } else if (production_type == "assets"){
+                ordered = ['rough', 'concept', 'model', 'texture', 'rigging', 'animation', 'lighting', 'effects', 'layout', 'final'];
+            }
+            for(x=0; x<ordered.length;x++){
+                for (i=0; i < tasks.length; i++) {
+                    if(tasks[i]['process'] == ordered[x]){
+                        newList.push(tasks[i]);
+                    }
+                }
+            }
+            return newList
+        }
 
-            asset_process_list = ""; /* long string for insertion into dom */
+        self.getProcess = function(){
+            task_assigned = '';
+            bid_start_date = '';
+            bid_end_date = '';
+            asset_process_list = '';
+            shot_process_list = '';
+
+            if(production_type == "assets"){
+                items = self.assets;
+                process_id = 'asset_process';
+            } else if(production_type == "shot"){
+                items = self.shots;
+                process_id = 'shot_process';
+            }
+
+            self.item = getByValue(items, 'name', self.item_selected);
+            expr = "@SOBJECT(sthpw/task['search_code','" + self.item['code'] + "'])";
+            self.tasks = server.eval(expr);
+            self.tasks = self.orderTasksByProcesses(self.tasks);
 
             $j('.selectable#asset_process').empty();
             $j('.selectable#shot_process').empty();
 
-            ordered = ['rough', 'concept', 'model','texture','rigging','animation','lighting','effects','layout','final']
+            for (j = 0; j < self.tasks.length; j++) {
+                task_assigned = self.tasks[j]['assigned'];
+                bid_start_date = self.tasks[j]['bid_start_date'];
+                bid_end_date = self.tasks[j]['bid_end_date'];
 
-            for(order=0;order<ordered.length;order++){
-                for(task = 0; task < self.item_tasks.length; task++){
-                    if(self.item_tasks[task]['process'] == ordered[order]){
-                        self.item_task_details = self.item_tasks[task];
-                        process = self.item_tasks[task]['process'];
-                        status = self.item_tasks[task]['status'];
-                        status_icon = "<img src=" + self.statusIcon(status) + ">";
-                        asset_process_list = asset_process_list + "<li>" +self.statusIcon(status) + process + "</li>";
-                    }
-                }
+                process = self.tasks[j]['process'];
+                status = self.tasks[j]['status'];
+                status_icon = "<img src=" + self.statusIcon(status) + ">";
+                asset_process_list = asset_process_list + "<li>" +self.statusIcon(status) + process + "</li>";
+                shot_process_list = shot_process_list + "<li>" +self.statusIcon(status) + process + "</li>";
             }
+
+            item_name_chn = self.item['description'];
 
             $j('ul.selectable#asset_process').append(asset_process_list);
+            $j('ul.selectable#shot_process').append(shot_process_list);
 
-            /*bind click behavior*/
-            $j('.selectable#asset_process li').on('click', function( event, ui ) {
-                $j('.selectable#asset_process li').removeClass("ui-selected");
-                $j(this).addClass("ui-selected");
-                self.process = $j(this).text();
-                self.finalPath(production_type = 'assets', stype = stype);
-                for(i=0;i<self.item_tasks.length;i++){
-                    if(self.item_tasks[i]['process'] == self.process){
-                        self.item_task_details = self.item_tasks[i];
-                        break;
-                    }
-                }
-            });
-
-            /*select default*/
-            selectedProcess = self.process;
-
-            if($j('.selectable#asset_process li.ui-selected').length == 0){ //if nothing is selected
-                selector = '.selectable#asset_process li:contains(\"' + selectedProcess + '\")';
-                if($j(selector).length == 0){
-                    if($j('.selectable#asset_process li').length > 0){
-                        $j('.selectable#asset_process li')[0].addClass("ui-selected");
-                    }
-                } else {
-                    $j(selector).addClass("ui-selected");
-                }
-                self.process = $j('.selectable#asset_process li.ui-selected').text();
-                self.finalPath(production_type = 'assets', stype = stype);
-                for(i=0;i<self.item_tasks.length;i++){
-                    if(self.item_tasks[i]['process'] == self.process){
-                        self.item_task_details = self.item_tasks[i];
-                        break;
-                    }
-                }
-            }
-            self.addContextMenu(stype);
-        }
-
-        self.getShotProcess = function(stype){
-            expr = "@SOBJECT(simpleslot/shot['code','" + self.item_details['code'] + "'].sthpw/task)";
-            self.item_tasks = server.eval(expr);
-
-            shot_process_list = ""; /* long string for insertion into dom */
-
-            $j('.selectable#shot_process').empty();
-
-            ordered = ['layout','animation','lighting','effects','comp','final']
-
-            for(order=0;order<ordered.length;order++){
-                for(task = 0; task < self.item_tasks.length; task++){
-                    if(self.item_tasks[task]['process'] == ordered[order]){
-                        self.item_task_details = self.item_tasks[task];
-                        process = self.item_tasks[task]['process'];
-                        status = self.item_tasks[task]['status'];
-                        status_icon = "<img src=" + self.statusIcon(status) + ">";
-                        shot_process_list = shot_process_list + "<li>" +self.statusIcon(status) + process + "</li>";
-                    }
-                }
+            if(tacticUI.item.hasOwnProperty('asset_type_code')){
+                self.item_type_code = self.item['asset_type_code'];
+            } else if(tacticUI.item.hasOwnProperty('3d_type_code')){
+                self.item_type_code = self.item['3d_type_code'];
             }
 
-            $j('.selectable#shot_process').append(shot_process_list);
+            if(production_type == 'assets'){
+                self.item_type = self.assetTypeCode(self.item_type_code);
+            }
 
-            $j('.selectable#shot_process li').on('click', function( event, ui ) {
-                $j('.selectable#shot_process li').removeClass("ui-selected");
+            //bind click event
+            $j('.selectable#' + process_id + ' li').on('click', function( event, ui ) {
+                $j('.selectable#' + process_id + ' li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
                 self.process = $j(this).text();
-                self.finalPath(production_type = 'shot', stype = stype);
+                //self.finalPath(production_type = 'assets');
                 for(i=0;i<self.item_tasks.length;i++){
                     if(self.item_tasks[i]['process'] == self.process){
                         self.item_task_details = self.item_tasks[i];
                         break;
                     }
                 }
-
+                self.getFiles();
             });
 
             selectedProcess = self.process;
 
-            if($j('.selectable#shot_process li.ui-selected').length == 0){
-                selector = '.selectable#shot_process li:contains(\"' + selectedProcess + '\")';
+            // select first or last selected process
+            if($j('.selectable#' + process_id + ' li.ui-selected').length == 0){ //if nothing is selected
+                selector = '.selectable#' + process_id + ' li:contains(\"' + selectedProcess + '\")';
                 if($j(selector).length == 0){
-                    $j('.selectable#shot_process li')[0].addClass("ui-selected");
+                    if($j('.selectable#' + process_id +' li').length > 0){
+                        $j('.selectable#' + process_id +' li')[0].addClass("ui-selected");
+                    }
                 } else {
                     $j(selector).addClass("ui-selected");
                 }
-                $j(selector).addClass("ui-selected");
-                self.process = $j(selector).text();
-                self.finalPath(production_type = 'shot', stype = stype);
+                self.process = $j('.selectable#' + process_id +' li.ui-selected').text();
+                self.getFiles();
                 for(i=0;i<self.item_tasks.length;i++){
                     if(self.item_tasks[i]['process'] == self.process){
                         self.item_task_details = self.item_tasks[i];
                         break;
                     }
                 }
+                self.getFiles();
+            }
+            self.addContextMenu(process_id);
+
+            try{
+                self.getFiles();
+            } catch(e) {
+                alert("Error: " + e.description );
             }
         }
 
@@ -1081,30 +1158,29 @@
                 asset_type = "character";
             }
             else if(code == "3D_TYPE00003"){
-                asset_type = "symbol";
+                asset_type = "prop";
             }
             else if(code == "3D_TYPE00004"){
-                asset_type = "user_interface";
+                asset_type = "set";
             }
             else if(code == "3D_TYPE00005"){
-                asset_type = "bonus01";
+                asset_type = "set";
             }
             else if(code == "3D_TYPE00006"){
-                asset_type = "bonus02";
+                asset_type = "set";
             }
             else if(code == "3D_TYPE00007"){
-                asset_type = "free_game";
+                asset_type = "set";
             }
             else if(code == "3D_TYPE00008"){
-                asset_type = "jackpot";
+                asset_type = "set";
             }
             else if(code == "3D_TYPE00009"){
-                asset_type = "introduction";
+                asset_type = "set";
             }
             else {
                 asset_type = "";
             }
-
             return asset_type;
         }
 
@@ -1204,32 +1280,6 @@
             return self.next_version;
         }
 
-        self.finalPath = function(production_type, stype){
-            $j('#final_path').empty();
-            $j('#final_file_name').empty();
-            //base_path = "//mcd-server/art_3d_project/";
-            base_path = "//mcd-server/art_3d_project/";
-
-            if(self.cftype.indexOf(self.project_info['game_type']) != -1){
-                if(stype == 'assets'){
-                    item_type = self.assetTypeCode(self.item_details['asset_type_code']);
-                    self.final_path = base_path + self.game + "/" + stype + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
-                    self.base_filename = self.abbrName(self.game) + "_" + self.abbrItemType(item_type) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
-                } else {
-                    self.final_path = base_path + self.game + "/" + stype + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
-                    self.base_filename = self.abbrName(self.game) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
-                }
-            } else if(self.project_info['game_type'] == 'casino' || self.project_info['game_type'] == 'lottery') {
-                item_type = self.assetTypeCode(self.item_details['3d_type_code']);
-                self.final_path = base_path + self.game + "/" + self.project_info['game_type'] + "/" + item_type + "/" + self.item_details['name'] + "/" + self.process + "/scenes/";
-                self.base_filename = self.abbrName(self.game) + "_" + self.abbrItemType(item_type) + "_" + self.item_details['name'] + "_" + self.abbrName(self.process);
-            }
-
-            $j('#final_path').val(self.final_path);
-            $j('#final_path').focus();
-            /*$j('#testing').val(self.final_path.replace(/\//g, '\\'));*/
-            self.getFiles();
-        }
         self.resetAppFilter = function(){
             $j("img.button.app").removeClass('button_on');
             $j("img.button.app").addClass('button_off');
@@ -1243,7 +1293,6 @@
             $j("img.button[name='NUKE']").attr('src','/assets/scripts/adobe_scripts/icons/nuke_icon_off.png')
 
         }
-
 
         self.getFiles = function(){
             appFilter = $j("img.app.button_on").attr('name');
@@ -1266,20 +1315,48 @@
                 ext = "";
             }
 
-            if(self.appId != ''){
-                selector = "img.button[name=\'" + self.appId + "\']";
-                $j(selector).addClass('button_on').removeClass('button_off');
-                img = $j(selector).attr('src');
-                on_img = img.replace("_off.png",".png");
-                $j(selector).attr('src',on_img);
+            $j('#final_path').empty();
+            $j('#final_file_name').empty();
+
+            final_path = "";
+            base_filename = "";
+            filename = "";
+
+            base_path = "//mcd-server/art_3d_project/";
+            login = server.login;
+
+            project = self.game['name']
+
+            for (x = 0; x < self.tasks.length; x++) {
+                if (self.tasks[x]['process'] == self.process) {
+                    self.task = self.tasks[x];
+                    break;
+                }
+            }
+
+            if (production_type == 'assets') {
+                final_path = base_path + project + "/" + production_type + "/" + self.item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/";
+                base_filename = self.abbrName(project) + "_" + self.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + self.abbrName(self.task['process']);
+            } else if (production_type == 'shot') {
+                final_path = base_path + project + "/" + production_type + "/" + self.item['name'] + "/" + self.process + "/scenes/";
+                base_filename = self.abbrName(project) + "_" + self.item['name'] + "_" + self.abbrName(self.process);
             }
 
             new_file_list = [];
             self.file_list = [];
+
             $j('.selectable#files').empty();
-            data = {'final_path': self.final_path, 'base_filename': self.base_filename};
+            $j('#final_path').val(final_path);
+            $j('#final_path').focus();
+
+            data = {'final_path': final_path, 'base_filename': base_filename};
             self.file_list = server.execute_python_script('/scripts/py_listdir', data).info.spt_ret_val;
 
+            if(production_type == 'assets'){
+                filename = self.abbrName(project) + "_" + self.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + self.abbrName(self.process) + "_" + self.maxVersion(final_path, base_filename, "maya") + "_" + login + ext;
+            } else if(production_type == 'shot'){
+                filename = self.abbrName(project) + "_" + self.item['name'] + "_" + self.abbrName(self.process) + "_" + self.maxVersion(final_path, base_filename, "maya") + "_" + login + ext;
+            }
             /*build list of all files OR build list based on current selected extension */
             for(i=0;i<self.file_list.length;i++){
                 if(self.file_list[i]['filename'].indexOf(self.base_filename) > -1){
@@ -1294,7 +1371,6 @@
             }
 
             self.file_list = new_file_list;
-            /*file_list = self.buildList(self.file_list);*/
 
             flist = "";
             for(y=0;y<self.file_list.length;y++){
@@ -1303,14 +1379,15 @@
 
             $j('.selectable#files').append(flist);
 
-            self.maxVersion(self.base_filename)
-            self.current_filename = self.base_filename + "_" + self.current_version + "_" + server.login;
-            self.save_filename = self.base_filename + "_" + self.next_version + "_" + server.login;
+            self.maxVersion(base_filename)
+            self.current_filename = base_filename + "_" + self.current_version + "_" + server.login;
+            self.save_filename = base_filename + "_" + self.next_version + "_" + server.login;
             $j('#final_file_name').val(self.save_filename);
 
             $j('.selectable#files li').on('click', function( event, ui ) {
                 $j('.selectable#files li').removeClass("ui-selected");
                 $j(this).addClass("ui-selected");
+                self.getNotes();
             });
 
             if($j('ul.selectable#files').children('li').length > 0){
@@ -1318,11 +1395,93 @@
                 $j('ul.selectable#files').children('li')[$j('ul.selectable#files').children('li').length - 1].addClass('ui-selected')
                 $j('ul.selectable#files').scrollTop(200);
             }
-            self.getProjectInfo();
-            self.getItemInfo();
+
+            self.setItemInfo();
+            self.getNotes();
+        }
+        self.getNotes = function(){
+            note_list = [];
+            $j('ul.selectable#notes').empty();
+            expr = "@GET(sthpw/task['search_code','" + self.item['code'] + "']['process','" + self.task['process'] + "'].description)";
+            temp = server.eval(expr)[0];
+            if (temp != "") {
+                notes = temp.split("\n");
+                for (i = 0; i < notes.length; i++) {
+                    filename = notes[i].split("#")[0];
+                    msg = notes[i].split("#")[1];
+                    msd_day = msg.split(" ")[0].split("/")[0];
+                    msd_month = msg.split(" ")[0].split("/")[1];
+                    if (filename == $j('.selectable#files').children('li.ui-selected').children('div.filename').text()) {
+                        note_list.push(msg);
+                    }
+                }
+                note_list = self.buildList(note_list);
+                $j('.selectable#notes').append(note_list);
+            }
+
+            $j('.selectable#notes li').on('click', function( event, ui ) {
+                note = $j(this).text();
+                self.delNotes(note);
+            });            
         }
 
-        self.createFolder = function(){
+        self.saveNotes = function(args){
+            if (args) {
+                note = args;
+            }
+            else {
+                note = $j('input#write_note').val();    
+            }
+
+            if (note != "") {
+                expr = "@GET(sthpw/task['search_code','" + self.item['code'] + "']['process','" + self.task['process'] + "'].description)";
+                temp = server.eval(expr);
+                if (temp != []) {
+                    notes = temp[0].split("\n");
+                }
+                if (notes[0] == ""){
+                    notes.pop(0);
+                }
+                sk = self.task['__search_key__'];
+                now = new Date();
+                month = pad(now.getMonth(), 2);
+                day = pad(now.getDate(), 2);
+                hours = pad(now.getHours(), 2);
+                minutes = pad(now.getMinutes(), 2);
+                datestring = month + "/" + day + " " + hours + ":" + minutes;
+                note = $j('.selectable#files').children('li.ui-selected').children('div.filename').text() + "#" + datestring + "(" + server.login + "):     " + note;
+                notes.push(note);
+                notes = notes.join("\n");
+                data = {'description': notes};
+
+                server.update(sk, data);
+                self.getNotes();
+                $j('input#write_note').val("");
+            }
+        }
+
+        self.delNotes = function(selected_note){
+            new_notes = [];
+            expr = "@GET(sthpw/task['search_code','" + self.item['code'] + "']['process','" + self.task['process'] + "'].description)";
+            temp = server.eval(expr);
+            notes = temp[0].split("\n");
+            sk = self.task['__search_key__'];
+            for (i = 0; i < notes.length; i++) {
+                note_ = notes[i].split("#")[1];
+                if(selected_note == note_){
+                }
+                else {
+                    new_notes.push(notes[i]);
+                }
+            }
+            notes = new_notes.join("\n");
+            data = {'description': notes};
+
+            server.update(sk, data);
+            self.getNotes();
+        }
+
+/*        self.createFolder = function(){
             if(self.osInfo.indexOf('Mac OS X') > -1){
                 final_path = self.final_path.replace("//mcd-server", "/Volumes")
             } else {
@@ -1333,7 +1492,7 @@
             script = "var saveFolder = Folder(\"" + final_path + "\");if(!saveFolder.exists) saveFolder.create();";
             CSLibrary.evalScript(script, function(res){
             });
-        }
+        }*/
 
 
         self.saveFile = function(){
@@ -1552,13 +1711,13 @@
         }
 
 
-        self.getProjectInfo = function(){
+/*        self.getProjectInfo = function(){
             $j('#game_name_chn').text(self.project_info['game_name_chn']);
             $j('#game_type').text(self.project_info['game_type']);
             $j('#game_assigned').text(self.project_info['assigned']);
             $j('#game_bsd').text(self.project_info['bsd']);
             $j('#game_bed').text(self.project_info['bed']);
-        }
+        }*/
 
         self.formatDate = function(datestring){
             temp = new Date(datestring);
@@ -1569,12 +1728,32 @@
             return datestring;
         }
 
-        self.getItemInfo = function(){
-            bsd = self.formatDate(self.item_task_details['bid_start_date']);
-            bed = self.formatDate(self.item_task_details['bid_end_date']);
-            $j('#item_name_chn').text(self.item_details['description']);
-            $j('#item_type').text(self.assetTypeCode(self.item_details['3d_type_code']))
-            $j('#item_task_assigned').text(self.item_task_details['assigned']);
+        self.setProjectInfo = function(){
+            name_chn = self.game['name_chn'];
+            game_type_code = self.game['game_type_code'];
+
+            project_coordinator = self.game['project_coordinator'];
+
+            expr = "@FORMAT(@MIN(simpleslot/game['name','" + self.game['name'] + "'].sthpw/task.bid_start_date), '12-31-1999')";
+            bsd = server.eval(expr)[0];
+
+            expr = "@FORMAT(@MIN(simpleslot/game['name','" + self.game['name'] + "'].sthpw/task.bid_end_date), '12-31-1999')";
+            bed = server.eval(expr)[0];
+            console.log(self.gameTypeCodeConverter(game_type_code));
+            $j('div#game_name_chn').text(name_chn);
+            $j('div#game_type').text(self.gameTypeCodeConverter(game_type_code));
+            $j('div#game_assigned').text(project_coordinator);
+            $j('div#game_bsd').text(bsd);
+            $j('div#game_bed').text(bed);
+        }
+
+
+        self.setItemInfo = function(){
+            bsd = self.formatDate(self.task['bid_start_date']);
+            bed = self.formatDate(self.task['bid_end_date']);
+            $j('#item_name_chn').text(self.item['description']);
+            $j('#item_type').text(self.assetTypeCode(self.item['asset_type_code']))
+            $j('#item_task_assigned').text(self.task['assigned']);
             $j('#item_task_bsd').text(bsd);
             $j('#item_task_bed').text(bed);
         }
@@ -1594,28 +1773,10 @@
             }
             CSLibrary.evalScript(script);
         }
-
-        self.setAppId = function(){
-            try{
-                self.osInfo = CSLibrary.getOSInformation();
-                self.appId = CSLibrary.getHostEnvironment().appId;
-                if(tacticUI.appId == 'PHXS'){
-                    $j("img.button[name='PHXS']").addClass('button_on').removeClass('button_off');
-                } else if(tacticUI.appId == 'AEFT'){
-                    $j("img.button[name='AEFT']").addClass('button_on').removeClass('button_off');
-                } else if(tacticUI.appId == 'ILST'){
-                    $j("img.button[name='ILST']").addClass('button_on').removeClass('button_off');
-                } else if(tacticUI.appId == 'FLPR'){
-                    $j("img.button[name='FLPR']").addClass('button_on').removeClass('button_off');
-                }
-            }catch(err){
-
-            }
-        }
     }
 </script>
 
 </body>
 
-</html
+</html>
 

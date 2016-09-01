@@ -1,6 +1,7 @@
 .DS_Store
 .svn
 *.pyc
+Thumbs.db
 ~*
 log/*.log
 tmp/**
@@ -34,3 +35,4 @@ jquery_contextmenu/
 dhtmlxGantt/
 angular-loading-bar-master/
 image_scripts/sequence_crop
+topcoat-0.8.0/

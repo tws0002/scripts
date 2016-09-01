@@ -12,38 +12,10 @@ import zipfile
 import json
 import getpass
 
-cmds.loadPlugin('RenderMan_for_Maya.mll')
-
-'''ribGenDict = {'currentFrameCheck':'1','startFrameCheck':'0','currentFrameValue':'1.0','startFrameValue':'1.0',
-              'endFrameValue':'10.0','motionBlurCheck':'0','cameraBlurCheck':'0','shutterAngleValue':'80.0',
-              'shutterOpeningOn':'0.0','shutterOpeningOff':'1.0','shutterTiming':'frameOpen','motionBlurType':'frame',
-              'motionSamples':'2.0','rayTracedMotionBlurCheck':'0','subdivschemeCheck':'0','assignLamertShader':'0',
-              'delayedReadArchiveCheck':'1','ReadArchiveCheck':'0',
-              'noteText':'type information before push "Generate Rib Archive"'}
-exportDict = {'projectName':'fullProjectPathAndName','ribIndexNumber':'00000','referenceAsset':'referenceAssetName',
-              'referenceAssetPosition':'referenceAssetFullPathName','ribArchiveName':'ribName','gpuCachePosition':'gpufullPathName',
-              'ribCachePosition':'ribfullPathName','ribArchiveDuration':'1.0','creator':'creatorName','buildTime':'yyyymmdd',
-              'ribScreenShot':'screenShotImagePosition','version':'xxxx','exportNoteText':'none'}
-'''
-              
-
-global ui
-global newCurentFrame
-global newStartFrame
-global newEndFrame
-global newShutterAngle
-global newOpeningA
-global newOpeningB
-global newShutterTimingType
-global newMotionBlurType
-global newMotionSample
-
-from PySide import QtCore, QtGui
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(432, 921)
+        MainWindow.resize(392, 915)
         font = QtGui.QFont()
         font.setFamily("Calibri")
         font.setPointSize(11)
@@ -188,7 +160,7 @@ class Ui_MainWindow(object):
         self.label.setGeometry(QtCore.QRect(10, 100, 111, 41))
         self.label.setObjectName("label")
         self.verticalLayoutWidget = QtGui.QWidget(self.tab)
-        self.verticalLayoutWidget.setGeometry(QtCore.QRect(130, 110, 231, 52))
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(130, 110, 231, 61))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.verticalLayoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -220,6 +192,7 @@ class Ui_MainWindow(object):
         self.lineEdit_B01.setGeometry(QtCore.QRect(110, 260, 70, 20))
         self.lineEdit_B01.setObjectName("lineEdit_B01")
         self.checkBox_C02 = QtGui.QCheckBox(self.tab)
+        self.checkBox_C02.setEnabled(False)
         self.checkBox_C02.setGeometry(QtCore.QRect(140, 650, 211, 21))
         self.checkBox_C02.setAutoExclusive(False)
         self.checkBox_C02.setObjectName("checkBox_C02")
@@ -240,10 +213,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.checkBox_D01 = QtGui.QCheckBox(self.horizontalLayoutWidget)
+        self.checkBox_D01.setEnabled(False)
         self.checkBox_D01.setAutoExclusive(True)
         self.checkBox_D01.setObjectName("checkBox_D01")
         self.horizontalLayout.addWidget(self.checkBox_D01)
         self.checkBox_D02 = QtGui.QCheckBox(self.horizontalLayoutWidget)
+        self.checkBox_D02.setEnabled(False)
         self.checkBox_D02.setAutoExclusive(True)
         self.checkBox_D02.setObjectName("checkBox_D02")
         self.horizontalLayout.addWidget(self.checkBox_D02)
@@ -298,6 +273,70 @@ class Ui_MainWindow(object):
         self.tabWidget.addTab(self.tab, "")
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName("tab_2")
+        self.pushButton_page2_A01 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A01.setGeometry(QtCore.QRect(40, 150, 291, 31))
+        self.pushButton_page2_A01.setObjectName("pushButton_page2_A01")
+        self.pushButton_page2_A02 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A02.setGeometry(QtCore.QRect(40, 240, 291, 31))
+        self.pushButton_page2_A02.setObjectName("pushButton_page2_A02")
+        self.pushButton_page2_A03 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A03.setGeometry(QtCore.QRect(40, 280, 291, 31))
+        self.pushButton_page2_A03.setObjectName("pushButton_page2_A03")
+        self.lineEdit_page2_A01 = QtGui.QLineEdit(self.tab_2)
+        self.lineEdit_page2_A01.setGeometry(QtCore.QRect(180, 120, 41, 20))
+        self.lineEdit_page2_A01.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_page2_A01.setObjectName("lineEdit_page2_A01")
+        self.label_14 = QtGui.QLabel(self.tab_2)
+        self.label_14.setGeometry(QtCore.QRect(40, 120, 141, 16))
+        self.label_14.setObjectName("label_14")
+        self.label_15 = QtGui.QLabel(self.tab_2)
+        self.label_15.setGeometry(QtCore.QRect(40, 30, 141, 16))
+        self.label_15.setObjectName("label_15")
+        self.lineEdit_page2_O01 = QtGui.QLineEdit(self.tab_2)
+        self.lineEdit_page2_O01.setGeometry(QtCore.QRect(180, 30, 141, 20))
+        self.lineEdit_page2_O01.setObjectName("lineEdit_page2_O01")
+        self.pushButton_page2_O01 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_O01.setGeometry(QtCore.QRect(40, 60, 281, 25))
+        self.pushButton_page2_O01.setObjectName("pushButton_page2_O01")
+        self.llineEdit_page2_B01 = QtGui.QLineEdit(self.tab_2)
+        self.llineEdit_page2_B01.setEnabled(False)
+        self.llineEdit_page2_B01.setGeometry(QtCore.QRect(50, 650, 281, 41))
+        self.llineEdit_page2_B01.setAlignment(QtCore.Qt.AlignCenter)
+        self.llineEdit_page2_B01.setObjectName("llineEdit_page2_B01")
+        self.pushButton_page2_B01 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_B01.setGeometry(QtCore.QRect(50, 620, 281, 25))
+        self.pushButton_page2_B01.setObjectName("pushButton_page2_B01")
+        self.pushButton_page2_B01_2 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_B01_2.setGeometry(QtCore.QRect(50, 700, 281, 25))
+        self.pushButton_page2_B01_2.setObjectName("pushButton_page2_B01_2")
+        self.line_5 = QtGui.QFrame(self.tab_2)
+        self.line_5.setGeometry(QtCore.QRect(20, 590, 371, 16))
+        self.line_5.setFrameShape(QtGui.QFrame.HLine)
+        self.line_5.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line_5.setObjectName("line_5")
+        self.line_7 = QtGui.QFrame(self.tab_2)
+        self.line_7.setGeometry(QtCore.QRect(10, 90, 371, 16))
+        self.line_7.setFrameShape(QtGui.QFrame.HLine)
+        self.line_7.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line_7.setObjectName("line_7")
+        self.label_16 = QtGui.QLabel(self.tab_2)
+        self.label_16.setGeometry(QtCore.QRect(60, 580, 331, 16))
+        self.label_16.setObjectName("label_16")
+        self.checkBox_page2_A01 = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_page2_A01.setGeometry(QtCore.QRect(40, 210, 181, 19))
+        self.checkBox_page2_A01.setObjectName("checkBox_page2_A01")
+        self.pushButton_page2_A04 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A04.setGeometry(QtCore.QRect(40, 320, 291, 31))
+        self.pushButton_page2_A04.setObjectName("pushButton_page2_A04")
+        self.pushButton_page2_A05 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A05.setGeometry(QtCore.QRect(40, 360, 291, 31))
+        self.pushButton_page2_A05.setObjectName("pushButton_page2_A05")
+        self.checkBox_page2_A02 = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_page2_A02.setGeometry(QtCore.QRect(40, 410, 211, 19))
+        self.checkBox_page2_A02.setObjectName("checkBox_page2_A02")
+        self.pushButton_page2_A06 = QtGui.QPushButton(self.tab_2)
+        self.pushButton_page2_A06.setGeometry(QtCore.QRect(40, 440, 291, 31))
+        self.pushButton_page2_A06.setObjectName("pushButton_page2_A06")
         self.tabWidget.addTab(self.tab_2, "")
         MainWindow.setCentralWidget(self.centralwidget)
         self.statusbar = QtGui.QStatusBar(MainWindow)
@@ -305,7 +344,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -326,7 +365,7 @@ class Ui_MainWindow(object):
         self.label_3.setText(QtGui.QApplication.translate("MainWindow", "Shutter Angle", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBox_2.setItemText(0, QtGui.QApplication.translate("MainWindow", "Frame", None, QtGui.QApplication.UnicodeUTF8))
         self.comboBox_2.setItemText(1, QtGui.QApplication.translate("MainWindow", "Subframe", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_01.setText(QtGui.QApplication.translate("MainWindow", "Generate RIBArchive", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_01.setText(QtGui.QApplication.translate("MainWindow", "Generate RIB Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.label_10.setText(QtGui.QApplication.translate("MainWindow", "Note:", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Cache time range", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_A01.setText(QtGui.QApplication.translate("MainWindow", "Current Frame", None, QtGui.QApplication.UnicodeUTF8))
@@ -340,16 +379,31 @@ class Ui_MainWindow(object):
         self.checkBox_D01.setText(QtGui.QApplication.translate("MainWindow", "Delayed Read Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_D02.setText(QtGui.QApplication.translate("MainWindow", "Read Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.toolButton_01.setText(QtGui.QApplication.translate("MainWindow", "...", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton_02.setText(QtGui.QApplication.translate("MainWindow", "Get ShaveRIBArchive", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_02.setText(QtGui.QApplication.translate("MainWindow", "Generate Shave RIB", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_03.setText(QtGui.QApplication.translate("MainWindow", "Publish RIB Archive", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton.setText(QtGui.QApplication.translate("MainWindow", "Reset", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("MainWindow", "Percentage", None, QtGui.QApplication.UnicodeUTF8))
         self.label_13.setText(QtGui.QApplication.translate("MainWindow", "GPU Cache Option", None, QtGui.QApplication.UnicodeUTF8))
-        self.checkBox_E01.setText(QtGui.QApplication.translate("MainWindow", "reduce GPU cache Mesh Count", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox_E01.setText(QtGui.QApplication.translate("MainWindow", "reduce GPU cache Mesh", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit_D01.setText(QtGui.QApplication.translate("MainWindow", "50", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "RIB Generate", None, QtGui.QApplication.UnicodeUTF8))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "RIB Check", None, QtGui.QApplication.UnicodeUTF8))
-
+        self.pushButton_page2_A01.setText(QtGui.QApplication.translate("MainWindow", "convert Hair Mesh to Curves", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_A02.setText(QtGui.QApplication.translate("MainWindow", "Reverse  U", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_A03.setText(QtGui.QApplication.translate("MainWindow", "Reverse V", None, QtGui.QApplication.UnicodeUTF8))
+        self.lineEdit_page2_A01.setText(QtGui.QApplication.translate("MainWindow", "3", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_14.setText(QtGui.QApplication.translate("MainWindow", "hairs/pre Mesh:", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_15.setText(QtGui.QApplication.translate("MainWindow", "Name Meshes Title:", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_O01.setText(QtGui.QApplication.translate("MainWindow", "Rename Selected Poly Meshes", None, QtGui.QApplication.UnicodeUTF8))
+        self.llineEdit_page2_B01.setText(QtGui.QApplication.translate("MainWindow", "Pxr Shader Select", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_B01.setText(QtGui.QApplication.translate("MainWindow", "Get PxrShader", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_B01_2.setText(QtGui.QApplication.translate("MainWindow", "Assign PxrShader to ShaveHair", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_16.setText(QtGui.QApplication.translate("MainWindow", "Assign Pixar Renderman Shader", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox_page2_A01.setText(QtGui.QApplication.translate("MainWindow", "show SubD surface", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_A04.setText(QtGui.QApplication.translate("MainWindow", "Reverse Swap", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_A05.setText(QtGui.QApplication.translate("MainWindow", "Reverse Both", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox_page2_A02.setText(QtGui.QApplication.translate("MainWindow", "show Select Curve CV", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_page2_A06.setText(QtGui.QApplication.translate("MainWindow", "Reverse  Curve", None, QtGui.QApplication.UnicodeUTF8))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Shave Tools", None, QtGui.QApplication.UnicodeUTF8))
 
 
 
@@ -412,7 +466,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def __init__(self, parent= QtGui.QApplication.activeWindow()):
         super(mod_MainWindow, self).__init__(parent)
 
-#---------------------------Data Sheet------------------™Ï©l≠» Start----------------------------------------------------------------------------------        
+#---------------------------Data Sheet------------------init Start----------------------------------------------------------------------------------        
 #        self.ribGenDict ={}
 #        self.exportDict ={}
         self.ribGenDict = {'currentFrameCheck':'1','startEndFrameCheck':'0','currentFrameValue':'1.0','startFrameValue':'1.0',
@@ -432,7 +486,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
               'shadeMode':'beauty','subD':'enable',
               'ribCachePosition':'ribfullPathName','ribArchiveDuration':'1.0','creator':'creatorName','buildTime':'yyyymmdd',
               'ribScreenShot':'screenShotImagePosition','version':'xxxx','exportNoteText':'none'}
-    #---------------------------Data Sheet------------------≈‹ßÛ¨∞≤{¶b∏ÍÆ∆--------------------------------------------------------------------------------- 
+    #---------------------------Data Sheet------------------ËÆäÊõ¥ÁÇ∫ÁèæÂú®Ë≥áÊñô--------------------------------------------------------------------------------- 
         self.ribGenDict['currentFrameCheck'] = "1"
         self.ribGenDict['startEndFrameCheck'] = "0"
         
@@ -455,7 +509,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.ribGenDict['delayedReadArchiveCheck'] = "1"
         self.ribGenDict['ReadArchiveCheck'] = "0"
         self.meshReduceValue = 50
-
+        self.hairCount = 3
 
         #self.selectedGeo=[]
 
@@ -464,7 +518,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
 
         
-#---------------------------Data Sheet-------------------™Ï©l≠» END--------------------------------------------------------------------------------------         
+#---------------------------Data Sheet-------------------ÂàùÂßãÂÄº END--------------------------------------------------------------------------------------         
 
 
 #-----------------------------------------signalbegin-------------------------------------------------------------------
@@ -531,6 +585,655 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         self.checkBox_E01.stateChanged.connect(self.modcheckBox_E01)
         
+        #page 2
+      #  self.pushButton_01.clicked.connect(self.modpushButton_01)
+        self.pushButton_page2_A01.clicked.connect(self.modpushButton_page2_A01)
+        self.pushButton_page2_O01.clicked.connect(self.modpushButton_page2_O01)
+        self.pushButton_page2_A02.clicked.connect(self.modpushButton_page2_A02)
+        self.pushButton_page2_A03.clicked.connect(self.modpushButton_page2_A03)
+        self.pushButton_page2_A04.clicked.connect(self.modpushButton_page2_A04)
+        self.pushButton_page2_A05.clicked.connect(self.modpushButton_page2_A05)
+        self.pushButton_page2_A06.clicked.connect(self.modpushButton_page2_A06)
+        
+        
+        
+        
+
+        self.pushButton_page2_B01.clicked.connect(self.modpushButton_page2_B01)
+        self.pushButton_page2_B01_2.clicked.connect(self.modpushButton_page2_B01_2)
+
+        self.lineEdit_page2_A01.textChanged.connect(self.modlineEdit_page2_A01)
+        self.lineEdit_page2_O01.textChanged.connect(self.modpushButton_page2_O01)
+
+        self.checkBox_page2_A01.stateChanged.connect(self.modcheckBox_page2_A01)
+        
+        self.checkBox_page2_A02.stateChanged.connect(self.modcheckBox_page2_A02)
+        
+        
+
+        
+        
+#-----------------------button_page2_A01------------------------------   
+    def modpushButton_page2_O01(self):
+        
+        self.meshRename= self.lineEdit_page2_O01.text() 
+        print self.meshRename
+        meshCount = 1
+        allSelectMeshs = pm.ls(sl=True,fl=True)
+        for singleMesh in allSelectMeshs:
+            if meshCount < (len(allSelectMeshs)+1):
+                pm.rename(singleMesh,self.meshRename +'%04d'%meshCount )
+                meshCount = meshCount +1
+            else:
+                pass
+                #print singleMesh
+            
+
+    def modlineEdit_page2_A01(self):
+        self.hairCount = self.lineEdit_page2_A01.text()
+        print self.hairCount
+
+  
+    def modpushButton_page2_A01(self):   
+        
+        selectMeshs= pm.ls(sl=True)
+       # print selectMeshs
+        for self.singleMesh in selectMeshs:  
+       #     print self.singleMesh
+            self.uvToEdges(self)
+            
+
+       
+    def modpushButton_page2_B01(self):   
+        self.selectPxrMarschnerHairShader = pm.ls(sl=True)[0]
+       # print selectPxrMarschnerHairShader
+        self.llineEdit_page2_B01.setText('%s'%self.selectPxrMarschnerHairShader)
+         
+        self.getDiffuseModelType = pm.getAttr('%s.diffuseModelType'%self.selectPxrMarschnerHairShader)
+        self.getDiffuseColor = pm.getAttr('%s.diffuseColor'%self.selectPxrMarschnerHairShader)
+        self.getDiffuseGain = pm.getAttr('%s.diffuseGain'%self.selectPxrMarschnerHairShader)
+        self.getSpecularColor = pm.getAttr('%s.specularColor'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainR = pm.getAttr('%s.specularGainR'%self.selectPxrMarschnerHairShader)
+        self.getSpecularSheen = pm.getAttr('%s.specularSheen'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainTRT = pm.getAttr('%s.specularGainTRT'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainTT = pm.getAttr('%s.specularGainTT'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainGLINTS = pm.getAttr('%s.specularGainGLINTS'%self.selectPxrMarschnerHairShader)
+        self.getSpecularConeAngle = pm.getAttr('%s.specularConeAngle'%self.selectPxrMarschnerHairShader)
+        self.getSpecularOffset = pm.getAttr('%s.specularOffset'%self.selectPxrMarschnerHairShader)
+        self.getSpecularIor = pm.getAttr('%s.specularIor'%self.selectPxrMarschnerHairShader)
+        self.getSpecularMixFresnel = pm.getAttr('%s.specularMixFresnel'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGlintWidth = pm.getAttr('%s.specularGlintWidth'%self.selectPxrMarschnerHairShader)
+        self.getSpecularEccentricity = pm.getAttr('%s.specularEccentricity'%self.selectPxrMarschnerHairShader)
+        self.getPresence = pm.getAttr('%s.presence'%self.selectPxrMarschnerHairShader)
+        self.getOpacityColor = pm.getAttr('%s.opacityColor'%self.selectPxrMarschnerHairShader)
+        self.getInputAOV = pm.listConnections('%s.inputAOV'%self.selectPxrMarschnerHairShader)[0]
+        self.getMattID0Color = pm.getAttr('%s.rman__riattr__user_MatteID7'%self.selectPxrMarschnerHairShader)
+        self.getInputAOVNum = pm.getAttr('%s.inputAOV'%self.getInputAOV)
+
+
+
+        self.shaderStore = {"Pattern"+" "+"\""+"PxrMatteID"+"\""+" " + "\""+ "%s"%self.getInputAOV + "\""+" " + "\"" + "int inputAOV"+"\""+" "+"["+"%s"%str(self.getInputAOVNum)+"]"
+        "Bxdf"+ " \""+"PxrMarschnerHair"+"\""+" "+"\""+"%s"%self.selectPxrMarschnerHairShader + "\""
+        " " +"\""+"int diffuseModelType" + "\""+ " "+ "["+"%s"%str(self.getDiffuseModelType) +"]"
+        " " +"\""+"color diffuseColor" + "\""+ " "+ "["+"%s"%str(self.getDiffuseColor[0])+" "+"%s"%str(self.getDiffuseColor[1])+" "+"%s"%str(self.getDiffuseColor[2]) +"]"
+        " " +"\""+"float diffuseGain" + "\""+ " "+ "["+"%s"%str(self.getDiffuseGain) +"]"
+        " " +"\""+"color specularColor" + "\""+ " "+ "["+"%s"%str(self.getSpecularColor[0])+" "+"%s"%str(self.getSpecularColor[1])+" "+"%s"%str(self.getSpecularColor[2]) +"]"
+        " " +"\""+"float specularGainR" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainR) +"]"
+        " " +"\""+"color specularSheen" + "\""+ " "+ "["+"%s"%str(self.getSpecularSheen[0])+" "+"%s"%str(self.getSpecularSheen[1])+" "+"%s"%str(self.getSpecularSheen[2]) +"]"
+        " " +"\""+"float specularGainTRT" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainTRT) +"]"
+        " " +"\""+"float specularGainTT" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainTT) +"]"
+        " " +"\""+"float specularGainGLINTS" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainGLINTS) +"]"
+        " " +"\""+"float specularConeAngle" + "\""+ " "+ "["+"%s"%str(self.getSpecularConeAngle) +"]"
+        " " +"\""+"float specularOffset" + "\""+ " "+ "["+"%s"%str(self.getSpecularOffset) +"]"
+        " " +"\""+"float specularIor" + "\""+ " "+ "["+"%s"%str(self.getSpecularIor) +"]"
+        " " +"\""+"float specularMixFresnel" + "\""+ " "+ "["+"%s"%str(self.getSpecularMixFresnel) +"]"
+        " " +"\""+"float specularGlintWidth" + "\""+ " "+ "["+"%s"%str(self.getSpecularGlintWidth) +"]"
+        " " +"\""+"float specularEccentricity" + "\""+ " "+ "["+"%s"%str(self.getSpecularEccentricity) +"]"
+        " " +"\""+"float presence" + "\""+ " "+ "["+"%s"%str(self.getPresence) +"]"
+        " " +"\""+"color opacityColor" + "\""+ " "+ "["+"%s"%str(self.getOpacityColor[0])+" "+"%s"%str(self.getOpacityColor[1])+" "+"%s"%str(self.getOpacityColor[2]) +"]"
+        #print " " +"\""+"int inputAOV" + "\""+ " "+ "[0]"
+        " " +"\""+"reference int inputAOV" + "\""+ " "+ "["+"\""+"%s"%str(self.getInputAOV) +":resultAOV" +"\""+"]"
+        " " +"\""+"__instanceid" + "\""+ " "+ "["+"\""+"%s"%str(self.selectPxrMarschnerHairShader) +"_0"+"\""+"]"
+        " " +"Attribute "+"\""+ "user" + "\"" +" "+"\""+"color MatteID7"+"\""+" "+"["+"%s"%str(self.getMattID0Color[0])+" "+"%s"%str(self.getMattID0Color[1])+" "+"%s"%str(self.getMattID0Color[2]) +"]"}
+        
+
+        
+    def modpushButton_page2_B01_2(self):   
+        self.selectPxrMarschnerHairShader = self.llineEdit_page2_B01.text()
+         
+        self.getDiffuseModelType = pm.getAttr('%s.diffuseModelType'%self.selectPxrMarschnerHairShader)
+        self.getDiffuseColor = pm.getAttr('%s.diffuseColor'%self.selectPxrMarschnerHairShader)
+        self.getDiffuseGain = pm.getAttr('%s.diffuseGain'%self.selectPxrMarschnerHairShader)
+        self.getSpecularColor = pm.getAttr('%s.specularColor'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainR = pm.getAttr('%s.specularGainR'%self.selectPxrMarschnerHairShader)
+        self.getSpecularSheen = pm.getAttr('%s.specularSheen'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainTRT = pm.getAttr('%s.specularGainTRT'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainTT = pm.getAttr('%s.specularGainTT'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGainGLINTS = pm.getAttr('%s.specularGainGLINTS'%self.selectPxrMarschnerHairShader)
+        self.getSpecularConeAngle = pm.getAttr('%s.specularConeAngle'%self.selectPxrMarschnerHairShader)
+        self.getSpecularOffset = pm.getAttr('%s.specularOffset'%self.selectPxrMarschnerHairShader)
+        self.getSpecularIor = pm.getAttr('%s.specularIor'%self.selectPxrMarschnerHairShader)
+        self.getSpecularMixFresnel = pm.getAttr('%s.specularMixFresnel'%self.selectPxrMarschnerHairShader)
+        self.getSpecularGlintWidth = pm.getAttr('%s.specularGlintWidth'%self.selectPxrMarschnerHairShader)
+        self.getSpecularEccentricity = pm.getAttr('%s.specularEccentricity'%self.selectPxrMarschnerHairShader)
+        self.getPresence = pm.getAttr('%s.presence'%self.selectPxrMarschnerHairShader)
+        self.getOpacityColor = pm.getAttr('%s.opacityColor'%self.selectPxrMarschnerHairShader)
+        self.getInputAOV = pm.listConnections('%s.inputAOV'%self.selectPxrMarschnerHairShader)[0]
+        self.getMattID0Color = pm.getAttr('%s.rman__riattr__user_MatteID7'%self.selectPxrMarschnerHairShader)
+        self.getInputAOVNum = pm.getAttr('%s.inputAOV'%self.getInputAOV)
+
+
+
+
+        self.shaderStore = {"Pattern"+" "+"\""+"PxrMatteID"+"\""+" " + "\""+ "%s"%self.getInputAOV + "\""+" " + "\"" + "int inputAOV"+"\""+" "+"["+"%s"%str(self.getInputAOVNum)+"]"
+        "Bxdf"+ " \""+"PxrMarschnerHair"+"\""+" "+"\""+"%s"%self.selectPxrMarschnerHairShader + "\""
+        " " +"\""+"int diffuseModelType" + "\""+ " "+ "["+"%s"%str(self.getDiffuseModelType) +"]"
+        " " +"\""+"color diffuseColor" + "\""+ " "+ "["+"%s"%str(self.getDiffuseColor[0])+" "+"%s"%str(self.getDiffuseColor[1])+" "+"%s"%str(self.getDiffuseColor[2]) +"]"
+        " " +"\""+"float diffuseGain" + "\""+ " "+ "["+"%s"%str(self.getDiffuseGain) +"]"
+        " " +"\""+"color specularColor" + "\""+ " "+ "["+"%s"%str(self.getSpecularColor[0])+" "+"%s"%str(self.getSpecularColor[1])+" "+"%s"%str(self.getSpecularColor[2]) +"]"
+        " " +"\""+"float specularGainR" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainR) +"]"
+        " " +"\""+"color specularSheen" + "\""+ " "+ "["+"%s"%str(self.getSpecularSheen[0])+" "+"%s"%str(self.getSpecularSheen[1])+" "+"%s"%str(self.getSpecularSheen[2]) +"]"
+        " " +"\""+"float specularGainTRT" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainTRT) +"]"
+        " " +"\""+"float specularGainTT" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainTT) +"]"
+        " " +"\""+"float specularGainGLINTS" + "\""+ " "+ "["+"%s"%str(self.getSpecularGainGLINTS) +"]"
+        " " +"\""+"float specularConeAngle" + "\""+ " "+ "["+"%s"%str(self.getSpecularConeAngle) +"]"
+        " " +"\""+"float specularOffset" + "\""+ " "+ "["+"%s"%str(self.getSpecularOffset) +"]"
+        " " +"\""+"float specularIor" + "\""+ " "+ "["+"%s"%str(self.getSpecularIor) +"]"
+        " " +"\""+"float specularMixFresnel" + "\""+ " "+ "["+"%s"%str(self.getSpecularMixFresnel) +"]"
+        " " +"\""+"float specularGlintWidth" + "\""+ " "+ "["+"%s"%str(self.getSpecularGlintWidth) +"]"
+        " " +"\""+"float specularEccentricity" + "\""+ " "+ "["+"%s"%str(self.getSpecularEccentricity) +"]"
+        " " +"\""+"float presence" + "\""+ " "+ "["+"%s"%str(self.getPresence) +"]"
+        " " +"\""+"color opacityColor" + "\""+ " "+ "["+"%s"%str(self.getOpacityColor[0])+" "+"%s"%str(self.getOpacityColor[1])+" "+"%s"%str(self.getOpacityColor[2]) +"]"
+        #print " " +"\""+"int inputAOV" + "\""+ " "+ "[0]"
+        " " +"\""+"reference int inputAOV" + "\""+ " "+ "["+"\""+"%s"%str(self.getInputAOV) +":resultAOV" +"\""+"]"
+        " " +"\""+"__instanceid" + "\""+ " "+ "["+"\""+"%s"%str(self.selectPxrMarschnerHairShader) +"_0"+"\""+"]"
+        " " +"Attribute "+"\""+ "user" + "\"" +" "+"\""+"color MatteID7"+"\""+" "+"["+"%s"%str(self.getMattID0Color[0])+" "+"%s"%str(self.getMattID0Color[1])+" "+"%s"%str(self.getMattID0Color[2]) +"]"}
+          
+
+        selectedShaveSet = pm.ls(sl=True)[0]
+        pm.setAttr('%s.ribStuff'%selectedShaveSet,self.shaderStore)
+        print self.shaderStore       
+            
+    def printSingleMesh(self,singleMesh):
+        print self.singleMesh
+
+        
+        
+#-------------------modcheckBox_page2_A01------------------------        
+    def modcheckBox_page2_A01(self):
+        allloftSurface = pm.ls('*_toLoftSurface')
+      # print allloftSurface
+        if self.checkBox_page2_A01.isChecked() == True:               
+            for i in allloftSurface:
+                pm.setAttr('%s.visibility'%i,1)
+
+        else:
+            for i in allloftSurface:
+                pm.setAttr('%s.visibility'%i,0)
+                
+                
+                
+#-------------------checkBox display CV-----------------------        
+    def modcheckBox_page2_A02(self):
+        
+        self.selectCurves = pm.ls(sl=True,shapes=True,dag=2,fl=True) 
+      # print allloftSurface
+        if self.checkBox_page2_A02.isChecked() == True: 
+            
+            for i in self.selectCurves:
+                pm.setAttr('%s.dispCV'%i,1)
+
+        else:
+            for i in self.selectCurves:
+                pm.setAttr('%s.dispCV'%i,0)
+
+                
+                
+                
+                
+                
+                
+#-----------------button reverse U---------------------------------      
+
+    def modpushButton_page2_A02(self):   
+        selectedSurf = pm.ls(sl=True)
+        for singleSurf in selectedSurf:
+            pm.reverseSurface(singleSurf,d=0,ch=1,rpo=1)
+       
+
+
+
+#-----------------button reverse V---------------------------------  
+
+
+    def modpushButton_page2_A03(self):   
+        selectedSurf = pm.ls(sl=True)
+        for singleSurf in selectedSurf:
+            pm.reverseSurface(singleSurf,d=1,ch=1,rpo=1)
+       
+                
+
+
+
+#-----------------button reverse swap---------------------------------  
+
+    def modpushButton_page2_A04(self):   
+        selectedSurf = pm.ls(sl=True)
+        for singleSurf in selectedSurf:
+            pm.reverseSurface(singleSurf,d=3,ch=1,rpo=1)
+       
+                
+
+#-----------------button reverse both---------------------------------       
+
+    def modpushButton_page2_A05(self):   
+        selectedSurf = pm.ls(sl=True)
+        for singleSurf in selectedSurf:
+            pm.reverseSurface(singleSurf,d=2,ch=1,rpo=1)
+       
+                                   
+                
+
+                
+#-----------------button reverse CV---------------------------------       
+
+    def modpushButton_page2_A06(self):   
+        self.selectCurves = pm.ls(sl=True,shapes=True,dag=2,fl=True) 
+        for singleCurve in self.selectCurves:
+            pm.reverseCurve(singleCurve, ch=True, rpo=True )
+       
+                                   
+                         
+                
+                
+
+        
+        
+        
+#---------------------convert select uvs to edge        
+    def uvToEdges(self,singleMesh):
+
+        
+        print "convert"+ self.singleMesh + "to Curves Start.................."
+
+        convertselectMeshToUVs = pm.ls(pm.polyListComponentConversion(self.singleMesh,toUV=True),fl=True)
+
+        #print len(convertselectMeshToUVs)
+
+        #print convertselectMeshToUVs
+        topUVs = []  #all UVs in top line
+        bottomUVs = []  #all UV in the bottom line
+        LeftUVs =[]
+
+
+        pm.select(cl=True)
+        newGroup = pm.group(n=self.singleMesh+'_polytoCurve_grp')        
+        
+        for singleUV in convertselectMeshToUVs:
+            if pm.polyEditUV(singleUV,q=True)[1] < 0.01:     #find Bottom UVs
+                bottomUVs.append( singleUV )
+            elif pm.polyEditUV(singleUV,q=True)[1] > 0.99:   #find top UVs
+                topUVs.append( singleUV )
+
+            else:
+                pass
+
+        for singleUV in convertselectMeshToUVs:
+            if pm.polyEditUV(singleUV,q=True)[0] <= 0.01:    #find Left UVs
+                LeftUVs.append(singleUV)
+            else:
+                pass
+                
+        totalUsteps= int(len(bottomUVs))  # steps in U
+        totalVsteps =int(len(LeftUVs))           # steps in V
+
+
+        #print len(pm.ls(sl=True,fl=True))
+
+
+
+        lineNum = 1
+
+        # store UVs in every Line
+
+        pm.select(cl=True)
+
+       # print topUVs
+       # print bottomUVs
+
+
+        # get the bottom and top UV and reOrder List from UVShell 0 to 1
+        newOrder_buttonUV =[]
+        newOrder_topUV = []
+        j=0.0
+        while j < (1 +0.01):
+            for du_inBottom , du_inTop in zip(bottomUVs,topUVs):
+                bottom_duCoord = pm.polyEditUV(du_inBottom,q=True)[0]
+                top_duCoord = pm.polyEditUV(du_inTop,q=True)[0]    
+                
+                
+                try:   
+                    if bottom_duCoord >= j and bottom_duCoord < (j+0.01) :
+                        newOrder_buttonUV.append(du_inBottom)
+                      #  print du_inBottom
+                    else:
+                        pass
+                        
+                    if top_duCoord >= j and top_duCoord < (j+0.01) :
+                        newOrder_topUV.append(du_inTop)
+                      #  print du_inTop
+                    else:
+                        pass
+                        
+                except:
+                    pass
+                    
+           
+            
+            j= j+0.01
+            
+            
+    
+        #check is closeed poly,like cylinder    
+        lastButtonUV = pm.select(newOrder_buttonUV[-1])    
+        lastButtonVertex = pm.polyListComponentConversion(tv=True)
+        lastButtonVertexPos = pm.pointPosition(lastButtonVertex,w=True)
+        firstButtonUV = pm.select(newOrder_buttonUV[0])    
+        firstButtonVertex = pm.polyListComponentConversion(tv=True)
+        firstButtonVertexPos = pm.pointPosition(firstButtonVertex,w=True)
+
+        if lastButtonVertexPos[0] == firstButtonVertexPos[0]:
+            totalUsteps = totalUsteps -1
+            closeSurf = 1   #give the close option for building loft surface with 1 
+            nonCloseStep = 0
+        else:
+            totalUsteps = totalUsteps    
+            closeSurf = 0    #give the close option for building loft surface with 0    
+            nonCloseStep = 1        
+            
+
+            
+         # find edge between two UV,shell, and convert curve from polyedges   
+
+        polyToCurves = []
+        pm.select(cl=True)
+
+
+        for eleNum in range(0,(totalUsteps)):
+
+            pointA = newOrder_buttonUV[eleNum]
+            pointB = newOrder_topUV[eleNum]
+            numA = int(pointA.split('[')[-1].split(']')[0])
+            numB = int(pointB.split('[')[-1].split(']')[0])  
+          #  print pointA , numA
+
+          #  print pointB ,numB
+            
+            pm.polySelect(self.singleMesh,spu =(numA,numB))
+
+            curveCreate = pm.mel.eval('polyToCurve -form 2 -degree 3')[0]             # conver select edge to Nurb Curve, degree =0  
+
+            pm.parent(curveCreate,newGroup) 
+            curveNewName = eleNum + 1
+            curveNewName = self.singleMesh+'_toCurve_'+ '%04d'%curveNewName 
+            pm.rename(curveCreate,curveNewName)   
+            pm.hide(curveNewName)
+            polyToCurves.append(curveNewName)    #store all polyToCurves in list    
+            pm.select(cl=True)
+       # print polyToCurves  
+
+        # make loft surface from duplacate edge curves
+
+        loftSurface = pm.loft(polyToCurves,ch=1,u=0,c=closeSurf,ar=1,d=1,ss=1,rn=0,po=0,rsn=True,n=self.singleMesh+'_toLoftSurface')[0]  #create loft surface using curves
+
+        
+        loftSurfaceSpanU = pm.getAttr('%s.spansU'%loftSurface)    #re define isoparms
+
+        
+        loftSurfaceSpanV = pm.getAttr('%s.spansV'%loftSurface)  
+        
+       # print loftSurfaceSpanU,loftSurfaceSpanV
+        pm.rebuildSurface(ch=1,rpo=1,rt=0,end=1,kr=0,kcp=0,kc=1,su=loftSurfaceSpanU,du=1,sv=loftSurfaceSpanV,dv=1,tol=0.01,fr=0,dir=2) #rebuild surface,cause the original surface's isoparms' range too large
+     #                       ch=1,rpo=1,rt=0,end=1,kr=0,kcp=0,kc=0,su=loftSurfaceSpanU,du=1,sv=loftSurfaceSpanV,dv=1,tol=0.01,fr=0,dir=2
+    #
+        pm.hide(loftSurface)
+        pm.parent(loftSurface,newGroup)           
+
+        #print loftSurface
+        
+        makeCurves= float(self.hairCount) # how many curves in one mesh
+        curveStep = 1.0/(makeCurves-nonCloseStep)
+        isoStep = 0
+        #print makeCurves,curveStep
+        pm.select(cl=True)
+        loftCurveNumber = 1
+
+        #realMakeCurve = makeCurves + nonCloseStep
+        while loftCurveNumber <= makeCurves  :
+            selectIsoP = loftSurface +'.v['+str(isoStep)+']'
+           # print selectIsoP
+            pm.select(selectIsoP,tgl=True)
+
+            duplaciteCurveFromIsoPalm = pm.duplicateCurve('%s'%selectIsoP,ch= True,n=loftSurface+'_toCurve_'+'%04d'%loftCurveNumber)[0]
+            loftCurveNumber = loftCurveNumber +1
+            if isoStep == 0 :
+                pm.color(duplaciteCurveFromIsoPalm,rgb=(1.0,0.0,0.0))
+
+            else:
+                stepGreen= 0.0 + isoStep
+                pm.color(duplaciteCurveFromIsoPalm,rgb=(0.0,stepGreen,0.0))
+
+                
+            pm.parent(duplaciteCurveFromIsoPalm,newGroup)           
+            isoStep = isoStep + curveStep
+            if isoStep >= (curveStep*(makeCurves-1)):
+                pm.color(duplaciteCurveFromIsoPalm,rgb=(0.0,0.0,1.0))
+            else :
+                pass
+        selectIsoP_V_Bottom = loftSurface +'.u[0]'
+        duplaciteCurveFromIsoPalm_V_Bottom = pm.duplicateCurve('%s'%selectIsoP_V_Bottom,ch= True,n=loftSurface+'_toCurve_V_bottim')[0]  
+        pm.color(duplaciteCurveFromIsoPalm_V_Bottom,rgb=(1.0,1.0,0.0))     
+      #  print duplaciteCurveFromIsoPalm
+        if len(pm.ls('polyToCurves_bottomLines')) >= 1:
+            pass
+        else:
+            pm.group(n='polyToCurves_bottomLines')
+            
+        pm.parent(duplaciteCurveFromIsoPalm_V_Bottom,'polyToCurves_bottomLines')            
+    
+
+        print "convert"+ self.singleMesh + "to Curves finishing.................."
+#----------------------poly convert 4 nurbs-------------        
+        
+    def getNurbEdge(self,singleMesh):
+    
+#singleMesh = pm.ls(sl=True)[0]
+        convertselectMeshToEdges = pm.select(pm.polyListComponentConversion(self.singleMesh,te=True))
+        allEdges = pm.ls(sl=True,fl=True)
+
+        uvCount = pm.polyEvaluate(self.singleMesh,uv=True)
+
+
+        unSelectEdges= []
+
+        # get edgeNeA   
+        pm.select(cl=True)
+        for n in range(0,uvCount):
+
+            
+            uvPoint = '%s.map'%self.singleMesh+'[%s]'%n
+          #  print pm.polyEditUV(uvPoint,q=True)[0]
+            try:
+                if pm.polyEditUV(uvPoint,q=True)[0] > 0.001:
+
+                    pm.select(uvPoint,tgl=True)
+            except:
+                pass
+                
+            convertEdges = pm.select(pm.polyListComponentConversion(te=True))   #convert select uv to edge
+            selectEdgesNeA = pm.ls(sl=True,fl=True)
+        # get edgeNeB  
+        pm.select(cl=True)
+        for n in range(0,uvCount):
+
+            
+            uvPoint = '%s.map'%self.singleMesh+'[%s]'%n
+          #  print pm.polyEditUV(uvPoint,q=True)[0]
+            try:
+                if pm.polyEditUV(uvPoint,q=True)[0] < 0.999:
+
+                    pm.select(uvPoint,tgl=True)
+            except:
+                pass
+                
+            convertEdges = pm.select(pm.polyListComponentConversion(te=True))   #convert select uv to edge
+            selectEdgesNeB = pm.ls(sl=True,fl=True)
+
+        # get edgeNeC  
+        pm.select(cl=True)
+        for n in range(0,uvCount):
+
+            
+            uvPoint = '%s.map'%self.singleMesh+'[%s]'%n
+          #  print pm.polyEditUV(uvPoint,q=True)[0]
+            try:
+                if pm.polyEditUV(uvPoint,q=True)[1] > 0.1:
+
+                    pm.select(uvPoint,tgl=True)
+            except:
+                pass
+                
+            convertEdges = pm.select(pm.polyListComponentConversion(te=True))   #convert select uv to edge
+            selectEdgesNeC = pm.ls(sl=True,fl=True)
+        # get edgeNeD
+        pm.select(cl=True)
+        for n in range(0,uvCount):
+
+            
+            uvPoint = '%s.map'%self.singleMesh+'[%s]'%n
+          #  print pm.polyEditUV(uvPoint,q=True)[0]
+            try:
+                if pm.polyEditUV(uvPoint,q=True)[1] < 0.999:
+
+                    pm.select(uvPoint,tgl=True)
+            except:
+                pass
+                
+            convertEdges = pm.select(pm.polyListComponentConversion(te=True))   #convert select uv to edge
+            selectEdgesNeD = pm.ls(sl=True,fl=True)
+
+
+
+        #pm.select(cl=True)
+        #for edge in allEdges:
+
+        #    unSelectEdges.append(edge)
+            
+        #len(allEdges)
+        #len(selectEdges)
+        #store EdgeA, left line of uv
+        selectEdgeA= []   
+        pm.select(cl=True)    
+        for edgeA in allEdges:
+           # print edgeA
+            if edgeA in selectEdgesNeA:
+                
+                pass
+            else:
+                selectEdgeA.append(edgeA)
+                
+        #store EdgeB, right line of uv
+        selectEdgeB= []   
+        pm.select(cl=True)    
+        for edgeB in allEdges:
+           # print edgeA
+            if edgeB in selectEdgesNeB:
+                
+                pass
+            else:
+                selectEdgeB.append(edgeB)
+                
+        #store EdgeB, upper line of uv        
+        selectEdgeC= []   
+        pm.select(cl=True)    
+        for edgeC in allEdges:
+           # print edgeA
+            if edgeC in selectEdgesNeC:
+                
+                pass
+            else:
+                selectEdgeC.append(edgeC)
+                
+        #store EdgeB, bottom line of uv        
+        selectEdgeD= []   
+        pm.select(cl=True)    
+        for edgeD in allEdges:
+           # print edgeA
+            if edgeD in selectEdgesNeD:
+                
+                pass
+            else:
+                selectEdgeD.append(edgeD)
+                
+
+        
+        pm.select(selectEdgeA)        
+       
+        curveA = pm.mel.eval('polyToCurve -form 2 -degree 3')[0]
+        curveAName =self.singleMesh+'toCurveA'
+        pm.rename(curveA,curveAName)
+        
+        
+        pm.select(selectEdgeB)        
+       
+        curveB = pm.mel.eval('polyToCurve -form 2 -degree 3')[0]
+        curveBName =self.singleMesh+'toCurveB'
+        pm.rename(curveB,curveBName)
+        
+        
+        pm.select(selectEdgeC)        
+       
+        curveC = pm.mel.eval('polyToCurve -form 2 -degree 3')[0]
+        curveCName =self.singleMesh+'toCurveC'
+        pm.rename(curveC,curveCName)
+        
+        
+        pm.select(selectEdgeD)       
+       
+        curveD = pm.mel.eval('polyToCurve -form 2 -degree 3')[0]
+        curveDName =self.singleMesh+'toCurveD'
+        pm.rename(curveD,curveDName)
+        
+        #preSurface = pm.doubleProfileBirailSurface( curveAName,curveBName,curveCName,curveDName,n=self.singleMesh+'ToSurface', bl=0.5 )
+        
+        makeGroup = pm.group(curveAName,curveBName,curveCName,curveDName,n=self.singleMesh+'CurveGrp')
+        
+        #make nurb surface with Birail Tool
+        preSurface = pm.doubleProfileBirailSurface( curveAName,curveBName,curveCName,curveDName,n=self.singleMesh+'ToSurface', bl=0.5 )[0]
+        print preSurface
+        print makeGroup
+        pm.parent(preSurface, makeGroup)
+        
+        #duplacite curves from surface isopalms
+        makeCurves= float(self.hairCount) # how many curves in one mesh
+        curveStep = 1.0/(makeCurves-1)
+        uStep = 0
+        pm.select(cl=True)
+        while uStep <= 1.0 :
+            selectIsoP = preSurface +'.u['+str(uStep)+']'
+         #   print selectIsoP
+           # pm.select(selectIsoP,tgl=True)
+            uStep = uStep + curveStep
+            duplaciteCurveFromIsoPalm = pm.duplicateCurve('%s'%selectIsoP,ch= True,n=preSurface+'toCurve'+'#')[0]
+          #  print duplaciteCurveFromIsoPalm
+            pm.parent(duplaciteCurveFromIsoPalm,makeGroup)
+            
+        
+        #hide NurbShrface and PolyTo curves
+        
+        pm.hide(preSurface, curveAName,curveBName,curveCName,curveDName)    
+                
+                
         
 #-----------------------------------------signal End-------------------------------------------------------------------        
         
@@ -857,14 +1560,14 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.checkBox_D01.setChecked(True)
         
 
-#----------------------------------------------©“øÔ®˙™∫Group Start------------------------------------------------------------
+#----------------------------------------------ÊâÄÈÅ∏ÂèñÁöÑGroup Start------------------------------------------------------------
 
 
     def selectGrpList(self,singleGrp):
         self.selectedTGrpList= pm.ls( sl=True)
 
 
-#----------------------------------------------©“øÔ®˙™∫Group End------------------------------------------------------------
+#----------------------------------------------ÊâÄÈÅ∏ÂèñÁöÑGroup End------------------------------------------------------------
 
 
 
@@ -874,7 +1577,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-#---------------------------------------------------øÔæ‹™´•Ûshape©w∏q Start---•—©“øÔ™∫group§§øÔ•X shape------------------------------------------------------       
+#---------------------------------------------------ÈÅ∏ÊìáÁâ©‰ª∂shapeÂÆöÁæ© Start---Áî±ÊâÄÈÅ∏ÁöÑgroup‰∏≠ÈÅ∏Âá∫ shape------------------------------------------------------       
 
  
     def selectedShape(self,singleGrp):
@@ -883,7 +1586,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
       #  pm.ls(sl=True, type='geometryShape',dag=True,ap=True,lf=True)
         #pm.nodeType(pm.ls(sl=True))
        # pm.ls(sl=True,dag=1)
-#---------------------------------------------------øÔæ‹™´•Ûshape©w∏q end-----------------------------------------------------------
+#---------------------------------------------------ÈÅ∏ÊìáÁâ©‰ª∂shapeÂÆöÁæ© end-----------------------------------------------------------
 
 
 
@@ -893,7 +1596,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 #-----------------------------------------define create folder Begin------------------------------------------------
 
-    def createSelectFolder(self,singleGrp):   # singleGrp ¨O§@≠”•i•H•Œ®”¶^∂«≥Ê§@øÔ©w™∫group transforme
+    def createSelectFolder(self,singleGrp):   # singleGrp ÊòØ‰∏ÄÂÄãÂèØ‰ª•Áî®‰æÜÂõûÂÇ≥ÂñÆ‰∏ÄÈÅ∏ÂÆöÁöÑgroup transforme
         print "run createSelectFolder Function"
         cacheFolderCreate = self.currentProj + 'data/cache/' + self.singleGrp
 
@@ -964,7 +1667,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def getRibExportCmd(self,exportCmd): 
         print "run getRibExportCmd Function"
 
-        #©w∏qøÈ•X∏ÍÆ∆ß®ªP¿…Æ◊¶W∫Ÿ  
+        #ÂÆöÁæ©Ëº∏Âá∫Ë≥áÊñôÂ§æËàáÊ™îÊ°àÂêçÁ®±  
         self.cacheFileName(self)  
         
         exportRibNamePath = self.ribGenDict['cacheForder']+'/' + self.exportRibName
@@ -981,10 +1684,10 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             cmd04='rmanExportEndFrame=%s;' %self.ribGenDict['currentFrameValue']
             cmd05='rmanExportByFrame=1\"'
             ribExportSingalOption=self.ribGenDict['exportCmd']+cmd02+ cmd03+ cmd04 + cmd05
-            # øÈ•X≥Ã≤◊´¸•O
+            # Ëº∏Âá∫ÊúÄÁµÇÊåá‰ª§
             self.ribGenDict['finalRibExportCmd']="file -force -op"+" "+str(ribExportSingalOption)+" "+"-typ"+" "+"\"RIB_Archive\""+" "+"-pr"+" "+"-es"+" "+"\"%s"%exportRibNamePath+"\""
             self.ribGenDict['finalGpuExportCmd'] = str("gpuCache -startTime "+"%s"%self.ribGenDict['currentFrameValue']+" -endTime "+"%s"%self.ribGenDict['currentFrameValue']+" -optimize -optimizationThreshold 200000 -writeMaterials -dataFormat ogawa "+ "-directory "+"\"%s"%ribFileDir+"\"" + " -fileName " + "\" %s"%gpuCacheFileNameSingle+"\"")
-                                                       #gpuCache    ∂}©lÆ…∂°                   ≈‹º∆ --------------------------µ≤ßÙÆ…∂°-----------≈‹º∆--------------------------------------------------------------------------------------------------------
+                                                       #gpuCache    ÈñãÂßãÊôÇÈñì                   ËÆäÊï∏ --------------------------ÁµêÊùüÊôÇÈñì-----------ËÆäÊï∏--------------------------------------------------------------------------------------------------------
 
     #        pm.mel.eval('%s'%exportCmd)
     #        pm.mel.eval('%s'%exportGpuCacheCmd)
@@ -993,8 +1696,8 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             cmd02 ='rmanExportMultipleFrames=1;'
             #cmd03='rmanExportStartFrame=%s;'%self.ribGenDict['startFrameValue']
            # cmd04='rmanExportEndFrame=%s;'%self.ribGenDict['endFrameValue']
-            cmd03='rmanExportStartFrame=%s;'%startFrameReal #øÈ•X™∫´¸•O•≤∂∑¨OØu•ø™∫ÆÊº∆ -1
-            cmd04='rmanExportEndFrame=%s;'%endFrameReal #øÈ•X™∫´¸•O•≤∂∑¨OØu•ø™∫ÆÊº∆ -1
+            cmd03='rmanExportStartFrame=%s;'%startFrameReal #Ëº∏Âá∫ÁöÑÊåá‰ª§ÂøÖÈ†àÊòØÁúüÊ≠£ÁöÑÊ†ºÊï∏ -1
+            cmd04='rmanExportEndFrame=%s;'%endFrameReal #Ëº∏Âá∫ÁöÑÊåá‰ª§ÂøÖÈ†àÊòØÁúüÊ≠£ÁöÑÊ†ºÊï∏ -1
             cmd05='rmanExportByFrame=1\"'
             ribExportMultiOptions = self.ribGenDict['exportCmd']+cmd02+ cmd03+ cmd04 + cmd05
            # if 
@@ -1015,7 +1718,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def shaveRibExport(self,singleGrp):
 
         print "run shaveRibExport Function start"
-        #©w∏qøÈ•X∏ÍÆ∆ß®ªP¿…Æ◊¶W∫Ÿ  
+        #ÂÆöÁæ©Ëº∏Âá∫Ë≥áÊñôÂ§æËàáÊ™îÊ°àÂêçÁ®±  
         ribArchiveFileName = str(self.singleGrp)
         if self.ribGenDict['currentFrameCheck'] == '0':
 
@@ -1080,7 +1783,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 #---------------------------------------------------shaveRibExport End--------------------------------------------------------------------
 
-#---------------------------------------------------Ω·§© SubD Start-----------------------------------------------------------
+#---------------------------------------------------Ë≥¶‰∫à SubD Start-----------------------------------------------------------
     def addSubD(self,singleShape):
 
         print "run addSubD Function"
@@ -1095,12 +1798,12 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         print "run addSubD Function Completed"
     
       
-#---------------------------------------------------Ω·§© SubD End-----------------------------------------------------------
+#---------------------------------------------------Ë≥¶‰∫à SubD End-----------------------------------------------------------
 
 
 
 
-#---------------------------------------------------ßR∞£ SubD Start-----------------------------------------------------------
+#---------------------------------------------------Âà™Èô§ SubD Start-----------------------------------------------------------
 
     def delSubD(self,singleShape):
 
@@ -1122,7 +1825,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         print "run delSubD Function Completed"
 
         
-#----------------------------------------------------ßR∞£ SubD End-----------------------------------------------------------------------
+#----------------------------------------------------Âà™Èô§ SubD End-----------------------------------------------------------------------
 
 
 
@@ -1147,7 +1850,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-#---------------------------------------------------≥sµ≤GPU RIB Cache Start--------------------------------------------------------
+#---------------------------------------------------ÈÄ£ÁµêGPU RIB Cache Start--------------------------------------------------------
 
 
     def connectGpuRib(self,singleGrp):
@@ -1155,7 +1858,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         print "run connectGpuRib Function "
 
         #selectedTGrpList= pm.ls( sl=True)
-        ribArchiveShapeCount = len(pm.ls(type='RenderManArchive'))      #≤Œ≠p≤{¶≥™∫RIB Archive™∫º∆∂q ®√¶b+1
+        ribArchiveShapeCount = len(pm.ls(type='RenderManArchive'))      #Áµ±Ë®àÁèæÊúâÁöÑRIB ArchiveÁöÑÊï∏Èáè ‰∏¶Âú®+1
         #ribArchiveShapeCountInt = len(pm.ls(type='RenderManArchive'))+1
         try:
             pm.select('ribAssetGrp')
@@ -1166,13 +1869,13 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         
         ribArchiveNodetransformName = self.singleGrp
         ribArchiveShapeCountStr = str(ribArchiveShapeCount+1)
-        ribTransformName = pm.createNode( 'transform', n="%s"%ribArchiveNodetransformName+"RIBArchive%s"%ribArchiveShapeCountStr ,p='ribAssetGrp')  #≤£•ÕRIB Archive ≥Ã§Wºhgroup
+        ribTransformName = pm.createNode( 'transform', n="%s"%ribArchiveNodetransformName+"RIBArchive%s"%ribArchiveShapeCountStr ,p='ribAssetGrp')  #Áî¢ÁîüRIB Archive ÊúÄ‰∏äÂ±§group
       #  print ribTransformName
       #  print type(ribTransformName)
-        ribArchiveShapeName = pm.createNode('RenderManArchive',n='%s'%ribArchiveNodetransformName+'_ribShape%s'%ribArchiveShapeCountStr) #≤£•ÕRIB Archive shape ®√≤£•Õ©“ƒ› Transform    
-        gpuCacheShapeName = pm.createNode('gpuCache',n='%s'%ribArchiveNodetransformName+'_GpuCacheShape%s'%ribArchiveShapeCountStr) #≤£•ÕGPUCache shape ®√≤£•Õ©“ƒ› Transform    
-        pm.parent(ribArchiveShapeName,ribTransformName)  #±N RIB Archive parent ®Ï ©“ƒ›≥Ã§WºhGroup
-        pm.parent(gpuCacheShapeName,ribTransformName)    #±N GpuCache parent ®Ï ©“ƒ›≥Ã§WºhGroup
+        ribArchiveShapeName = pm.createNode('RenderManArchive',n='%s'%ribArchiveNodetransformName+'_ribShape%s'%ribArchiveShapeCountStr) #Áî¢ÁîüRIB Archive shape ‰∏¶Áî¢ÁîüÊâÄÂ±¨ Transform    
+        gpuCacheShapeName = pm.createNode('gpuCache',n='%s'%ribArchiveNodetransformName+'_GpuCacheShape%s'%ribArchiveShapeCountStr) #Áî¢ÁîüGPUCache shape ‰∏¶Áî¢ÁîüÊâÄÂ±¨ Transform    
+        pm.parent(ribArchiveShapeName,ribTransformName)  #Â∞á RIB Archive parent Âà∞ ÊâÄÂ±¨ÊúÄ‰∏äÂ±§Group
+        pm.parent(gpuCacheShapeName,ribTransformName)    #Â∞á GpuCache parent Âà∞ ÊâÄÂ±¨ÊúÄ‰∏äÂ±§Group
      
         self.gpuCacheShape = gpuCacheShapeName
         self.ribArchiveShape = ribArchiveShapeName
@@ -1192,7 +1895,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             
 
 
-        self.addRiAttribute(self)                         #©I•s ≥sµ≤RIB Archive ∏Ú GPUCache
+        self.addRiAttribute(self)                         #ÂëºÂè´ ÈÄ£ÁµêRIB Archive Ë∑ü GPUCache
         
         
         pm.setAttr('%s'%gpuCacheShapeName +'.cacheFileName','%s'%gpuFullName)
@@ -1201,14 +1904,14 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.gpuCacheAddAttribute(self)
         
         print "run connectGpuRib Function Completed"
-#---------------------------------------------------≥sµ≤GPU RIB Cache End-------------------------------------------------------
+#---------------------------------------------------ÈÄ£ÁµêGPU RIB Cache End-------------------------------------------------------
 
 
 
 
 
 
-#---------------------------------------------------µπ§© Attribute End--------------------------------------------------------
+#---------------------------------------------------Áµ¶‰∫à Attribute End--------------------------------------------------------
 
 
 
@@ -1252,14 +1955,14 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
         
         print "run addRiAttribute Function Completed"
-#---------------------------------------------------µπ§© Attribute End--------------------------------------------------------
+#---------------------------------------------------Áµ¶‰∫à Attribute End--------------------------------------------------------
   
   
   
   
   
   
-#---------------------------------------------------µπ§© GPUCache Attribute ¥˙∏’ begin--------------------------------------------------------  
+#---------------------------------------------------Áµ¶‰∫à GPUCache Attribute Ê∏¨Ë©¶ begin--------------------------------------------------------  
   
   
     def gpuCacheAddAttribute(self,data):
@@ -1312,7 +2015,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
   
   
   
-#---------------------------------------------------µπ§© GPUCache Attribute ¥˙∏’ begin--------------------------------------------------------  
+#---------------------------------------------------Áµ¶‰∫à GPUCache Attribute Ê∏¨Ë©¶ begin--------------------------------------------------------  
   
   
   
@@ -1320,7 +2023,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
   
   
   
-#---------------------------------------------------ßÂ¶∏ßÛßÔ¿…¶W Start-----------------------------------------------------------   
+#---------------------------------------------------ÊâπÊ¨°Êõ¥ÊîπÊ™îÂêç Start-----------------------------------------------------------   
   
     def batchRename(self,singleGrp):   
         print "run batchRename Function "
@@ -1346,7 +2049,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 
         print "run batchRename Function Completed"
 
-#---------------------------------------------------ßÂ¶∏ßÛßÔ¿…¶W End-----------------------------------------------------------   
+#---------------------------------------------------ÊâπÊ¨°Êõ¥ÊîπÊ™îÂêç End-----------------------------------------------------------   
 
 
 
@@ -1355,7 +2058,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-#---------------------------------------------------¨d∏ﬂbbbox  start-------------------------------------------------------   
+#---------------------------------------------------Êü•Ë©¢bbbox  start-------------------------------------------------------   
 
 
     def bBoxFind(self,singleGrp):
@@ -1377,7 +2080,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 #f.dumps(data)
 
-        jsonRibTitle={ "Format" : "RIB Manifest",  #ribArchive æ◊¿Y∏ÍÆ∆´ÿ•ﬂ
+        jsonRibTitle={ "Format" : "RIB Manifest",  #ribArchive ÊìãÈ†≠Ë≥áÊñôÂª∫Á´ã
         "Start-Frame" : int(startFrame),
         "End-Frame" : int(endFrame),
         "Created-By": prmanVersion ,
@@ -1389,18 +2092,18 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
         dtRibDict = {}    
         dictOrder =[] 
-        jsObjTitle = json.dumps(jsonRibTitle,sort_keys=0,indent=4)[:-2] +",\n"      #ribArchive æ◊¿Y∏ÍÆ∆¶s§Jjson buffer
+        jsObjTitle = json.dumps(jsonRibTitle,sort_keys=0,indent=4)[:-2] +",\n"      #ribArchive ÊìãÈ†≠Ë≥áÊñôÂ≠òÂÖ•json buffer
         jsonName = path +'/'+ "RIBManifest.json"
         f = open(jsonName , 'w')   
-        f.write(jsObjTitle)              #ribArchive æ◊¿Y∏ÍÆ∆ºg§Jjson  
+        f.write(jsObjTitle)              #ribArchive ÊìãÈ†≠Ë≥áÊñôÂØ´ÂÖ•json  
         
-        addLineDriveFiles = "    "+"\""+"Driver-Files"+"\""+" : {"+" "  #ribArchive æ◊¿Y∏ÍÆ∆,addLine,¶s§Jjson buffer
-        f.write(addLineDriveFiles)      #ribArchive æ◊¿Y∏ÍÆ∆,addLine ºg§Jjson
+        addLineDriveFiles = "    "+"\""+"Driver-Files"+"\""+" : {"+" "  #ribArchive ÊìãÈ†≠Ë≥áÊñô,addLine,Â≠òÂÖ•json buffer
+        f.write(addLineDriveFiles)      #ribArchive ÊìãÈ†≠Ë≥áÊñô,addLine ÂØ´ÂÖ•json
         while j <= endFrame:
-            pm.currentTime(j,e=True)  # ∏ı¶‹§U§@ÆÊ
+            pm.currentTime(j,e=True)  # Ë∑≥Ëá≥‰∏ã‰∏ÄÊ†º
             
           #  print self.singleGrp
-            bbSize = pm.xform(self.singleGrp,bb=True,q=True)  # ¿Ú±obbBox∏Í∞T
+            bbSize = pm.xform(self.singleGrp,bb=True,q=True)  # Áç≤ÂæóbbBoxË≥áË®ä
                        
             self.bbMinX = '%.6f'%(bbSize[0])
             self.bbMinY = '%.6f'%(bbSize[1])
@@ -1419,18 +2122,18 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
            # ribFileName = self.ribGenDict['ribArchiveFileName']
-            jsonRibFrame={                                     #ribArchive each frame ∏ÍÆ∆´ÿ•ﬂ
+            jsonRibFrame={                                     #ribArchive each frame Ë≥áÊñôÂª∫Á´ã
                        str(j):{"RIB-File" : ribFileName,
                         "Bounding-Box" : self.bBoxValue}
                        }
-            jsObjFrame = json.dumps(jsonRibFrame,sort_keys=0,indent=8)[1:-2] +","   # ribArchive each frame ∏ÍÆ∆¶s§Jjson buffer
+            jsObjFrame = json.dumps(jsonRibFrame,sort_keys=0,indent=8)[1:-2] +","   # ribArchive each frame Ë≥áÊñôÂ≠òÂÖ•json buffer
            # dictOrder.append(str(j))
-            f.write(jsObjFrame)              # ribArchive each frame ∏ÍÆ∆ºg§Jjson   
+            f.write(jsObjFrame)              # ribArchive each frame Ë≥áÊñôÂØ´ÂÖ•json   
             #print self.bBoxValue
             j = j + stepFrame  
            # print  pm.currentTime(q=True)
 
-            #∂}±“json¿…Æ◊°A©w∏q¿…¶W°Aº“¶°¨∞ºg§J
+            #ÈñãÂïüjsonÊ™îÊ°àÔºåÂÆöÁæ©Ê™îÂêçÔºåÊ®°ÂºèÁÇ∫ÂØ´ÂÖ•
 
         
         endLine = "\n    }\n}"
@@ -1442,12 +2145,12 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         print " run bBoxFind Function Completed "
 
 
-#---------------------------------------------------¨d∏ﬂbbbox  End----------------------------------------------------------   
+#---------------------------------------------------Êü•Ë©¢bbbox  End----------------------------------------------------------   
 
 
 
 
-#---------------------------------------------------±Nrib archive•¥•]¶®zip¿…Æ◊ start-----------------------------------------------------------   
+#---------------------------------------------------Â∞árib archiveÊâìÂåÖÊàêzipÊ™îÊ°à start-----------------------------------------------------------   
 
 
     def zipRibFiles(self,singleGrp):
@@ -1487,7 +2190,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-#----------------------------------------------------±Nrib archive•¥•]¶®zip¿…Æ◊ End----------------------------------------------------------   
+#----------------------------------------------------Â∞árib archiveÊâìÂåÖÊàêzipÊ™îÊ°à End----------------------------------------------------------   
 
 
 
@@ -1507,7 +2210,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
 
 
-#---------------------------------------------------∂}±“cache∏ÍÆ∆ß® start-----------------------------------------------------------   
+#---------------------------------------------------ÈñãÂïücacheË≥áÊñôÂ§æ start-----------------------------------------------------------   
 
     def openFolder(self):
         startingDir = cmds.workspace(q=True, rd=True)+'data/cache'
@@ -1520,10 +2223,10 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         openCmd = "explorer "+'%s'%currentProjWin
         subprocess.call(openCmd)
 
-#---------------------------------------------------∂}±“cache∏ÍÆ∆ß® End-----------------------------------------------------------   
+#---------------------------------------------------ÈñãÂïücacheË≥áÊñôÂ§æ End-----------------------------------------------------------   
     
 
-#------------------------------------------------run mel command ∂}©l∞ı¶ÊMel ´¸•O start------------------------------
+#------------------------------------------------run mel command ÈñãÂßãÂü∑Ë°åMel Êåá‰ª§ start------------------------------
     def runMelCommandCreateCache(self,singleGrp):
         print "run runMelCommandCreateCache Function"
         
@@ -1558,10 +2261,10 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
 
             
         print "run runMelCommandCreateCache Function completed"
-#------------------------------------------------run mel command ∂}©l∞ı¶ÊMel ´¸•O end------------------------------
+#------------------------------------------------run mel command ÈñãÂßãÂü∑Ë°åMel Êåá‰ª§ end------------------------------
  
 
-#---------------------------------------------------∂}±“cache ∏ÍÆ∆ß® button Start-----------------------------------------------------------   
+#---------------------------------------------------ÈñãÂïücache Ë≥áÊñôÂ§æ button Start-----------------------------------------------------------   
             
     def modtoolButton_01(self):
 
@@ -1569,7 +2272,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
   
        
 
-#---------------------------------------------------∂}±“cache ∏ÍÆ∆ß® button Start-----------------------------------------------------------   
+#---------------------------------------------------ÈñãÂïücache Ë≥áÊñôÂ§æ button Start-----------------------------------------------------------   
     
 
     def gpuCacheMeshReduce(self,singleGrp):
@@ -1609,12 +2312,12 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def modpushButton_01(self):   
         self.reStoreValue(self)
         if self.ribGenDict['subdivschemeCheck'] == '1':
-            self.selectGrpList(self)                        #  ©“øÔ®˙™∫Group def
+            self.selectGrpList(self)                        #  ÊâÄÈÅ∏ÂèñÁöÑGroup def
           #  print self.selectedTGrpList
-            for self.singleGrp in self.selectedTGrpList:    #≠”ßOøÔ®˙Group                              
+            for self.singleGrp in self.selectedTGrpList:    #ÂÄãÂà•ÈÅ∏ÂèñGroup                              
             #   print self.singleGrp
                 pm.select(self.singleGrp)
-                self.createSelectFolder(self)               # define create folder def ≥–´ÿ©“øÔ®˙™∫grp folder
+                self.createSelectFolder(self)               # define create folder def ÂâµÂª∫ÊâÄÈÅ∏ÂèñÁöÑgrp folder
                 self.cacheFileName(self)                    # Define RIB Archive and GPUCache File Name   def
                 self.getRibExportCmd(self)                  # export command def
               #  
@@ -1624,16 +2327,16 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 
                # print self.selectedGeoShape
                 
-                for self.singleShape in self.selectedGeoShape:                    #•—group§§øÔ®˙shape def
+                for self.singleShape in self.selectedGeoShape:                    #Áî±group‰∏≠ÈÅ∏Âèñshape def
                 #    print self.singleShape
-                    self.addSubD(self)                                  #πÔ©“øÔ®˙™∫º“´¨∞µ SUBD
-                self.gpuCacheMeshReduce (self)                    # ∞ı¶ÊMel Command
+                    self.addSubD(self)                                  #Â∞çÊâÄÈÅ∏ÂèñÁöÑÊ®°ÂûãÂÅö SUBD
+                self.gpuCacheMeshReduce (self)                    # Âü∑Ë°åMel Command
 
                 self.runMelCommandCreateCache(self)
                 print self.singleGrp
-                for self.singleShape in self.selectedGeoShape:                    #•—group§§øÔ®˙shape def
+                for self.singleShape in self.selectedGeoShape:                    #Áî±group‰∏≠ÈÅ∏Âèñshape def
                  #   print self.singleShape
-                    self.delSubD(self)                                  #πÔ©“øÔ®˙™∫º“´¨∞µ ßR∞£ SUBD               
+                    self.delSubD(self)                                  #Â∞çÊâÄÈÅ∏ÂèñÁöÑÊ®°ÂûãÂÅö Âà™Èô§ SUBD               
                 self.connectGpuRib(self)
                 if self.ribGenDict['shutterTiming'] == "frameCenter":
                     self.batchRename(self)
@@ -1643,12 +2346,12 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 self.zipRibFiles(self)
                 
                 
-         #   self.delSubD(self)                                  #πÔ©“øÔ®˙™∫º“´¨∞µßR∞£ SUBD
+         #   self.delSubD(self)                                  #Â∞çÊâÄÈÅ∏ÂèñÁöÑÊ®°ÂûãÂÅöÂà™Èô§ SUBD
         elif self.ribGenDict['subdivschemeCheck'] == '0':
-            self.selectGrpList(self)                        #  ©“øÔ®˙™∫Group def
-            for self.singleGrp in self.selectedTGrpList:    #≠”ßOøÔ®˙Group                              
+            self.selectGrpList(self)                        #  ÊâÄÈÅ∏ÂèñÁöÑGroup def
+            for self.singleGrp in self.selectedTGrpList:    #ÂÄãÂà•ÈÅ∏ÂèñGroup                              
                 pm.select(self.singleGrp)
-                self.createSelectFolder(self)               # define create folder def ≥–´ÿ©“øÔ®˙™∫grp folder
+                self.createSelectFolder(self)               # define create folder def ÂâµÂª∫ÊâÄÈÅ∏ÂèñÁöÑgrp folder
                 self.cacheFileName(self)                    # Define RIB Archive and GPUCache File Name   def
                 self.getRibExportCmd(self)                  # export command def
           #      print self.ribGenDict['finalRibExportCmd']
@@ -1678,10 +2381,10 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
     def modpushButton_02(self):
         print "aaaaa"
         self.selectGrpList(self)  
-        for self.singleGrp in self.selectedTGrpList:    #≠”ßOøÔ®˙Group                              
+        for self.singleGrp in self.selectedTGrpList:    #ÂÄãÂà•ÈÅ∏ÂèñGroup                              
 
             pm.select(self.singleGrp)
-            self.createSelectFolder(self)               # define create folder def ≥–´ÿ©“øÔ®˙™∫grp folder
+            self.createSelectFolder(self)               # define create folder def ÂâµÂª∫ÊâÄÈÅ∏ÂèñÁöÑgrp folder
             self.cacheFileName(self)                    # Define RIB Archive and GPUCache File Name   def
             self.getRibExportCmd(self)                  # export command def
             self.shaveRibExport(self)   
