@@ -364,6 +364,8 @@ class mainWindow(QtGui.QDialog):
             projectList(completeGames)
         elif recent is True:
             projectList(recentGames)
+        
+        self.clearItemFilter()
 
     def setProjectInfo(self, game):
         name_chn = QtGui.QTableWidgetItem(game['name_chn'])
@@ -506,9 +508,9 @@ class mainWindow(QtGui.QDialog):
             self.ui.shot_process_list.clear()
 
         for task in self.tasks:
-            task_assigned = task.get('assigned')
-            bid_start_date = task['bid_start_date'][5:-9]
-            bid_end_date = task['bid_end_date'][5:-9]
+            # task_assigned = task.get('assigned')
+            # bid_start_date = task['bid_start_date'][5:-9]
+            # bid_end_date = task['bid_end_date'][5:-9]
 
             process = task.get('process')
             status = task.get('status')
@@ -563,17 +565,17 @@ class mainWindow(QtGui.QDialog):
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(1, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(task_assigned)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(2, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(2, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(3, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(3, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(4, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(4, 0, widgetItem)
 
         elif production_type == "shot":
             if self.ui.shot_list.count() != 0:
@@ -587,17 +589,7 @@ class mainWindow(QtGui.QDialog):
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(task_assigned)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(2, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(3, 0, widgetItem)
-
-                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(4, 0, widgetItem)
 
         try:
             self.finalPath()
@@ -695,10 +687,40 @@ class mainWindow(QtGui.QDialog):
             if production_type == 'assets':
                 if task.get('process') == self.ui.asset_process_list.currentItem().text():
                     self.task = task
+
+                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(2, 0, widgetItem)
+
+                    year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(3, 0, widgetItem)
+
+                    year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(4, 0, widgetItem)                    
+
             elif production_type == 'shot':
                 if task.get('process') == self.ui.shot_process_list.currentItem().text():
                     self.task = task
+
+                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(2, 0, widgetItem)
+
+                    year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(3, 0, widgetItem)
+                    
+                    year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(4, 0, widgetItem)                    
         self.sk = self.task['__search_key__']
+
 
         final_path = ""
         base_filename = ""
@@ -782,25 +804,28 @@ class mainWindow(QtGui.QDialog):
         self.getNotes()
 
     def updateStatus(self):
-        tasks = self.item_tasks
-        new = self.orderTasksByProcesses(tasks)
+        new = self.orderTasksByProcesses(self.tasks)
 
         datas = {}
-        inprogress = {'status': '.In Progress'}
+        inprogress = {'status': '.In Progress', 'assigned': self.server.login}
         complete = {'status': '.Complete'}
+        now = datetime.datetime.now()
 
         for i, task in enumerate(new):
-            process = self.item_process
-            if task.get('process') == process:
-                if task.get('status') == '.Not Ready' or task.get('status') == '.Ready':
-                    task_sk = task.get('__search_key__')
+            currentTask = self.task
+            if task['process'] == currentTask['process']:
+                if task['status'] == '.Not Ready' or task['status'] == '.Ready':
+                    task_sk = task['__search_key__']
                     datas.update({task_sk: inprogress})
+
                 while i != 0:
                     i -= 1
-                    if new[i].get('status') != '.Complete':
-                        past_sk = new[i].get('__search_key__')
+                    if new[i]['status'] != '.Complete':
+                        past_sk = new[i]['__search_key__']
                         datas.update({past_sk: complete})
+
         self.server.update_multiple(datas, triggers=False)
+        self.getProcess()
 
     def publishMaster(self, arg=None):
         def hasNumbers(inputString):
@@ -949,8 +974,9 @@ class mainWindow(QtGui.QDialog):
     def tacticSave(self):
         # if self.checkLock() is True:
         #     self.unlock()
-        self.makeThumbnail()
+        
         self.fileSave()
+        self.updateStatus()
         # self.setLock()
 
     def fileSave(self, arg=None):
@@ -985,6 +1011,7 @@ class mainWindow(QtGui.QDialog):
         elif production_type == 'shot':
             self.prev_selection = self.ui.shot_process_list.currentItem().text()
 
+        self.makeThumbnail(path, filename)
         self.finalPath()
         self.getProcess()
         self.saveLog()
@@ -1027,19 +1054,22 @@ class mainWindow(QtGui.QDialog):
             #self.setNukeProject()
 
 
-    def makeThumbnail(self):
+    def makeThumbnail(self, path, filename):
         if appName == "maya":
             ext = "tif"
             currentFrame = cmds.currentTime(query=True)
             #filename = self.ui.file_list.currentItem().text().split("  ")[1]
-            filename = self.ui.save_file.text().split(".")[0]
+            filename = filename.split(".")[0]
             cmds.select(cl=True)
             cmds.playblast(st=currentFrame, et=currentFrame, format="image", filename=filename, forceOverwrite=True, sequenceTime=False, clearCache=True, viewer=False, showOrnaments=False, framePadding=4, percent=100, compression="tif", quality=70, width=400, height=400)
 
             currentFrame = ".%04d." % int(currentFrame)
             thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + currentFrame + ext
             destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
-            os.makedirs(destination)
+            try:
+                os.makedirs(destination)
+            except:
+                pass
             # remove duplicate thumbnails
             # imageFiles = os.listdir(destination)
             # for imageFile in imageFiles:
@@ -1048,8 +1078,7 @@ class mainWindow(QtGui.QDialog):
 
             shutil.copy2(thumbPath, destination)
             os.remove(thumbPath)
-
-
+            self.getThumbnail()
 
 
     def getThumbnail(self):
