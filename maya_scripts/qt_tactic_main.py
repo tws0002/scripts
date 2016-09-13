@@ -3,8 +3,8 @@
 import subprocess
 import fileinput
 
-input = "//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v02.ui"
-output = "//Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui_v02.py"
+input = "//Art-1405260002/d/assets/scripts/maya_scripts/ui/qt_main_ui_v03.ui"
+output = "//Art-1405260002/d/assets/scripts/maya_scripts/lib/qt_main_ui_v03.py"
 subprocess.call("C:/Python27/scripts/pyside-uic -o %s %s" % (output, input))
 
 with open(output, 'r') as data:
@@ -16,8 +16,8 @@ header = header + "import sys\nsys.path.append(\"//Art-1405260002/d/assets/scrip
 filedata = filedata.replace('../', '//Art-1405260002/d/assets/scripts/maya_scripts/')
 filedata = filedata.replace("self.asset_process_list = processListWidget(self.assets_tab)", "self.asset_process_list = processListWidget(self.assets_tab, mainWindowObj=main_window)")
 filedata = filedata.replace("self.shot_process_list = processListWidget(self.shots_tab)", "self.shot_process_list = processListWidget(self.shots_tab, mainWindowObj=main_window)")
-filedata = filedata.replace("from processlistwidget import processListWidget", "import processlistwidget\nreload(processlistwidget)")
-filedata = filedata.replace("from lineeditwidget import lineEditWidget", "import lineeditwidget\nreload(lineeditwidget)")
+filedata = filedata.replace("from processlistwidget import processListWidget", "import processlistwidget\nfrom processlistwidget import processListWidget\nreload(processlistwidget)")
+filedata = filedata.replace("from lineeditwidget import lineEditWidget", "import lineeditwidget\nfrom lineeditwidget import lineEditWidget\nreload(lineeditwidget)")
 
 filedata = header + filedata
 with open(output, 'w') as data:
@@ -43,13 +43,18 @@ from PySide import QtCore, QtGui
 from tactic_client_lib import TacticServerStub
 
 import ctypes
-import qt_main_ui_v02 as qt_main_ui
+import qt_main_ui_v03 as qt_main_ui
 import qt_login_ui
 import os, shutil
 import subprocess
 import socket
 import jc_maya_aux_functions as jc
 from dateutil import parser
+try:
+    import maya.cmds as cmds
+except:
+    pass
+    
 
 reload(qt_main_ui)
 reload(qt_login_ui)
@@ -154,6 +159,7 @@ class mainWindow(QtGui.QDialog):
         self.ui.recent_button.clicked.connect(self.setRecentFilter)
 
         self.ui.file_list.itemClicked.connect(self.getNotes)
+        #self.ui.file_list.itemClicked.connect(self.getThumbnail)
         #self.ui.save_note.clicked.connect(self.saveNotes)
         self.ui.note_list.itemDoubleClicked.connect(self.delNotes)
         self.ui.note.returnPressed.connect(self.saveNotes)
@@ -165,11 +171,12 @@ class mainWindow(QtGui.QDialog):
         self.ui.filter_prop.setToolTip(u"道具")
         self.ui.filter_other.setToolTip(u"其它")
 
-        self.ui.filter_character.clicked.connect(lambda: self.showItemByType(1))
-        self.ui.filter_vehicle.clicked.connect(lambda: self.showItemByType(2))
-        self.ui.filter_prop.clicked.connect(lambda: self.showItemByType(3))
+        self.ui.filter_all.clicked.connect(lambda: self.showItemByType(1))
+        self.ui.filter_character.clicked.connect(lambda: self.showItemByType(2))
+        self.ui.filter_vehicle.clicked.connect(lambda: self.showItemByType(3))
         self.ui.filter_sets.clicked.connect(lambda: self.showItemByType(4))
-        self.ui.filter_other.clicked.connect(lambda: self.showItemByType(5))
+        self.ui.filter_prop.clicked.connect(lambda: self.showItemByType(5))
+        self.ui.filter_other.clicked.connect(lambda: self.showItemByType(6))
 
         if "Nuke" in appName:
             pass
@@ -187,20 +194,43 @@ class mainWindow(QtGui.QDialog):
         for i in range(0, count):
             self.ui.asset_list.item(i).setHidden(0)
             if id == 1:
+                self.clearItemFilter()
+                self.ui.filter_all.setChecked(True)
+                self.ui.asset_list.item(i).setHidden(0)
+            elif id == 2:
+                self.clearItemFilter()
+                self.ui.filter_character.setChecked(True)
                 if self.ui.asset_list.item(i).background().color().name() != '#525252':
                     self.ui.asset_list.item(i).setHidden(1)
-            elif id == 2:
+            elif id == 3:
+                self.clearItemFilter()
+                self.ui.filter_vehicle.setChecked(True)                
                 if self.ui.asset_list.item(i).background().color().name() != '#494949':
                     self.ui.asset_list.item(i).setHidden(1)
-            elif id == 3:
+            elif id == 4:
+                self.clearItemFilter()
+                self.ui.filter_sets.setChecked(True)                
                 if self.ui.asset_list.item(i).background().color().name() != '#424242':
                     self.ui.asset_list.item(i).setHidden(1)
-            elif id == 4:
+            elif id == 5:
+                self.clearItemFilter()
+                self.ui.filter_prop.setChecked(True)                
                 if self.ui.asset_list.item(i).background().color().name() != '#393939':
                     self.ui.asset_list.item(i).setHidden(1)
-            elif id == 5:
+            elif id == 6:
+                self.clearItemFilter()
+                self.ui.filter_other.setChecked(True)                
                 if self.ui.asset_list.item(i).background().color().name() != '#323232':
                     self.ui.asset_list.item(i).setHidden(1)
+
+    def clearItemFilter(self):
+        self.ui.filter_all.setChecked(False)
+        self.ui.filter_character.setChecked(False)
+        self.ui.filter_vehicle.setChecked(False)
+        self.ui.filter_sets.setChecked(False)
+        self.ui.filter_prop.setChecked(False)
+        self.ui.filter_other.setChecked(False)
+
 
     def getNotes(self):
         self.ui.note_list.clear()
@@ -217,6 +247,9 @@ class mainWindow(QtGui.QDialog):
                 if filename == self.ui.file_list.currentItem().text().split("  ")[1]:
                     self.ui.note_list.addItem(msg)
                     self.ui.note_list.scrollToItem(self.ui.note_list.item(self.ui.note_list.count() - 1))
+        self.getThumbnail()        
+
+
 
     def saveNotes(self, *args):
         if args:
@@ -254,6 +287,8 @@ class mainWindow(QtGui.QDialog):
         temp = self.server.eval(expr)
         notes = temp[0].split("\n")
         new_notes = []
+        
+        # the following loop should be a single line, test later
         for task in self.tasks:
             if task.get('process') == self.task['process']:
                 sk = task.get('__search_key__')
@@ -333,6 +368,8 @@ class mainWindow(QtGui.QDialog):
             projectList(completeGames)
         elif recent is True:
             projectList(recentGames)
+        
+        self.clearItemFilter()
 
     def setProjectInfo(self, game):
         name_chn = QtGui.QTableWidgetItem(game['name_chn'])
@@ -417,19 +454,19 @@ class mainWindow(QtGui.QDialog):
                 if item['3d_type_code'] == "3D_TYPE00002":
                     self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#525252'))
                 elif item['3d_type_code'] == "3D_TYPE00003":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
                 elif item['3d_type_code'] == "3D_TYPE00004":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
                 elif item['3d_type_code'] == "3D_TYPE00005":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
                 elif item['3d_type_code'] == "3D_TYPE00006":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
                 elif item['3d_type_code'] == "3D_TYPE00007":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
                 elif item['3d_type_code'] == "3D_TYPE00008":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
                 elif item['3d_type_code'] == "3D_TYPE00009":
-                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#393939'))
+                    self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#424242'))
             elif 'asset_type_code' in item:
                 if item['asset_type_code'] == "ASSET_TYPE00002":
                     self.ui.asset_list.item(list_index).setBackground(QtGui.QColor('#525252'))
@@ -475,9 +512,9 @@ class mainWindow(QtGui.QDialog):
             self.ui.shot_process_list.clear()
 
         for task in self.tasks:
-            task_assigned = task.get('assigned')
-            bid_start_date = task['bid_start_date'][5:-9]
-            bid_end_date = task['bid_end_date'][5:-9]
+            # task_assigned = task.get('assigned')
+            # bid_start_date = task['bid_start_date'][5:-9]
+            # bid_end_date = task['bid_end_date'][5:-9]
 
             process = task.get('process')
             status = task.get('status')
@@ -532,17 +569,17 @@ class mainWindow(QtGui.QDialog):
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(1, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(task_assigned)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(2, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(2, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(3, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(3, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.asset_info.setItem(4, 0, widgetItem)
+                # widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                # self.ui.asset_info.setItem(4, 0, widgetItem)
 
         elif production_type == "shot":
             if self.ui.shot_list.count() != 0:
@@ -556,17 +593,7 @@ class mainWindow(QtGui.QDialog):
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(task_assigned)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(2, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(bid_start_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(3, 0, widgetItem)
-
-                widgetItem = QtGui.QTableWidgetItem(bid_end_date)
-                widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
-                self.ui.shot_info.setItem(4, 0, widgetItem)
 
         try:
             self.finalPath()
@@ -577,7 +604,7 @@ class mainWindow(QtGui.QDialog):
         new = []
         production_type = self.productionType()
         if production_type == "shot":
-            ordered = ['layout', 'animation', 'lighting', 'effects', 'comp', 'final']
+            ordered = ['layout', 'animation', 'lighting', 'effects', 'simulation', 'comp', 'final']
         else:
             ordered = ['rough', 'concept', 'model', 'texture', 'rigging', 'animation', 'lighting', 'effects', 'layout', 'final']
         for order in ordered:
@@ -664,9 +691,40 @@ class mainWindow(QtGui.QDialog):
             if production_type == 'assets':
                 if task.get('process') == self.ui.asset_process_list.currentItem().text():
                     self.task = task
+
+                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(2, 0, widgetItem)
+
+                    year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(3, 0, widgetItem)
+
+                    year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.asset_info.setItem(4, 0, widgetItem)                    
+
             elif production_type == 'shot':
                 if task.get('process') == self.ui.shot_process_list.currentItem().text():
                     self.task = task
+
+                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(2, 0, widgetItem)
+
+                    year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(3, 0, widgetItem)
+                    
+                    year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
+                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
+                    self.ui.shot_info.setItem(4, 0, widgetItem)                    
+        self.sk = self.task['__search_key__']
+
 
         final_path = ""
         base_filename = ""
@@ -711,6 +769,7 @@ class mainWindow(QtGui.QDialog):
                 self.ui.save_file.setText(filename)
 
         self.getFiles(final_path, base_filename)
+        self.base_filename = base_filename
         #self.resetLocks()
 
     def getFiles(self, final_path, base_filename):  # use getfilelist() and update ui
@@ -748,30 +807,35 @@ class mainWindow(QtGui.QDialog):
 
         self.getNotes()
 
-    # def updateStatus(self):
-    #     tasks = self.item_tasks
-    #     new = self.orderTasksByProcesses(tasks)
+    def updateStatus(self):
+        new = self.orderTasksByProcesses(self.tasks)
 
-    #     datas = {}
-    #     inprogress = {'status': '.In Progress'}
-    #     complete = {'status': '.Complete'}
+        datas = {}
+        inprogress = {'status': '.In Progress', 'assigned': self.server.login}
+        complete = {'status': '.Complete'}
+        now = datetime.datetime.now()
 
-    #     for i, task in enumerate(new):
-    #         process = self.item_process
-    #         if task.get('process') == process:
-    #             if task.get('status') == '.Not Ready' or task.get('status') == '.Ready':
-    #                 task_sk = task.get('__search_key__')
-    #                 datas.update({task_sk: inprogress})
-    #             while i != 0:
-    #                 i -= 1
-    #                 if new[i].get('status') != '.Complete':
-    #                     past_sk = new[i].get('__search_key__')
-    #                     datas.update({past_sk: complete})
-    #     self.server.update_multiple(datas, triggers=False)
+        for i, task in enumerate(new):
+            currentTask = self.task
+            if task['process'] == currentTask['process']:
+                if task['status'] == '.Not Ready' or task['status'] == '.Ready':
+                    task_sk = task['__search_key__']
+                    datas.update({task_sk: inprogress})
+
+                while i != 0:
+                    i -= 1
+                    if new[i]['status'] != '.Complete':
+                        past_sk = new[i]['__search_key__']
+                        datas.update({past_sk: complete})
+
+        self.server.update_multiple(datas, triggers=False)
+        self.getProcess()
 
     def publishMaster(self, arg=None):
         def hasNumbers(inputString):
             return any(char.isdigit() for char in inputString)
+
+        production_type = self.productionType()
 
         path = self.ui.save_path.text()
         if self.ui.file_list.currentItem().background().color().name() == '#725252':
@@ -779,7 +843,11 @@ class mainWindow(QtGui.QDialog):
 
         filename = self.ui.file_list.currentItem().text().split("  ")[1]
 
-        process = self.ui.asset_process_list.currentItem().text()
+        if production_type == 'assets':
+            process = self.ui.asset_process_list.currentItem().text()
+        elif production_type == 'shot':
+            process = self.ui.shot_process_list.currentItem().text()
+        
         base_path = path.split(process)[0]
         process = jc.abbrName(process)
 
@@ -833,7 +901,6 @@ class mainWindow(QtGui.QDialog):
         filename = ""
         print 'unlocking'
         if appName == 'maya':
-            import maya.cmds as cmds
             filename = cmds.file(query=True, sceneName=True).split("/")[-1]
         elif appName == '3dsmax':
             import MaxPlus
@@ -917,7 +984,9 @@ class mainWindow(QtGui.QDialog):
     def tacticSave(self):
         # if self.checkLock() is True:
         #     self.unlock()
+        
         self.fileSave()
+        self.updateStatus()
         # self.setLock()
 
     def fileSave(self, arg=None):
@@ -934,7 +1003,6 @@ class mainWindow(QtGui.QDialog):
             MaxPlus.FileManager.Save(final)
 
         elif appName == "maya":
-            import maya.cmds as cmds
             jc.mayaWorkspaceFileRule(path)
             # cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
             cmds.file(rename=final)
@@ -953,6 +1021,7 @@ class mainWindow(QtGui.QDialog):
         elif production_type == 'shot':
             self.prev_selection = self.ui.shot_process_list.currentItem().text()
 
+        self.makeThumbnail(path, filename)
         self.finalPath()
         self.getProcess()
         self.saveLog()
@@ -971,7 +1040,6 @@ class mainWindow(QtGui.QDialog):
             jc.maxWorkspaceFileRule(path)
 
         elif appName == "maya":
-            import maya.cmds as cmds
             import maya.mel as mel
             if self.ui.file_list.currentItem().background().color().name() == '#725252':
                 path = self.old_path
@@ -995,8 +1063,58 @@ class mainWindow(QtGui.QDialog):
             #nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
             #self.setNukeProject()
 
+
+    def makeThumbnail(self, path, filename):
+        if appName == "maya":
+            ext = "tif"
+            currentFrame = cmds.currentTime(query=True)
+            #filename = self.ui.file_list.currentItem().text().split("  ")[1]
+            filename = filename.split(".")[0]
+            cmds.select(cl=True)
+            cmds.playblast(st=currentFrame, et=currentFrame, format="image", filename=filename, forceOverwrite=True, sequenceTime=False, clearCache=True, viewer=False, showOrnaments=False, framePadding=4, percent=100, compression="tif", quality=70, width=400, height=400)
+
+            currentFrame = ".%04d." % int(currentFrame)
+            thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + currentFrame + ext
+            destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
+            try:
+                os.makedirs(destination)
+            except:
+                pass
+            # remove duplicate thumbnails
+            # imageFiles = os.listdir(destination)
+            # for imageFile in imageFiles:
+            #     if filename in imageFile:
+            #         os.remove(thumbPath + imageFile)
+
+            shutil.copy2(thumbPath, destination)
+            os.remove(thumbPath)
+            self.getThumbnail()
+
+
+    def getThumbnail(self):
+        try:
+            selectedFile = self.ui.file_list.currentItem().text().split("  ")[1].split(".")[0]
+            thumbPath = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
+            imageFiles = os.listdir(thumbPath)
+            defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
+            image = QtGui.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+            
+            for imageFile in imageFiles:
+                if selectedFile in imageFile:
+                    image = QtGui.QImage(thumbPath + imageFile)
+                    self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+                    break
+        except:
+            defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
+            image = QtGui.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))            
+         
+
+
+
+
     def saveLog(self, arg=None):
-        print "save logged"
         data = {'name': self.game['name_chn'], 'project': self.game['name'], 'item': self.item['name'], 'process': self.task['process'], 'item_code': self.item['code'], 'user': self.server.login, 'path': self.ui.save_path.text(), 'filename': self.ui.save_file.text()}
         self.server.insert('simpleslot/save_log', data)
 
@@ -1088,7 +1206,6 @@ def qt_tactic_mainMain():
             loginProcess()
 
     #mainProcess(server=server)
-    print serverok
     if serverok == 1:
         try:
             widget.show()

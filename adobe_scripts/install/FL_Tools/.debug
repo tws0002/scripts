@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionList>
+    <Extension Id="com.adobe.fl_tools.panel">
+        <HostList>
+            <Host Name="PHXS" Port="8000"/>
+            <Host Name="IDSN" Port="8001"/>
+            <Host Name="AICY" Port="8002"/>
+            <Host Name="ILST" Port="8003"/>
+            <Host Name="PPRO" Port="8004"/>
+            <Host Name="PRLD" Port="8005"/>
+            <Host Name="FLPR" Port="8006"/>
+        </HostList>
+    </Extension>
+    <Extension Id="com.adobe.CEPHTMLTEST.Panel2">
+        <HostList>
+            <Host Name="PHXS" Port="8100"/>
+            <Host Name="IDSN" Port="8101"/>
+            <Host Name="AICY" Port="8102"/>
+            <Host Name="ILST" Port="8103"/>
+            <Host Name="PPRO" Port="8104"/>
+            <Host Name="PRLD" Port="8105"/>
+            <Host Name="FLPR" Port="8106"/>
+        </HostList>
+    </Extension>
+    <Extension Id="com.adobe.CEPHTMLTEST.ModalDialog">
+        <HostList>
+            <Host Name="PHXS" Port="8200"/>
+            <Host Name="IDSN" Port="8201"/>
+            <Host Name="AICY" Port="8202"/>
+            <Host Name="ILST" Port="8203"/>
+            <Host Name="PPRO" Port="8204"/>
+            <Host Name="PRLD" Port="8205"/>
+            <Host Name="FLPR" Port="8206"/>
+        </HostList>
+    </Extension>
+    <Extension Id="com.adobe.CEPHTMLTEST.Modeless">
+        <HostList>
+            <Host Name="PHXS" Port="8300"/>
+            <Host Name="IDSN" Port="8301"/>
+            <Host Name="AICY" Port="8302"/>
+            <Host Name="ILST" Port="8303"/>
+            <Host Name="PPRO" Port="8304"/>
+            <Host Name="PRLD" Port="8305"/>
+            <Host Name="FLPR" Port="8306"/>
+        </HostList>
+    </Extension>
+</ExtensionList>

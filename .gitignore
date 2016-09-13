@@ -1,5 +1,6 @@
 .DS_Store
 .svn
+sync.ffs_db
 *.pyc
 Thumbs.db
 ~*
@@ -36,3 +37,4 @@ dhtmlxGantt/
 angular-loading-bar-master/
 image_scripts/sequence_crop
 topcoat-0.8.0/
+filesaver/

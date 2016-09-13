@@ -1195,13 +1195,13 @@ def qt_tactic_mainMain():
         except:
             loginProcess()
 
-    mainProcess(server=server)
-    # if serverok == 1:
-    #     try:
-    #         widget.show()
-    #     except:
-    #         print 'not ok'
-    #         mainProcess(server=server)
+    #mainProcess(server=server)
+    if serverok == 1:
+        try:
+            widget.show()
+        except:
+            print 'not ok'
+            mainProcess(server=server)
 
 
 def loginProcess():

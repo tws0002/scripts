@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ExtensionBundleId="com.adobe.fl_tools" ExtensionBundleVersion="1.0" Version="5.0">
+    <ExtensionList>
+        <Extension Id="com.adobe.fl_tools.panel" Version="1.0"/>
+    </ExtensionList>
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="FLPR" Version="13.1"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="6.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+    <DispatchInfoList>
+        <Extension Id="com.adobe.fl_tools.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./html/index.html</MainPath>
+                    <ScriptPath>./jsfl/FL_tools.jsfl</ScriptPath>
+
+                    <CEFCommandLine>
+                        <Parameter>--enable-speech-input</Parameter>
+                        <Parameter>--enable-media-stream</Parameter>
+                        <Parameter>--cep-disable-authentication</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>Flash Tools</Menu>
+                    <Geometry>
+                        <Size>
+                            <Height>54</Height>
+                            <Width>252</Width>
+                        </Size>
+                        <MaxSize>
+                            <Height>54</Height>
+                            <Width>252</Width>
+                        </MaxSize>
+                        <MinSize>
+                            <Height>54</Height>
+                            <Width>252</Width>
+                        </MinSize>
+                    </Geometry>
+                    <Icons>
+                    </Icons>				
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>
