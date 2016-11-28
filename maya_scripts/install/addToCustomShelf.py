@@ -28,31 +28,36 @@ buttonList = []
 if tempList > 0:
     for button in tempList:
         buttonList.append(cmds.shelfButton(button, q=1, l=1))
-
+        
 scripts_path = "//Art-1405260002/d/assets/scripts/maya_scripts/"
 scriptList = []
 scripts = os.listdir(scripts_path)
 
+#ignore = []
+ignore = ["config.py", "getEnvironmet.py", "qt_tactic_dev.py"]
+
+tempList = []
+tempList = cmds.shelfLayout('TACTIC', q=1, ca=1)
+
+if tempList == None:
+    pass
+else:
+    for button in tempList:
+        cmds.deleteUI(button)
+    
 try:
     for script in scripts:  # find scripts in directory
         if os.path.isdir(scripts_path + script) is True:
             pass
         else:
-            if script.split(".")[1] == "pyc":
+            if script.split(".")[1] != "py":
+                pass
+            elif script in ignore:
                 pass
             else:
                 scriptList.append(script)
 
-    for button in buttonList:  # find diff between shelf and directory, scriptlist is now diff.
-        for script in scriptList:
-            # print script
-            if button.find(script.split(".")[0]) is -1:
-                pass
-            else:
-                print script, button
-                # buttonList.remove(button)
-                scriptList.remove(script)
-
+       
     for script in scriptList:
         name = script.split(".")[0]
         source_type = script.split(".")[1]
@@ -63,7 +68,6 @@ try:
             command = "source \"" + scripts_path + script + "\";" + "\n" + name + "();"
         image = scripts_path + "icons/" + name + ".png"
         cmds.shelfButton(p='TACTIC', l=name, i=image, c=command, rpt=1, stp=source_type)
-        # print command
-    print scriptList
+            # print command
 except:
     pass

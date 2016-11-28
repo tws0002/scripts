@@ -593,6 +593,7 @@
             var pw = document.loginform.pword.value;
             try {
                 ticket = server.get_ticket(un,pw);
+                console.log(un);
                 Cookies.set('login', un);
                 Cookies.set('password', pw);
                 server.set_ticket(ticket);

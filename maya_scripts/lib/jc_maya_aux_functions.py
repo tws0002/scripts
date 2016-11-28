@@ -1,6 +1,13 @@
 import os
-from PySide import QtGui
-app = QtGui.QApplication.instance()
+scripts_path = "//Art-1405260002/d/assets"
+
+import sys
+sys.path.append(scripts_path + "/scripts/maya_scripts/install")
+
+import Qt
+from Qt import QtCore, QtWidgets
+
+app = QtWidgets.QApplication.instance()
 try:
     appName = app.objectName()
 except:
@@ -36,7 +43,6 @@ def maxVersion(final_path, filename, mode):
                     version = savedFile.split(".")[0].split("_")[temp - 1]
                 version = version.replace("v", "")
                 versions.append(int(version))
-
                 maxversion = "v" + str("%03d" % (max(versions) + 1))
     else:
         maxversion = "v001"
@@ -97,7 +103,7 @@ def abbrItemType(name):
 
 
 def getNextFileName(current):
-    app = QtGui.QApplication.instance()
+    app = QtWidgets.QApplication.instance()
     base_path = "//art-render/art_3d_project/"
     appName = app.objectName()
     recent_files = []

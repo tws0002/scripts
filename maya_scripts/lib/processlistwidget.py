@@ -1,4 +1,10 @@
-from PySide import QtCore, QtGui
+scripts_path = "//Art-1405260002/d/assets"
+import sys
+sys.path.append(scripts_path + "/scripts/maya_scripts/install")
+
+import Qt
+from Qt import QtCore, QtWidgets, QtGui
+
 notready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/notready.png')
 ready_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/ready.png')
 inprogress_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/inprogress.png')
@@ -6,13 +12,13 @@ standby_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons
 review_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/review.png')
 complete_icon = QtGui.QIcon('//art-1405260002/D/assets/scripts/maya_scripts/icons/proc_list/complete.png')
 
-class processListWidget(QtGui.QListWidget):
+class processListWidget(QtWidgets.QListWidget):
     def __init__(self, parent= None, mainWindowObj= None):
-        QtGui.QListWidget.__init__(self,parent)
+        QtWidgets.QListWidget.__init__(self,parent)
         self.mainWindowObj = mainWindowObj
 
     def contextMenuEvent(self, event):
-        menu = QtGui.QMenu(self)
+        menu = QtWidgets.QMenu(self)
         data = ""
         action1 = menu.addAction(notready_icon, 'Not Ready')
         action2 = menu.addAction(ready_icon, 'Ready')

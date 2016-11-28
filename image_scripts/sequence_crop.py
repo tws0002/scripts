@@ -376,6 +376,7 @@ class MainWindow(QtGui.QDialog):
             self.listener.start()
 
     def work(self):
+        self.worker.dimensions = []
         if not self.worker.isRunning():
             self.worker.exiting=False
             self.worker.input_path = self.ui.input_path.text()

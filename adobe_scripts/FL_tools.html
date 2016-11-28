@@ -126,39 +126,56 @@
     var rows;
 
     function exportCoordinatesInit(){
-        var table = "<table><tr><td>Layer編號</td><td>Layer名</td><td>格號</td><td>物件號</td><td>Library名</td><td>X</td><td>Y</td><td>圖寬</td><td>圖高</td><td>圖片路徑</td></tr>";
-        csvout = "Layer編號, Layer名, 格號, 物件號, Library名, X, Y, ,圖寬, 圖高, 圖片路徑";
+        var table = "\ufeff" + "<table><tr><td>Layer名</td><td>Library名</td><td>X</td><td>Y</td><td>圖片路徑</td></tr>";
+        var csvout = "\ufeff" + "Layer名, Library名, X, Y, 圖片路徑" + "\n";
+        //elementData = layerName + "," + instanceName + "," + curX + "," + curY + "," + folderURI + "|linebreak|";
+
         csInterface.evalScript('exportCoordinates()', function(res){
             rows = res.split("|linebreak|");
             rows.pop();
             for (var i = 0; i < rows.length; i++) {
                 cols = rows[i].split(",");
-                //console.log(cols);
-                layerNum = cols[0];
-                layerName = cols[1];
-                frameNum = cols[2];
-                elementNum = cols[3];
-                instanceName = cols[4];
-                curX = cols[5];
-                curY = cols[6];
-                width = cols[7];
-                height = cols[8];
-                folderURI = cols[9];
-
+                layerName = cols[0];
+                instanceName = cols[1];
+                curX = cols[2];
+                curY = cols[3];
+                folderURI = cols[4];
+                //console.log(instanceName);
                 folderPath = folderURI.replace("file:///","").replace("|/",":/");
+                baseFilename = instanceName.replace(/^.*[\\\/]/, '');
+                //console.log(baseFilename);
+                //basePath = instanceName.replace(baseFilename,"");
+                basePath = instanceName.match(/^.*[\\\/]/)[0];//.slice(0,-1);
                 
-                imagePath = "./" + instanceName + "0001.png";
-                fullImagePath = folderPath + "/" + instanceName + ".png";
-                var result = window.cep.fs.readFile(folderPath + imagePath.slice(1));
+                var result = window.cep.fs.readFile(folderPath + "/" + instanceName + "0001.png");
+
                 if(result.err != 0){
                     imagePath = "./" + instanceName + ".png";
+                } else {
+                    k = 1;
+                    imagePath = "./" + basePath + baseFilename + "_1" + ".png";
+                    fullImagePath = folderPath + "/" + basePath + baseFilename + "_1.png";
+                    fullPath = folderPath + "/" + basePath;
+                    dirFiles = window.cep.fs.readdir(fullPath).data;
+                    for(j=0;j<dirFiles.length;j++){
+                        dirFileBase = dirFiles[j].replace(/[0-9]{4}\.png/, "");
+                        if(dirFileBase == baseFilename){
+                            oldpath = folderPath + "/" + basePath + dirFiles[j];
+                            newpath = folderPath + "/" + basePath + baseFilename + "_" + k + ".png";
+                            console.log(oldpath);
+                            console.log(newpath);
+                            t = window.cep.fs.rename(oldpath, newpath);
+                            k = k + 1;
+                        }
+                    }
                 }
                 
                 imageHtml = image(imagePath);
-                tableRow = "<tr>" + td(layerNum) + td(layerName) + td(frameNum) + td(elementNum) + td(instanceName) + td(curX) + td(curY) + td(width) + td(height) + td(imageHtml) + "</tr>";
+                tableRow = "<tr>" + td(layerName) + td(instanceName) + td(curX) + td(curY) + td(imageHtml) + "</tr>";
                 table = table + tableRow;
+
                 
-                csvRow = layerNum + "," + layerName + "," + frameNum + "," + elementNum + "," + instanceName + "," + curX + "," + curY + "," + width + "," + height + "," + fullImagePath;
+                csvRow = layerName + "," + instanceName + "," + curX + "," + curY + "," + fullImagePath;
                 csvout = csvout + csvRow + "\n";
             }
             table = table + "</table>"

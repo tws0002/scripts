@@ -32,14 +32,17 @@ sys.path.append(scripts_path + "/client")
 sys.path.append(scripts_path + "/scripts/maya_scripts/lib")
 sys.path.append(scripts_path + "/scripts/maya_scripts/ui")
 sys.path.append(scripts_path + "/scripts/maya_scripts")
+sys.path.append(scripts_path + "/scripts/maya_scripts/install")
 sys.path.append(scripts_path + "/scripts/install")
 sys.path.append(scripts_path + "/scripts/python-dateutil-2.3")
 sys.path.append(scripts_path + "/scripts/six-1.8.0")
 import datetime
 import time
 global server, widget
+import Qt
 
-from PySide import QtCore, QtGui
+from Qt import QtCore, QtWidgets, QtGui
+
 from tactic_client_lib import TacticServerStub
 
 import ctypes
@@ -50,17 +53,26 @@ import subprocess
 import socket
 import jc_maya_aux_functions as jc
 from dateutil import parser
-import maya.cmds as cmds
-
+try:
+    import maya.cmds as cmds
+except:
+    pass
+try:
+    import MaxPlus
+except:
+    pass
+    
 reload(qt_main_ui)
 reload(qt_login_ui)
 reload(jc)
 
-app = QtGui.QApplication.instance()
+app = QtWidgets.QApplication.instance()
 if not app:
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
 appName = app.objectName()
+if "Maya" in app.applicationDisplayName():
+    appName = "Maya"
 
 notready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/notready.png')
 ready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/ready.png')
@@ -73,7 +85,7 @@ class _GCProtector(object):
     widgets = []
 
 
-class loginWindow(QtGui.QDialog):
+class loginWindow(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(loginWindow, self).__init__(parent)
         self.setFocus()
@@ -126,7 +138,7 @@ class loginWindow(QtGui.QDialog):
         mainProcess(server=server)
 
 
-class mainWindow(QtGui.QDialog):
+class mainWindow(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Tool)
@@ -183,7 +195,7 @@ class mainWindow(QtGui.QDialog):
 
     def focusInEvent(self, event):
         #self.focus_in.emit()
-        QtGui.QWidget.focusInEvent(self, event)
+        QtWidgets.QWidget.focusInEvent(self, event)
 
     def showItemByType(self, id):
         count = self.ui.asset_list.count()
@@ -368,27 +380,27 @@ class mainWindow(QtGui.QDialog):
         self.clearItemFilter()
 
     def setProjectInfo(self, game):
-        name_chn = QtGui.QTableWidgetItem(game['name_chn'])
+        name_chn = QtWidgets.QTableWidgetItem(game['name_chn'])
         name_chn.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(0, 0, name_chn)
 
-        game_type = QtGui.QTableWidgetItem(self.game_type_code_converter(game['game_type_code']))
+        game_type = QtWidgets.QTableWidgetItem(self.game_type_code_converter(game['game_type_code']))
         game_type.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(1, 0, game_type)
 
-        project_coordinator = QtGui.QTableWidgetItem(game['project_coordinator'])
+        project_coordinator = QtWidgets.QTableWidgetItem(game['project_coordinator'])
         project_coordinator.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(2, 0, project_coordinator)
 
         expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_start_date), '12-31-1999')"
         bsd = self.server.eval(expr)[0]
-        bid_start_date = QtGui.QTableWidgetItem(bsd)
+        bid_start_date = QtWidgets.QTableWidgetItem(bsd)
         bid_start_date.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(3, 0, bid_start_date)
 
         expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_end_date), '12-31-1999')"
         bed = self.server.eval(expr)[0]
-        bid_end_date = QtGui.QTableWidgetItem(bed)
+        bid_end_date = QtWidgets.QTableWidgetItem(bed)
         bid_end_date.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(4, 0, bid_end_date)
 
@@ -527,10 +539,10 @@ class mainWindow(QtGui.QDialog):
             elif status == '.Complete':
                 icon = complete_icon
 
-            qitem = QtGui.QListWidgetItem(icon, process)
+            qitem = QtWidgets.QListWidgetItem(icon, process)
             self.ui.asset_process_list.addItem(qitem)
 
-            qitem = QtGui.QListWidgetItem(icon, process)
+            qitem = QtWidgets.QListWidgetItem(icon, process)
             self.ui.shot_process_list.addItem(qitem)
 
         item_name_chn = self.item['description']
@@ -557,23 +569,23 @@ class mainWindow(QtGui.QDialog):
             if self.ui.asset_list.count() != 0:
                 self.ui.asset_process_list.setCurrentRow(selectedProcess)     # select first in process list if it contains anything
 
-                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
+                widgetItem = QtWidgets.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(0, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(self.item_type)
+                widgetItem = QtWidgets.QTableWidgetItem(self.item_type)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(1, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                # widgetItem = QtWidgets.QTableWidgetItem(task_assigned)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(2, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                # widgetItem = QtWidgets.QTableWidgetItem(bid_start_date)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(3, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                # widgetItem = QtWidgets.QTableWidgetItem(bid_end_date)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(4, 0, widgetItem)
 
@@ -581,11 +593,11 @@ class mainWindow(QtGui.QDialog):
             if self.ui.shot_list.count() != 0:
                 self.ui.shot_process_list.setCurrentRow(selectedProcess)
 
-                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
+                widgetItem = QtWidgets.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(0, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem("None")
+                widgetItem = QtWidgets.QTableWidgetItem("None")
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1, 0, widgetItem)
 
@@ -688,17 +700,17 @@ class mainWindow(QtGui.QDialog):
                 if task.get('process') == self.ui.asset_process_list.currentItem().text():
                     self.task = task
 
-                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem = QtWidgets.QTableWidgetItem(self.task['assigned'])
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(2, 0, widgetItem)
 
                     year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(3, 0, widgetItem)
 
                     year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(4, 0, widgetItem)                    
 
@@ -706,17 +718,17 @@ class mainWindow(QtGui.QDialog):
                 if task.get('process') == self.ui.shot_process_list.currentItem().text():
                     self.task = task
 
-                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem = QtWidgets.QTableWidgetItem(self.task['assigned'])
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(2, 0, widgetItem)
 
                     year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(3, 0, widgetItem)
                     
                     year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(4, 0, widgetItem)                    
         self.sk = self.task['__search_key__']
@@ -831,13 +843,19 @@ class mainWindow(QtGui.QDialog):
         def hasNumbers(inputString):
             return any(char.isdigit() for char in inputString)
 
+        production_type = self.productionType()
+
         path = self.ui.save_path.text()
         if self.ui.file_list.currentItem().background().color().name() == '#725252':
             path = self.old_path
 
         filename = self.ui.file_list.currentItem().text().split("  ")[1]
 
-        process = self.ui.asset_process_list.currentItem().text()
+        if production_type == 'assets':
+            process = self.ui.asset_process_list.currentItem().text()
+        elif production_type == 'shot':
+            process = self.ui.shot_process_list.currentItem().text()
+        
         base_path = path.split(process)[0]
         process = jc.abbrName(process)
 
@@ -893,7 +911,6 @@ class mainWindow(QtGui.QDialog):
         if appName == 'maya':
             filename = cmds.file(query=True, sceneName=True).split("/")[-1]
         elif appName == '3dsmax':
-            import MaxPlus
             filename = MaxPlus.FileManager.GetFileName()
             print filename
         elif 'Nuke' in appName:
@@ -933,14 +950,14 @@ class mainWindow(QtGui.QDialog):
             self.getNotes()
 
     def showdialog(self):
-       msg = QtGui.QMessageBox()
-       msg.setIcon(QtGui.QMessageBox.Information)
+       msg = QtWidgets.QMessageBox()
+       msg.setIcon(QtWidgets.QMessageBox.Information)
 
        msg.setText(u"這個檔案有人在使用!")
        #msg.setInformativeText("This is additional information")
        msg.setWindowTitle(u"警告")
        #msg.setDetailedText("The details are as follows:")
-       #msg.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+       #msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
        #msg.buttonClicked.connect(self.msgbtn)
 
        retval = msg.exec_()
@@ -1055,15 +1072,15 @@ class mainWindow(QtGui.QDialog):
 
 
     def makeThumbnail(self, path, filename):
+        filename = filename.split(".")[0]
+        ext = ".tif"        
         if appName == "maya":
-            ext = "tif"
             currentFrame = cmds.currentTime(query=True)
-            #filename = self.ui.file_list.currentItem().text().split("  ")[1]
-            filename = filename.split(".")[0]
+           
             cmds.select(cl=True)
             cmds.playblast(st=currentFrame, et=currentFrame, format="image", filename=filename, forceOverwrite=True, sequenceTime=False, clearCache=True, viewer=False, showOrnaments=False, framePadding=4, percent=100, compression="tif", quality=70, width=400, height=400)
 
-            currentFrame = ".%04d." % int(currentFrame)
+            currentFrame = ".%04d" % int(currentFrame)
             thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + currentFrame + ext
             destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
             try:
@@ -1080,6 +1097,33 @@ class mainWindow(QtGui.QDialog):
             os.remove(thumbPath)
             self.getThumbnail()
 
+        elif appName == "3dsmax":
+            #filename=(MaxPlus.PathManager.GetRenderOutputDir() + "/" + filename + ext)
+            thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + ext
+            destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
+            try:
+                os.makedirs(destination)
+            except:
+                pass
+
+            storage = MaxPlus.Factory.CreateStorage(6)
+            
+            bmi = storage.GetBitmapInfo()
+        
+            bmi.SetName(destination + filename + ext)
+
+            bmp = MaxPlus.Factory.CreateBitmap()
+
+            vm = MaxPlus.ViewportManager
+            av = vm.GetActiveViewport()
+            av.GetDIB(bmi, bmp)
+
+            bmp.OpenOutput(bmi)
+            bmp.Write(bmi)
+            bmp.Close(bmi)
+
+            self.getThumbnail()
+
 
     def getThumbnail(self):
         try:
@@ -1087,18 +1131,18 @@ class mainWindow(QtGui.QDialog):
             thumbPath = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
             imageFiles = os.listdir(thumbPath)
             defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
-            image = QtGui.QImage(defaultImage)
-            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+            image = QtWidgets.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))
             
             for imageFile in imageFiles:
                 if selectedFile in imageFile:
-                    image = QtGui.QImage(thumbPath + imageFile)
-                    self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+                    image = QtWidgets.QImage(thumbPath + imageFile)
+                    self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))
                     break
         except:
             defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
-            image = QtGui.QImage(defaultImage)
-            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))            
+            image = QtWidgets.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))            
          
 
 
@@ -1209,7 +1253,7 @@ def loginProcess():
         import MaxPlus
         MaxPlus.CUI.DisableAccelerators()
 
-    loginWidget = loginWindow(parent=QtGui.QApplication.activeWindow())
+    loginWidget = loginWindow(parent=QtWidgets.QApplication.activeWindow())
 
     if appName == "3dsmax":
         _GCProtector.widgets.append(loginWidget)
@@ -1225,7 +1269,7 @@ def loginProcess():
 
 def mainProcess(server=None):
     global widget
-    widget = mainWindow(parent=QtGui.QApplication.activeWindow())
+    widget = mainWindow(parent=QtWidgets.QApplication.activeWindow())
 
     try:
         login_name = server.login

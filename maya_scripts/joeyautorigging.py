@@ -8,7 +8,7 @@ from PySide import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(410, 861)
+        MainWindow.resize(410, 928)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout_4 = QtGui.QGridLayout(self.centralwidget)
@@ -220,8 +220,6 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName("label_4")
         self.gridLayout_5.addWidget(self.label_4, 1, 1, 1, 2)
         self.verticalLayout_5.addWidget(self.gridWidget_4)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_5.addItem(spacerItem)
         self.tabWidget_2.addTab(self.tab_7, "")
         self.tab_8 = QtGui.QWidget()
         self.tab_8.setObjectName("tab_8")
@@ -288,10 +286,18 @@ class Ui_MainWindow(object):
         self.label_27.setObjectName("label_27")
         self.gridLayout_21.addWidget(self.label_27, 1, 1, 1, 2)
         self.verticalLayout_7.addWidget(self.gridWidget_6)
-        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_7.addItem(spacerItem1)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_7.addItem(spacerItem)
         self.tabWidget_2.addTab(self.tab_8, "")
         self.verticalLayout_2.addWidget(self.tabWidget_2)
+        self.label_2 = QtGui.QLabel(self.gridWidget)
+        self.label_2.setObjectName("label_2")
+        self.verticalLayout_2.addWidget(self.label_2)
+        self.selectSkinJoints_pushButton = QtGui.QPushButton(self.gridWidget)
+        self.selectSkinJoints_pushButton.setObjectName("selectSkinJoints_pushButton")
+        self.verticalLayout_2.addWidget(self.selectSkinJoints_pushButton)
+        spacerItem1 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_2.addItem(spacerItem1)
         self.verticalLayout.addWidget(self.gridWidget)
         self.gridLayout_14.addWidget(self.verticalWidget, 0, 0, 1, 1)
         self.tabWidget_3.addTab(self.tab_2, "")
@@ -595,7 +601,7 @@ class Ui_MainWindow(object):
         self.BS_List_scrollArea.setWidgetResizable(True)
         self.BS_List_scrollArea.setObjectName("BS_List_scrollArea")
         self.BS_List_WidgetContents = QtGui.QWidget()
-        self.BS_List_WidgetContents.setGeometry(QtCore.QRect(0, 0, 330, 120))
+        self.BS_List_WidgetContents.setGeometry(QtCore.QRect(0, 0, 330, 153))
         self.BS_List_WidgetContents.setObjectName("BS_List_WidgetContents")
         self.gridLayout_19 = QtGui.QGridLayout(self.BS_List_WidgetContents)
         self.gridLayout_19.setObjectName("gridLayout_19")
@@ -627,9 +633,9 @@ class Ui_MainWindow(object):
         self.middle_comboBox.setCurrentIndex(1)
         self.ring_comboBox.setCurrentIndex(1)
         self.little_comboBox.setCurrentIndex(1)
-        self.ArmNumber_comboBox.setCurrentIndex(1)
+        self.ArmNumber_comboBox.setCurrentIndex(2)
         self.spinalNumber_comboBox.setCurrentIndex(0)
-        self.LegNumber_comboBox.setCurrentIndex(1)
+        self.LegNumber_comboBox.setCurrentIndex(0)
         self.neckNumber_comboBox.setCurrentIndex(0)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -730,6 +736,8 @@ class Ui_MainWindow(object):
         self.Q_startRigging_Button.setText(QtGui.QApplication.translate("MainWindow", "Apply", None, QtGui.QApplication.UnicodeUTF8))
         self.label_27.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-size:20pt; font-weight:600;\">4.Rigging</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_8), QtGui.QApplication.translate("MainWindow", "Quadrupeds", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_2.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-size:20pt; font-weight:600;\">5.SelectSkinJoint</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.selectSkinJoints_pushButton.setText(QtGui.QApplication.translate("MainWindow", "Select", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Rigging", None, QtGui.QApplication.UnicodeUTF8))
         self.ChangeObjUV_pushButton.setText(QtGui.QApplication.translate("MainWindow", "Change_Obj_UV", None, QtGui.QApplication.UnicodeUTF8))
         self.label_16.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-size:24pt; font-weight:600;\">Other</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
@@ -749,9 +757,9 @@ class Ui_MainWindow(object):
         self.label_15.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-size:20pt; font-weight:600;\">2</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_13.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-weight:600;\">SIZE</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label_8.setText(QtGui.QApplication.translate("MainWindow", "<html><head/><body><p><span style=\" font-size:24pt; font-weight:600;\">Controller</span></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
-        self.setCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "SET_Controller", None, QtGui.QApplication.UnicodeUTF8))
-        self.CreateSubCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "SET_SubCtrl", None, QtGui.QApplication.UnicodeUTF8))
-        self.CreatePathCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "SET_PathCtrl", None, QtGui.QApplication.UnicodeUTF8))
+        self.setCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "Create_Controller", None, QtGui.QApplication.UnicodeUTF8))
+        self.CreateSubCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "Create_SubCtrl", None, QtGui.QApplication.UnicodeUTF8))
+        self.CreatePathCtrl_pushButton.setText(QtGui.QApplication.translate("MainWindow", "Create_PathCtrl", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QtGui.QApplication.translate("MainWindow", "Controller", None, QtGui.QApplication.UnicodeUTF8))
         self.Blink_Z_checkBox.setText(QtGui.QApplication.translate("MainWindow", "RotateZ", None, QtGui.QApplication.UnicodeUTF8))
         self.Blink_X_checkBox.setText(QtGui.QApplication.translate("MainWindow", "RotateX", None, QtGui.QApplication.UnicodeUTF8))
@@ -797,6 +805,8 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.Q_chrSizeSet_Button.clicked.connect(lambda: self.RiggingFunction(function='QuadrupedsSizeSet'))
         self.Q_creatRigLocs_Button.clicked.connect(lambda: self.RiggingFunction(function='Q_creatRigLocs'))
         self.Q_startRigging_Button.clicked.connect(lambda: self.RiggingFunction(function='Q_startRigging'))
+
+        self.selectSkinJoints_pushButton.clicked.connect(lambda: self.RiggingFunction(function='selectSkinJoints'))
 
         self.SET_Name_pushButton.clicked.connect(lambda: self.VertexRiggingFunction(function='SET_Name'))
         self.SET_UpVertex_pushButton.clicked.connect(lambda: self.VertexRiggingFunction(function='SET_UpVertex'))
@@ -938,6 +948,15 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             for x in all:
                 if x.nodeType() == 'transform' and x.getParent() == None and str(x[:9]) == 'transform':
                     pm.delete(x)
+
+        if function == 'selectSkinJoints':
+            try:
+                joint_grp = pm.PyNode(self.chrName+'_Joint_grp')
+                rigJoint_grp = pm.PyNode(self.chrName+'_rigJoint_grp')
+            except:
+                sys.stdout.write(u'找不到joint_grp或是rigJoint_grp')
+            skinJoint = self.selectSkinJoints(joint_grp,rigJoint_grp)
+            pm.select(skinJoint)
 
         pm.undoInfo(cck=True)
 
@@ -1095,6 +1114,12 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             ctrl = pm.circle(nr = [0,1,0],ch=0,n=name,radius = s)[0]
         if ctrlType=='circleZ':
             ctrl = pm.circle(nr = [0,0,1],ch=0,n=name,radius = s)[0]
+        if ctrlType == 'arrow_circle':
+            ctrl = pm.curve(d=3,n=name,p=([0,s*0.4492,0],[0,s*0.4452,s*0.3],\
+                [0,s*0.0297,s*0.5312],[0,s*-0.3526,s*0.3526],[0,s*-0.4986,0],\
+                [0,s*-0.3526,s*-0.3526],[0,s*0.0474,s*-0.5163],[0,s*0.4164,s*-0.2855],\
+                [0,s*0.4492,0],[0,s*0.4492,0],[0,s*0.4492,0],[0,s*0.4841,s*-0.0506],\
+                [0,s*0.4841,s*-0.0506],[0,s*0.4492,0],[0,s*0.4492,0],[0,s*0.4141,s*-0.0536]))
         if ctrlType=='rombus':
             ctrl = pm.curve(d=1,n=name,ep=([0,s,0],[s,0,0],[0,0,s],[s*-1,0,0],[0,0,s*-1],\
                 [0,s,0],[0,0,s],[0,s*-1,0],[0,0,s*-1],[s,0,0],[0,s,0],[s*-1,0,0],[0,s*-1,0],[s,0,0]))
@@ -1115,6 +1140,11 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         if ctrlType=='cross':
             ctrl = pm.curve(d=1,n=name,ep=([s*-0.5,0,0],[0,0,s*0.5],[s*0.5,0,0],[0,0,s*-0.5],\
                 [s*-0.5,0,0],[s*0.5,0,0],[0,0,s*0.5],[0,0,s*-0.5]))
+        if ctrlType == 'cross_2':
+            ctrl = pm.curve(d=1,n=name,ep=([s*-0.2145,s*0.03065,0],[s*-0.03065,s*0.03065,0],[s*-0.03065,s*0.2145,0],\
+                [s*0.03065,s*0.2145,0],[s*0.03065,s*0.03065,0],[s*0.2145,s*0.03065,0],[s*0.2145,s*-0.03065,0],\
+                [s*0.03065,s*-0.03065,s*0.0],[s*0.03065,s*-0.2145,0],[s*-0.03065,s*-0.2145,0],\
+                [s*-0.03065,s*-0.03065,0],[s*-0.2145,s*-0.03065,0],[s*-0.2145,s*0.03065,0]))
         if ctrlType=='cube':
             ctrl = pm.curve(d=1,n=name,ep=([s,s,s],[s,s*-1,s],[s*-1,s*-1,s],[s*-1,s,s],\
                 [s,s,s,],[s,s,s*-1],[s*-1,s,s*-1],[s*-1,s,s],[s*-1,s*-1,s],[s*-1,s*-1,s*-1],\
@@ -1171,31 +1201,72 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 [-1.325606*s,0,-0.883737*s],[-2.209343*s,0,0],[-1.325606*s,0,0.883737*s],\
                 [-1.325606*s,0,0.552187*s],[-0.552336*s,0,0.552187*s],[-0.552336*s,0,1.325606*s],
                 [-0.883737*s,0,1.325606*s],[0,0,2.209343*s]))
+        if ctrlType == 'semicircle':
+            ctrl = pm.curve(d=1,n=name,ep=([s*-0.157,s*0.5,s*-0.993],[s*-0.157,s*0.807,s*-0.946],\
+                [s*-0.157,s*1.084,s*-0.805],[s*-0.157,s*1.305,s*-0.584],[s*-0.157,s*1.446,s*-0.307],\
+                [s*-0.157,s*1.495,0],[s*-0.157,s*1.446,s*0.307],[s*-0.157,s*1.305,s*0.584],\
+                [s*-0.157,s*1.084,0.805],[s*-0.157,s*0.807,s*0.946],[s*-0.157,s*0.5,s*0.993],[s*-0.157,0,s*0.993],\
+                [s*0.157,0,s*1.006],[s*0.157,s*0.500,s*1.006],[s*0.157,s*0.811,s*0.958],\
+                [s*0.157,s*1.092,s*0.815],[s*0.157,s*1.315,s*0.592],[0.157,s*1.458,s*0.311],\
+                [s*0.157,s*1.507,0],[s*0.157,s*1.458,s*-0.311],[s*0.157,s*1.315,s*-0.592],\
+                [s*0.157,s*1.092,s*-0.815],[s*0.157,s*0.811,s*-0.958],[s*0.157,s*0.5,s*-1.006],\
+                [s*0.157,0,s*-1.006],[s*-0.157,0,s*-0.993],[s*-0.157,s*0.5,s*-0.993]))
+        if ctrlType == 'four_arrow':
+            ctrl = pm.curve(d=1,n=name,ep=([s*-1.874,0,s*-0.182],[s*-2.139,0,s*-0.182],\
+                [s*-2.139,0,s*-0.508],[s*-2.647,0,0],[s*-2.139,0,s*0.508],[s*-2.139,0,s*0.182],\
+                [s*-1.874,0,s*0.182],[s*-1.874,0,s*-0.182]))
+            arrow_1 = pm.curve(d=1,n=name,ep=([s*-0.182,0,s*1.874],[s*-0.182,0,s*2.139],\
+                [s*-0.508,0,s*2.139],[0,0,s*2.647],[s*0.508,0,s*2.139],[s*0.182,0,s*2.139],\
+                [s*0.182,0,s*1.874],[s*-0.182,0,s*1.874]))
+            arrow_2 = pm.curve(d=1,n=name,ep=([s*1.874,0,s*0.182],[s*2.139,0,s*0.182],\
+                [s*2.139,0,s*0.508],[s*2.647,0,0],[s*2.139,0,s*-0.508],[s*2.139,0,s*-0.182],\
+                [s*1.874,0,s*-0.182],[s*1.874,0,s*0.182]))
+            arrow_3 = pm.curve(d=1,n=name,ep=([s*0.182,0,s*-1.874],[s*0.182,0,s*-2.139],\
+                [s*0.508,0,s*-2.139],[0,0,s*-2.647],[s*-0.508,0,s*-2.139],[s*-0.182,0,s*-2.139],\
+                [s*-0.182,0,s*-1.874],[s*0.182,0,s*-1.874]))
+            pm.parent(arrow_1.listRelatives(s=1)[0],arrow_2.listRelatives(s=1)[0],\
+                arrow_3.listRelatives(s=1)[0],ctrl,shape=1,r=1)
+            pm.delete(arrow_1,arrow_2,arrow_3)
         if rotateOrder == 1:
             ctrl.setAttr('rotateOrder',k=1)
         return ctrl
 
-    def setgroup(self,obj,pre='cons',splitter = '_'):
+    def ctrlGrp(self,tgt,size=1.0,parent=1,point=0,orient=0,scale=0,depth=1,length=2,lock=['sx','sy','sz','v'],ctrlType='circle',rotateOrder=0):
         '''
-        將obj利用group包裝
+        創建指定的ctrl控制tgt,依照種類設定控制方式,parent,point,orient,scale
+        lock為ctrl上鎖的attr
         '''
-        if not type(obj) == list:
-            obj = [obj]
-        consList = []
-        for i in obj:
-            oldParent = i.getParent()
-            preName = str(i) + splitter + pre
-            cons = pm.group(n=preName,em=1,w=1)
-            self.snap(i,cons)
-            consList.append(cons)
-            if oldParent:
-                pm.parent(oldParent,cons)
-                pm.parent(i,oldParent)
-            else:
-                pm.parent(i,cons)
-        return consList    
+        try:
+            nr,axis = self.getTgtAttr(tgt)
+        except:
+            nr=[0,1,0]
+            s=1
+            axis=None
+        ctrl = self.cvsCtrl(size=size,name=tgt+'_ctrl',axis=nr,depth=depth,length=length,ctrlType=ctrlType,rotateOrder=rotateOrder)
+        upper = pm.group(n=ctrl+'_upper',em=1)
+        cons = pm.group(n=ctrl+'_cons',em=1)
+        pm.parent(ctrl,upper)
+        pm.parent(upper,cons)
+        self.snap(tgt,cons)
+        grps = [upper,cons]
+        if orient == 1:
+            self.snap(tgt,grps[-1],rot=0)
+        else:
+            self.snap(tgt,grps[-1])
+        if parent==1:
+            parCon1 = pm.parentConstraint(ctrl,tgt)
+        else:
+            if point ==1:
+                parCon1 = pm.pointConstraint(ctrl,tgt)
+            parCon1 = None
+        if scale==1:
+            parCon2 = pm.scaleConstraint(ctrl,tgt)
+        else:
+            parCon2 = None
+        self.lockAttrs(ctrl,attrs=lock)
+        return grps,ctrl,parCon1,parCon2
 
-    def setCtrl(self,tgt,ctrlType='',size=1.0,depth=1,length=2,level=2,lock=['sx','sy','sz','v'],rotateOrder=0):
+    def setCtrl(self,tgt,ctrlType='',size=1.0,depth=1,length=2,lock=['sx','sy','sz','v'],rotateOrder=0):
         '''
         將tgt內的所有物件做連續串聯ctrl, cons>upper>ctrl
         '''
@@ -1205,7 +1276,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         parConList1 = []
         parConList2 = []
         for i in tgt:
-            temp = self.ctrlGrp(i,size=size,parent=1,level=level,lock=lock,depth=depth,length=length,levelName = ['upper','cons'],ctrlType=ctrlType)
+            temp = self.ctrlGrp(i,size=size,parent=1,lock=lock,depth=depth,length=length,ctrlType=ctrlType)
             if rotateOrder == 1:
                 temp[1].setAttr('rotateOrder',k=1)
             ctrlList.append(temp[1])
@@ -1216,38 +1287,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             if len(consList)>1:
                 pm.parent(consList[-1],ctrlList[-2])
         return ctrlList,upperList,consList
-
-    def ctrlGrp(self,tgt,size=1.0,parent=1,point=0,orient=0,scale=0,depth=1,length=2,lock=['sx','sy','sz','v'],level=2,levelName = ['upper','cons'],ctrlType='circle',rotateOrder=0):
-        '''
-        創建指定的ctrl控制tgt,並依照level數量包裝ctrl,依照種類設定控制方式,parent,point,orient,scale
-        lock為ctrl上鎖的attr
-        '''
-        try:
-            nr,axis = self.getTgtAttr(tgt)
-        except:
-            nr=[0,1,0]
-            s=1
-            axis=None
-        ctrl = self.cvsCtrl(size=size,name=tgt+'_ctrl',axis=nr,depth=depth,length=length,ctrlType=ctrlType,rotateOrder=rotateOrder)
-        grps = []
-        for i in range(level):
-            grps.append(self.setgroup(ctrl,pre=levelName[i])[0])
-        if orient == 1:
-            self.snap(tgt,grps[-1],rot=0)
-        else:
-            self.snap(tgt,grps[-1])
-        if parent==1:
-            parCon1 = pm.parentConstraint(ctrl,tgt)
-        elif parent==0:
-            if point ==1:
-                parCon1 = pm.pointConstraint(ctrl,tgt)
-            parCon1 = None
-        if scale==1:
-            parCon2 = pm.scaleConstraint(ctrl,tgt)
-        elif scale==0:
-            parCon2 = None
-        self.lockAttrs(ctrl,attrs=lock)
-        return grps,ctrl,parCon1,parCon2
 
     ####################RigFunction(未整理)####################
 
@@ -1260,28 +1299,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             try:pm.connectAttr(Color2,blendColor+'.color2R')
             except:blendColor.setAttr('color2R',Color2)
             try:pm.connectAttr(blendColor+'.outputR',OutColor)
-            except: pass
-        if Channel == 2:
-            try:pm.connectAttr(Color2[0],blendColor+'.color2R')
-            except:blendColor.setAttr('color2R',Color2[0])
-            try:pm.connectAttr(Color2[1],blendColor+'.color2G')
-            except:blendColor.setAttr('color2G',Color2[1])
-            try:pm.connectAttr(blendColor+'.output',OutColor)
-            except: pass
-        if Channel == 3:
-            try:pm.connectAttr(Color1[0],blendColor+'.color1R')
-            except:blendColor.setAttr('color1R',Color1[0])
-            try:pm.connectAttr(Color1[1],blendColor+'.color1G')
-            except:blendColor.setAttr('color1G',Color1[1])
-            try:pm.connectAttr(Color1[2],blendColor+'.color1B')
-            except:blendColor.setAttr('color1B',Color1[2])
-            try:pm.connectAttr(Color2[0],blendColor+'.color2R')
-            except:blendColor.setAttr('color2R',Color2[0])
-            try:pm.connectAttr(Color2[1],blendColor+'.color2G')
-            except:blendColor.setAttr('color2G',Color2[1])
-            try:pm.connectAttr(Color2[2],blendColor+'.color2B')
-            except:blendColor.setAttr('color2B',Color2[2])
-            try:pm.connectAttr(blendColor+'.output',OutColor)
             except: pass
         if Channel == 4:
             try:pm.connectAttr(Color1,blendColor+'.color1')
@@ -1399,32 +1416,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             except:Condition.setAttr('colorIfFalseR',colorIfFalse)
             try:pm.connectAttr(outColor,Condition+'.outColorR')
             except:pass
-        if Channel ==2:
-            try:pm.connectAttr(colorIfTrue[0],Condition+'.colorIfTrueR')
-            except:Condition.setAttr('colorIfTrueR',colorIfTrue[0])
-            try:pm.connectAttr(colorIfTrue[1],Condition+'.colorIfTrueG')
-            except:Condition.setAttr('colorIfTrueG',colorIfTrue[1])
-            try:pm.connectAttr(colorIfFalse[0],Condition+'.colorIfFalseR')
-            except:Condition.setAttr('colorIfFalseR',colorIfFalse[0])
-            try:pm.connectAttr(colorIfFalse[1],Condition+'.colorIfFalseG')
-            except:Condition.setAttr('colorIfFalseG',colorIfFalse[1])
-            try:pm.connectAttr(outColor,Condition+'.outColor')
-            except:pass
-        if Channel ==3:
-            try:pm.connectAttr(colorIfTrue[0],Condition+'.colorIfTrueR')
-            except:Condition.setAttr('colorIfTrueR',colorIfTrue[0])
-            try:pm.connectAttr(colorIfTrue[1],Condition+'.colorIfTrueG')
-            except:Condition.setAttr('colorIfTrueG',colorIfTrue[1])
-            try:pm.connectAttr(colorIfTrue[2],Condition+'.colorIfTrueB')
-            except:Condition.setAttr('colorIfTrueB',colorIfTrue[2])
-            try:pm.connectAttr(colorIfFalse[0],Condition+'.colorIfFalseR')
-            except:Condition.setAttr('colorIfFalseR',colorIfFalse[0])
-            try:pm.connectAttr(colorIfFalse[1],Condition+'.colorIfFalseG')
-            except:Condition.setAttr('colorIfFalseG',colorIfFalse[1])
-            try:pm.connectAttr(colorIfFalse[2],Condition+'.colorIfFalseB')
-            except:Condition.setAttr('colorIfFalseB',colorIfFalse[2])
-            try:pm.connectAttr(outColor,Condition+'.outColor')
-            except:pass
         if Channel ==4:
             try:pm.connectAttr(colorIfTrue,Condition+'.colorIfTrue')
             except:Condition.setAttr('colorIfTrue',colorIfTrue)
@@ -1444,51 +1435,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             try:pm.connectAttr(min,Clamp+'.minR')
             except:Clamp.setAttr('minR',min)
             try:pm.connectAttr(output,Clamp+'.outputR')
-            except:pass
-        if Channel ==2:
-            try:pm.connectAttr(input[0],Clamp+'.inputR')
-            except:Clamp.setAttr('inputR',input[0])
-            try:pm.connectAttr(input[1],Clamp+'.inputG')
-            except:Clamp.setAttr('inputG',input[1])
-            try:pm.connectAttr(max[0],Clamp+'.maxR')
-            except:Clamp.setAttr('maxR',max[0])
-            try:pm.connectAttr(max[1],Clamp+'.maxG')
-            except:Clamp.setAttr('maxG',max[1])
-            try:pm.connectAttr(min[0],Clamp+'.minR')
-            except:Clamp.setAttr('minR',min[0])
-            try:pm.connectAttr(min[1],Clamp+'.minG')
-            except:Clamp.setAttr('minG',min[1])
-            try:pm.connectAttr(output,Clamp+'.output')
-            except:pass
-        if Channel ==3:
-            try:pm.connectAttr(input[0],Clamp+'.inputR')
-            except:Clamp.setAttr('inputR',input[0])
-            try:pm.connectAttr(input[1],Clamp+'.inputG')
-            except:Clamp.setAttr('inputG',input[1])
-            try:pm.connectAttr(input[2],Clamp+'.inputB')
-            except:Clamp.setAttr('inputB',input[2])
-            try:pm.connectAttr(max[0],Clamp+'.maxR')
-            except:Clamp.setAttr('maxR',max[0])
-            try:pm.connectAttr(max[1],Clamp+'.maxG')
-            except:Clamp.setAttr('maxG',max[1])
-            try:pm.connectAttr(max[2],Clamp+'.maxB')
-            except:Clamp.setAttr('maxB',max[2])
-            try:pm.connectAttr(min[0],Clamp+'.minR')
-            except:Clamp.setAttr('minR',min[0])
-            try:pm.connectAttr(min[1],Clamp+'.minG')
-            except:Clamp.setAttr('minG',min[1])
-            try:pm.connectAttr(min[2],Clamp+'.minB')
-            except:Clamp.setAttr('minB',min[2])
-            try:pm.connectAttr(output,Clamp+'.output')
-            except:pass
-        if Channel ==4:
-            try:pm.connectAttr(input,Clamp+'.input')
-            except:Clamp.setAttr('input',input)
-            try:pm.connectAttr(max,Clamp+'.max')
-            except:Clamp.setAttr('max',max)
-            try:pm.connectAttr(min,Clamp+'.min')
-            except:Clamp.setAttr('min',min)
-            try:pm.connectAttr(output,Clamp+'.output')
             except:pass
         return Clamp
 
@@ -1544,6 +1490,51 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         pm.select(obj)
         pm.addAttr(ln=name,at=at,dv=dv,min=min,max=max,k=k)
 
+    def tgtLoc(self,tgts):
+        locList = []
+        try:
+            worldLoc = pm.PyNode(self.chrName+'_world_loc')
+        except:
+            worldLoc = pm.spaceLocator(n=self.chrName+'_world_loc')
+        locList.append(worldLoc)
+        for x in tgts:
+            try:
+                loc = pm.PyNode(x+'_loc')
+            except:
+                loc = pm.spaceLocator(n=x+'_loc')
+            pm.parentConstraint(x,loc)
+            locList.append(loc)
+        return locList
+
+    def ctrlFollow(self,ctrl,tgts,ctrlType=''):
+        consParConList=[]
+        locList = self.tgtLoc(tgts)
+        upper = ctrl.listRelatives(p=1)[0]
+        cons = upper.listRelatives(p=1)[0]
+        ctrlLoc = pm.spaceLocator(n=ctrl+'_loc')
+        self.snap(ctrl,ctrlLoc)
+        self.snap(tgts[-1],ctrlLoc,rot=0)
+        if ctrlType == 'fk':
+            pm.parentConstraint(tgts[-1],upper,mo=1,sr=['x','y','z'])
+            pm.parentConstraint(ctrlLoc,cons,mo=1,st=['x','y','z'])
+        if ctrlType == 'ik':
+            pm.parentConstraint(ctrlLoc,cons,mo=1)        
+        consParCon = pm.parentConstraint(locList,ctrlLoc,mo=1)
+        for j in range(len(tgts)):
+            n=[]
+            for x in range(len(str(tgts[j]))):
+                if tgts[j][x]=='_':
+                    n.append(x)
+            n=tgts[j][n[0]+1:]
+            self.addSwitch(ctrl,name=n+'_Follow',at='float',dv=0,min=0,max=1,k=1)
+            w={0:'W1',1:'W2',2:'W3',3:'W4',4:'W5'}
+            weight=w[j]
+            pm.connectAttr(ctrl+'.'+n+'_Follow',consParCon+'.'+locList[j+1]+weight)
+        self.addSwitch(ctrl,name='world_Follow',at='float',dv=0,min=0,max=1,k=1)
+        pm.connectAttr(ctrl+'.world_Follow',consParCon+'.'+self.chrName+'_world_locW0')
+        locList.append(ctrlLoc)
+        return locList
+
     def createIk(self,jt,stJt='',secondJt='',endJt='',pvCvsJt='',type='r',pvOrientation=1,loc='',About='',ikType=''):
         solver = {'r':'ikRPsolver','c':'ikSCsolver','s':'ikSplineSolver'}
         s = solver[type]
@@ -1551,7 +1542,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         grpsList = []
         ctrlList = []
         if ikType == 'arm':
-            grpsTip,ctrlTip,parCon1Tip,parCon2Tip=self.ctrlGrp(endJt,size=self.gbScale*0.2,parent=0,lock=['rx','ry','rz','v'],ctrlType='cube',orient=1)
+            grpsTip,ctrlTip,parCon1Tip,parCon2Tip=self.ctrlGrp(endJt,size=self.gbScale*0.2,parent=0,lock=['v'],ctrlType='cube',orient=0)
             grpsEnd,ctrlEnd,parCon1End,parCon2End=self.ctrlGrp(stJt,size=self.gbScale*0.4,parent=0,point=1,lock=['rx','ry','rz','sx','sy','sz','v'],ctrlType='circle')
             IK_Rot_ctrl_1 = self.cvsCtrl(size=self.gbScale*0.22,name=endJt+'_Rot_ctrl_1',ctrlType='sphere',rotateOrder=1)
             IK_Rot_ctrl_1_upper = pm.group(n=IK_Rot_ctrl_1+'_upper')
@@ -1576,6 +1567,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             ctrlList.append(IK_Rot_ctrl_2)
         if ikType == 'leg':
             grpsTip,ctrlTip,parCon1Tip,parCon2Tip=self.ctrlGrp(endJt,size=self.gbScale*0.2,parent=0,lock=['v'],ctrlType='cube',orient=1,rotateOrder=1)
+            grpsTip[1].setAttr('r',[0,0,0])
             grpsEnd,ctrlEnd,parCon1End,parCon2End=self.ctrlGrp(stJt,size=self.gbScale*0.4,parent=0,point=1,lock=['rx','ry','rz','sx','sy','sz','v'],ctrlType='circle')
             ctrlList.append(ctrlTip)
             ctrlList.append(ctrlEnd)
@@ -1602,9 +1594,9 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             worldLoc = None
         if ikType == 'leg':
             pvGrp[0][1].setAttr('translateZ',pvt+pvMove)
-            PvUpperJt = pm.duplicate(stJt,n=self.chrName+'_pv'+About+'_upperLeg',po=1)[0]
-            PvEndJt = pm.duplicate(endJt,n=self.chrName+'_pv'+About+'_lowerLeg',po=1)[0]
-            worldLoc = pm.spaceLocator(n=self.chrName+'_pv'+About+'_WorldLeg')
+            PvUpperJt = pm.duplicate(stJt,n=self.chrName+About+'_leg_pv_upper',po=1)[0]
+            PvEndJt = pm.duplicate(endJt,n=self.chrName+About+'_leg_pv_lower',po=1)[0]
+            worldLoc = pm.spaceLocator(n=self.chrName+About+'_leg_pv_World')
             pm.parent(PvEndJt,PvUpperJt)
             self.jointOrient([PvUpperJt,PvEndJt],[0,-1,0],[1,0,0],[0,-1,0])
             pvIk = pm.ikHandle(sj=PvUpperJt,ee=PvEndJt,n=self.chrName+'_pv'+About+'_ik',sol='ikSCsolver')[0]
@@ -1732,7 +1724,8 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             jtList.append(jt)
             if len(jtList) >1:
                 pm.parent(jtList[-1],jtList[-2])
-            jtList[i].setAttr('visibility',0)
+            #jtList[i].setAttr('visibility',0)
+            jtList[i].setAttr('drawStyle',2)
         return jtList
 
     def ikfkMatch(self,jt,ikType='',About='',loc='',bend=1):
@@ -1795,43 +1788,41 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         self.lockAttrs(ikfkSwitch,attrs=['tx','ty','tz','rx','ry','rz','sx','sy','sz','v'])
         self.snap(ikList[2],switchGrp,rot=0,scl=0,pivots=0)
         pm.pointConstraint(jt[2],switchGrp,mo=1)
-        switch1=('ikfk','Auto_IK_Stretchy','Auto_Sqiash_Stretchy')
-        for i in switch1:
-            self.addSwitch(ikfkSwitch,name=i,at='float',dv=1,min=0,max=1)
-        self.addSwitch(ikfkSwitch,name='Auto_Sqiash_Stretchy_Width',at='float',dv=1,min=0,max=10)
-        self.addSwitch(ikfkSwitch,name=ikType+'_width',at='float',dv=1,min=0,max=10)
+        #addSwitch
+        self.addSwitch(ikfkSwitch,name='ikfk',at='float',dv=1,min=0,max=1)
         if bend == 1:
-            switch2=(ikType+'_Stretchy','Upper_'+ikType+'_Stretchy','Lower_'+ikType+'_Stretchy')
-            for i in switch2:
-                self.addSwitch(ikfkSwitch,name=i,at='float',dv=0,min=0,max=30)
+            self.addSwitch(ikfkSwitch,name='Auto_IK_Stretchy',at='float',dv=1,min=0,max=1)
+            self.addSwitch(ikfkSwitch,name='Auto_Sqiash_Stretchy',at='float',dv=1,min=0,max=1)
+            self.addSwitch(ikfkSwitch,name='Auto_Sqiash_Stretchy_Width',at='float',dv=1,min=0,max=10)
+            self.addSwitch(ikfkSwitch,name=ikType+'_width',at='float',dv=1,min=0,max=10)
+            self.addSwitch(ikfkSwitch,name=ikType+'_Stretchy',at='float',dv=0,min=0,max=30)
+            self.addSwitch(ikfkSwitch,name='Upper_'+ikType+'_Stretchy',at='float',dv=0,min=0,max=30)
+            self.addSwitch(ikfkSwitch,name='Lower_'+ikType+'_Stretchy',at='float',dv=0,min=0,max=30)
+            self.addSwitch(ikfkSwitch,name='bend_Display',at='float',dv=1,min=0,max=1)
+            self.addSwitch(ikfkSwitch,name='twist_Display',at='float',dv=1,min=0,max=1)
+            ikfkSwitch.setAttr('bend_Display',keyable=0,channelBox=1)
+            ikfkSwitch.setAttr('twist_Display',keyable=0,channelBox=1)
+            ikfkSwitch.setAttr('bend_Display',0)
+            ikfkSwitch.setAttr('twist_Display',0)
             self.addSwitch(ikCtrlList[0],name='Arc',at='float',dv=0,min=-100,max=100,k=1)
         else:
             pass
         self.addSwitch(ikCtrlList[0],name='Twist',at='float',dv=0,min=-180,max=180,k=1)
-        self.addSwitch(ikfkSwitch,name='ikDisplay',at='float',dv=1,min=0,max=1)
-        self.addSwitch(ikfkSwitch,name='fkDisplay',at='float',dv=1,min=0,max=1)
-        ikfkSwitch.setAttr('ikDisplay',keyable=0,channelBox=1)
-        ikfkSwitch.setAttr('fkDisplay',keyable=0,channelBox=1)
-        if bend == 1:
-            self.addSwitch(ikfkSwitch,name='bend_Display',at='float',dv=1,min=0,max=1)
-            ikfkSwitch.setAttr('bend_Display',keyable=0,channelBox=1)
-            ikfkSwitch.setAttr('bend_Display',0)
-            self.addSwitch(ikfkSwitch,name='twist_Display',at='float',dv=1,min=0,max=1)
-            ikfkSwitch.setAttr('twist_Display',keyable=0,channelBox=1)
-            ikfkSwitch.setAttr('twist_Display',0)
         #ikCtrlDisplay
         ikDis=(ikgrps[0][-1],ikgrps[1][-1],pvGrp[0][-1],PoleVectorCvs)
         ikCtrlGrp = pm.group(em=1,n=jt[0]+'_ikCtrl_grp')
         self.snap(jt[0],ikCtrlGrp,rot=0)
         for i in ikDis:
             pm.parent(i,ikCtrlGrp)
-            pm.connectAttr(ikfkSwitch+'.ikDisplay',i+'.visibility')
+            pm.connectAttr(ikfkSwitch+'.ikfk',i+'.visibility')
         pm.parent(PoleVectorCvs,w=1)
         #fkCtrlDisplay
         fkCtrlGrp = pm.group(em=1,n=jt[0]+'_fkCtrl_grp')
         self.snap(jt[0],fkCtrlGrp,rot=0)
         pm.parent(consList[0],fkCtrlGrp)
-        pm.connectAttr(ikfkSwitch+'.fkDisplay',fkCtrlGrp+'.visibility')
+        fkReNode = pm.shadingNode('reverse',al=1)
+        pm.connectAttr(ikfkSwitch+'.ikfk',fkReNode+'.inputX')
+        pm.connectAttr(fkReNode+'.outputX',fkCtrlGrp+'.visibility')
         #IKFK_blendColorNode
         for i in range(len(fkList)):
             self.blendColorNode(ikfkSwitch+'.ikfk',ikList[i]+'.rotate',fkList[i]+'.rotate',jt[i]+'.rotate')
@@ -1928,13 +1919,13 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             twistJt[x+1].setAttr('translateX',lowerLen/(number-1))
         twistIk = pm.ikHandle(sj=twistJt[0],ee=twistJt[-1],n=twistJt[0][:-3]+'_Ik',sol='ikSplineSolver')
         pm.parent(twistIk[2],tgtJoint[1])
-        nonrollJt_1 = pm.duplicate(tgtJoint[3],po=1,n=tgtJoint[3]+'_nonroll_1')[0]
-        nonrollJt_2 = pm.duplicate(tgtJoint[3],po=1,n=tgtJoint[3]+'_nonroll_2')[0]
+        nonrollJt_1 = pm.duplicate(tgtJoint[-1],po=1,n=tgtJoint[-1]+'_nonroll_1')[0]
+        nonrollJt_2 = pm.duplicate(tgtJoint[-1],po=1,n=tgtJoint[-1]+'_nonroll_2')[0]
         pm.parent(nonrollJt_2,nonrollJt_1)
         nonrollJt_2.setAttr('translateX',lowerLen/2)
-        auxJt_1 = pm.duplicate(tgtJoint[3],po=1,n=tgtJoint[3]+'_aux_1')[0]
-        auxJt_2 = pm.duplicate(tgtJoint[3],po=1,n=tgtJoint[3]+'_aux_2')[0]
-        auxJt_3 = pm.duplicate(tgtJoint[3],po=1,n=tgtJoint[3]+'_aux_3')[0]
+        auxJt_1 = pm.duplicate(tgtJoint[-1],po=1,n=tgtJoint[-1]+'_aux_1')[0]
+        auxJt_2 = pm.duplicate(tgtJoint[-1],po=1,n=tgtJoint[-1]+'_aux_2')[0]
+        auxJt_3 = pm.duplicate(tgtJoint[-1],po=1,n=tgtJoint[-1]+'_aux_3')[0]
         pm.parent(auxJt_2,auxJt_1)
         pm.parent(auxJt_3,auxJt_2)
         auxJt_2.setAttr('translateX',lowerLen/4)
@@ -1946,8 +1937,8 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             pm.parent(ik[0],tgtJoint[2])
             for x in range(3):
                 ik[x].setAttr('v',0)
-        pm.parent(NonrollIk[2],tgtJoint[3])
-        pm.parent(AuxIk[2],tgtJoint[3])
+        pm.parent(NonrollIk[2],tgtJoint[-1])
+        pm.parent(AuxIk[2],tgtJoint[-1])
         AuxIk[0].setAttr('dTwistControlEnable',1)
         if ikType=='arm':
             pm.connectAttr(auxJt_2+'.rotateX',twistIk[0]+'.twist')
@@ -1958,8 +1949,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         hideJt = nonrollJt_1,nonrollJt_2,auxJt_1,auxJt_2,auxJt_3,twistJt[0],twistJt[-1]
         for x in hideJt:
             x.setAttr('drawStyle',2)
-        for x in hideJt[:-2]:
-            x.setAttr('visibility',0)
         if ikType=='arm': 
             AuxIk[0].setAttr('dWorldUpAxis',3)
             AuxIk[0].setAttr('dWorldUpVector',[0,0,1])
@@ -1969,7 +1958,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             AuxIk[0].setAttr('dWorldUpVectorEnd',[0,1,0])
             tgtJoint[-1].setAttr('drawStyle',2)
         pm.connectAttr(nonrollJt_1+'.worldMatrix',AuxIk[0]+'.dWorldUpMatrix')
-        pm.connectAttr(tgtJoint[3]+'.worldMatrix',AuxIk[0]+'.dWorldUpMatrixEnd')
+        pm.connectAttr(tgtJoint[-1]+'.worldMatrix',AuxIk[0]+'.dWorldUpMatrixEnd')
         #group_and_parent
         twist_grp = pm.group(n=tgtJoint[1]+'_twistJt_grp',em=1)
         pm.parent(twistJt[0],nonrollJt_1,auxJt_1,twistIk[0],NonrollIk[0],AuxIk[0],twist_grp)
@@ -2043,7 +2032,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 upperBendCtrlList[3],lowerBendCtrlList[0],lowerBendCtrlList[1],lowerBendCtrlList[2],\
                 lowerBendCtrlList[3]
             for x in BendCtrlList:   
-                x.setAttr('visibility',0)
+                x.setAttr('drawStyle',2)
             pm.parentConstraint(upper,upperBendCtrlList[0])
             pm.parentConstraint(tip,lowerBendCtrlList[3])
             self.betweenConstraint(upperCtrl3,upper,upperCons1[1],upperCtrl3,Vector=[0,1,0])
@@ -2154,7 +2143,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 UpLoStretchyPMA2 = self.plusMinusAverageNode(1,[UpLoStretchyMD2+'.outputX',UpLoStretchyMD2+'.outputY'],[lowerDist,endDist],None,Channel=2)
             if About=='R':
                 UpLoStretchyMD2 = self.MultiplyDivideNode(1,[UpLoStretchyPMA1+'.output3D.output3Dx',UpLoStretchyPMA1+'.output3D.output3Dy'],[-10,-10],None,Channel=2)
-                UpLoStretchyPMA2 = self.plusMinusAverageNode(1,[UpLoStretchyMD2+'.outputX',UpLoStretchyMD2+'.outputY'],[lowerDist*-1,endDist*-1],None,Channel=2)
+                UpLoStretchyPMA2 = self.plusMinusAverageNode(1,[UpLoStretchyMD2+'.outputX',UpLoStretchyMD2+'.outputY'],[lowerDist,endDist],None,Channel=2)
             UpLoStretchyPMA3 = self.plusMinusAverageNode(1,UpLoStretchyPMA2+'.output3Dx',UpLoStretchyPMA2+'.output3Dy',None,Channel=1)
             UpLoStretchyMD3 = self.MultiplyDivideNode(2,Spacing,UpLoStretchyPMA3+'.output1D',None,Channel=1)
             UpLoStretchyCN1 = self.clampNode(UpLoStretchyMD3+'.outputX',5,1,None,Channel=1)
@@ -2232,7 +2221,8 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.snap(tip,endJt1,rot=0,scl=0,pivots=0)
             self.snap(tip,endJt2,rot=0,scl=0,pivots=0)
             pm.parent(endJt1,endJt2,lower)
-            endJt1.setAttr('visibility',0)
+            endJt1.setAttr('drawStyle',2)
+            endJt2.setAttr('drawStyle',2)
             if About=='L':
                 pm.setAttr(endJt2+'.translateX',endDist/3+endJt2.translateX.get())
             if About=='R':
@@ -2244,8 +2234,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             NonrollIk = pm.ikHandle(sj=twistNonroll[0],ee=twistNonroll[-1],n=twistNonroll[0]+'_nonrollIk',sol='ikSplineSolver')
             AuxIk = pm.ikHandle(sj=twistAux[0],ee=twistAux[-1],n=twistAux[0]+'_auxIk',sol='ikSplineSolver')
             twistIkCvs = NonrollIk,AuxIk
-            twistAux[0].setAttr('visibility',0)
-            twistNonroll[0].setAttr('visibility',0)
             for i in twistIkCvs:
                 pm.parent(i[2],tip)
                 pm.parent(i[0],lowerSpJtGrp)
@@ -2294,7 +2282,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             skinJt_grp = None
         ikCtrlList += pv
         try:
-            PvUpperJt.setAttr('visibility',0)
             ikList.append(PvUpperJt)
         except:
             pass
@@ -2493,6 +2480,15 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
                 spinalGrps,spinalCtrl,spinalParCon1,spinalParCon2 = self.ctrlGrp(spinalJt,size=0.85*self.gbScale,ctrlType='arCircle',rotateOrder=1)
                 chestGrps,chestCtrl,chestParCon1,chestParCon2 = self.ctrlGrp(chest,size=0.75*self.gbScale,ctrlType='arCircle',rotateOrder=1)
                 hipGrps,hipCtrl,hipParCon1,hipParCon2 = self.ctrlGrp(hip,size=0.85*self.gbScale,ctrlType='arCircle',rotateOrder=1)
+                
+                '''
+                bodyCtrl = self.cvsCtrl(size=1*self.gbScale,name=self.chrName+'_body_ctrl',ctrlType='four_arrow')
+                bodyUpper = pm.group(n=bodyCtrl+'_upper',em=1)
+                bodyCons = pm.group(n=bodyCtrl+'_cons',em=1)
+                pm.parent(bodyCtrl,bodyUpper)
+                pm.parent(bodyUpper,bodyCons)
+                '''
+
                 pm.parent(chestGrps[1],spinalCtrl)
                 pm.parent(spinalGrps[1],hipGrps[1],pelvisCtrl)
                 spinalCtrls = pelvisCtrl,None,None,chestCtrl,hipCtrl
@@ -2820,24 +2816,28 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         pm.parent(bottom_ik[0],bottom_ik[2],top_ik[0],top_ik[2],data_grp)
         return bottom_grps,data_grp,bottom
 
-    def eyeDoCtrl(self,eyeJt):
+    def eyeDoCtrl(self,eyeJt,headCtrl):
         eyeCons = []
         eyeUpper = []
         eyeCtrl = []
         for jt in eyeJt:
             tran = jt.getTranslation(space='world')
-            loc = pm.spaceLocator(n=jt+'_loc')
-            tran[2] = tran[2]+(self.gbScale*2)
-            loc.setAttr('translate',tran)
-            loc.setAttr('visibility',0)
+            ctrl_loc = pm.spaceLocator(n=jt+'_loc')
+            aim_loc = pm.spaceLocator(n=jt+'_aim_loc')
+            ctrl_loc.setAttr('translate',[tran[0],tran[1],tran[2]+(self.gbScale*2)])
+            aim_loc.setAttr('translate',[tran[0],tran[1]+(self.gbScale*2),tran[2]])
+            ctrl_loc.setAttr('visibility',0)
+            aim_loc.setAttr('visibility',0)
             grps,ctrl= self.ctrlGrp(jt,size=self.gbScale*0.1,parent=0,lock=['rx','ry','rz','sx','sy','sz','v'],ctrlType='circleZ')[:2]
-            self.snap(loc,grps[1])
-            pm.delete(loc)
-            pm.aimConstraint(ctrl,jt,mo=1)
+            self.snap(ctrl_loc,grps[1])
+            pm.delete(ctrl_loc)
+            pm.aimConstraint(ctrl,jt,wut='objectrotation',wuo=aim_loc,mo=1)
+            pm.parent(aim_loc,headCtrl)
             eyeCons.append(grps[1])
             eyeUpper.append(grps[0])
             eyeCtrl.append(ctrl)
-        tran[0] = 0
+        tran = eyeJt[0].getTranslation(space='world')
+        tran = [0,tran[1],tran[2]+(self.gbScale*2)]
         loc = pm.spaceLocator(n=self.chrName+'_eye')
         loc.setAttr('translate',tran)
         grps,ctrl= self.ctrlGrp(loc,size=self.gbScale*0.3,parent=0,lock=['rx','ry','rz','sx','sy','sz','v'],ctrlType='circleZ')[:2]
@@ -2853,52 +2853,21 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         grps,ctrl = self.ctrlGrp(jts[1],size=self.gbScale*0.05,parent=0,lock=['rx','ry','rz','sx','sy','sz','v'],ctrlType='circleZ')[:2]
         pm.aimConstraint(ctrl,jts[0],mo=1,wut='objectrotation',wuo=aim)
         pm.parent(grps[1],aim)
+        #tooth
+        upTooth = pm.duplicate(jts[0],po=1,n=self.chrName+'_up_tooth')[0]
+        downTooth = pm.duplicate(jts[0],po=1,n=self.chrName+'_down_tooth')[0]
+        upTooth.setAttr('radius',(upTooth.radius.get()/2))
+        downTooth.setAttr('radius',(downTooth.radius.get()/2))
+        pm.select(ctrl)
+        pm.addAttr(ln='up_tooth',at='float',dv=0,min=-180,max=180,k=1)
+        pm.addAttr(ln='down_tooth',at='float',dv=0,min=-180,max=180,k=1)
+        pm.select(cl=1)
+        pm.connectAttr(ctrl+'.up_tooth',upTooth+'.rotateX')
+        down_PMA = pm.shadingNode('plusMinusAverage',al=1)
+        pm.connectAttr(jts[0]+'.rotate',down_PMA+'.input3D[0]')
+        pm.connectAttr(ctrl+'.down_tooth',down_PMA+'.input3D[1].input3Dx')
+        pm.connectAttr(down_PMA+'.output3D',downTooth+'.rotate')
         return ctrl,grps[0],grps[1]
-
-    def tgtLoc(self,tgts):
-        locList = []
-        try:
-            worldLoc = pm.PyNode(self.chrName+'_world_loc')
-        except:
-            worldLoc = pm.spaceLocator(n=self.chrName+'_world_loc')
-        locList.append(worldLoc)
-        for i in tgts:
-            loc = pm.spaceLocator(n=i+'_loc')
-            pm.parentConstraint(i,loc)
-            locList.append(loc)
-        return locList
-
-    def ctrlFollow(self,tgt,ctrls,ctrlType=''):
-        consParConList=[]
-        locList = self.tgtLoc(ctrls)
-        upper = tgt.listRelatives(p=1)[0]
-        cons = upper.listRelatives(p=1)[0]
-        try:
-            ctrlLoc = pm.PyNode(chrName+tgt+'_loc')
-        except:
-            ctrlLoc = pm.spaceLocator(n=tgt+'_loc')
-        self.snap(tgt,ctrlLoc)
-        self.snap(ctrls[-1],ctrlLoc,rot=0)
-        if ctrlType == 'fk':
-            pm.parentConstraint(ctrls[-1],upper,mo=1,sr=['x','y','z'])
-            pm.parentConstraint(ctrlLoc,cons,mo=1,st=['x','y','z'])
-        if ctrlType == 'ik':
-            pm.parentConstraint(ctrlLoc,cons,mo=1)        
-        consParCon = pm.parentConstraint(locList,ctrlLoc,mo=1)
-        for j in range(len(ctrls)):
-            n=[]
-            for x in range(len(str(ctrls[j]))):
-                if ctrls[j][x]=='_':
-                    n.append(x)
-            n=ctrls[j][n[0]+1:]
-            self.addSwitch(tgt,name=n+'_Follow',at='float',dv=0,min=0,max=1,k=1)
-            w={0:'W1',1:'W2',2:'W3',3:'W4',4:'W5'}
-            weight=w[j]
-            pm.connectAttr(tgt+'.'+n+'_Follow',consParCon+'.'+locList[j+1]+weight)
-        self.addSwitch(tgt,name='world_Follow',at='float',dv=0,min=0,max=1,k=1)
-        pm.connectAttr(tgt+'.world_Follow',consParCon+'.'+self.chrName+'_world_locW0')
-        locList.append(ctrlLoc)
-        return locList
 
     ####################HumanAutoRigging####################
 
@@ -3012,6 +2981,20 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             except:
                 jts[y].setAttr('jointOrient',[0,0,0])
                 pm.makeIdentity(apply=1,r=1)
+
+    def selectSkinJoints(self,joint_grp,rigJoint_grp):
+        pm.select(joint_grp,hi=1)
+        skinJt_grp = pm.ls(sl=1)
+        if len(skinJt_grp) < 2:
+            pm.select(rigJoint_grp,hi=1)
+            skinJt_grp = pm.ls(sl=1)
+        skinJoint = []
+        for x in skinJt_grp:
+            if x.nodeType() == 'joint':
+                if x.drawStyle.get() == 0:
+                    skinJoint.append(x)
+        pm.select(cl=1)
+        return skinJoint
 
     def chrSizeSet(self,high=0):
         '''
@@ -3552,7 +3535,6 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             self.lockAttrs(Chatacter,attrs=['tx','ty','tz','rx','ry','rz','sx','sy','sz'])
             pm.select(cl=1)
             Data_Off.setAttr('visibility',0)
-            #rigJoint_grp.setAttr('visibility',0)
             loc_grp.setAttr('visibility',0)
         return chrScale,Data_On,Data_Off,Joint_grp,ctrl_grp,rigJoint_grp,loc_grp,Chatacter
 
@@ -3621,7 +3603,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
             pm.parent(L_fingerRig[1][x][0],L_fingerCtrl_grp)
             pm.parent(R_fingerRig[1][x][0],R_fingerCtrl_grp)
         ###eye###
-        EyeRig = self.eyeDoCtrl([jts[18][0],jts[18][1]])
+        EyeRig = self.eyeDoCtrl([jts[18][0],jts[18][1]],headRig[0][1])
         ###shoulder###
         L_shoulderRig = self.ctrlGrp(jts[4][0],size=0.5*self.gbScale,lock=['sx','sy','sz','v'],ctrlType='circleX',rotateOrder=1)
         R_shoulderRig = self.ctrlGrp(jts[6][0],size=0.5*self.gbScale,lock=['sx','sy','sz','v'],ctrlType='circleX',rotateOrder=1)
@@ -4530,7 +4512,7 @@ class mod_MainWindow(QtGui.QMainWindow, Ui_MainWindow):
         jts[1][2].setAttr('drawStyle',2)
         pm.parent(Neck_Rig[1][0],Pelvis_Rig[0][3])
         #EyeRiggingFunction
-        Eye_Rig = self.eyeDoCtrl([jts[2][0],jts[2][1]])
+        Eye_Rig = self.eyeDoCtrl([jts[2][0],jts[2][1]],Neck_Rig[0][1])
         pm.parent(Eye_Rig[2][2],self.ctrl_grp)
         #EarRiggingFunction
         L_ear_grps,L_ear_ctrl = self.ctrlGrp(jts[2][4],size=0.5*self.gbScale,lock=['sx','sy','sz'],ctrlType='circle',rotateOrder=1)[:2]
@@ -5024,3 +5006,4 @@ def joeyautoriggingMain():
 #    main()
 
 
+joeyautoriggingMain()

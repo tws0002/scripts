@@ -32,14 +32,17 @@ sys.path.append(scripts_path + "/client")
 sys.path.append(scripts_path + "/scripts/maya_scripts/lib")
 sys.path.append(scripts_path + "/scripts/maya_scripts/ui")
 sys.path.append(scripts_path + "/scripts/maya_scripts")
+sys.path.append(scripts_path + "/scripts/maya_scripts/install")
 sys.path.append(scripts_path + "/scripts/install")
 sys.path.append(scripts_path + "/scripts/python-dateutil-2.3")
 sys.path.append(scripts_path + "/scripts/six-1.8.0")
 import datetime
 import time
 global server, widget
+import Qt
 
-from PySide import QtCore, QtGui
+from Qt import QtCore, QtWidgets, QtGui
+
 from tactic_client_lib import TacticServerStub
 
 import ctypes
@@ -49,22 +52,33 @@ import os, shutil
 import subprocess
 import socket
 import jc_maya_aux_functions as jc
+
+
 from dateutil import parser
 try:
     import maya.cmds as cmds
+    import jc_export_data_to_nuke
+except:
+    pass
+try:
+    import MaxPlus
 except:
     pass
     
-
 reload(qt_main_ui)
 reload(qt_login_ui)
 reload(jc)
 
-app = QtGui.QApplication.instance()
+app = QtWidgets.QApplication.instance()
 if not app:
-    app = QtGui.QApplication([])
+    app = QtWidgets.QApplication([])
 
 appName = app.objectName()
+try:
+    if "Maya" in app.applicationDisplayName():
+        appName = "Maya"
+except:
+    pass
 
 notready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/notready.png')
 ready_icon = QtGui.QIcon(scripts_path + '/scripts/maya_scripts/icons/proc_list/ready.png')
@@ -77,7 +91,7 @@ class _GCProtector(object):
     widgets = []
 
 
-class loginWindow(QtGui.QDialog):
+class loginWindow(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(loginWindow, self).__init__(parent)
         self.setFocus()
@@ -130,7 +144,7 @@ class loginWindow(QtGui.QDialog):
         mainProcess(server=server)
 
 
-class mainWindow(QtGui.QDialog):
+class mainWindow(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(mainWindow, self).__init__(parent)
         self.setWindowFlags(QtCore.Qt.Tool)
@@ -187,7 +201,7 @@ class mainWindow(QtGui.QDialog):
 
     def focusInEvent(self, event):
         #self.focus_in.emit()
-        QtGui.QWidget.focusInEvent(self, event)
+        QtWidgets.QWidget.focusInEvent(self, event)
 
     def showItemByType(self, id):
         count = self.ui.asset_list.count()
@@ -372,27 +386,27 @@ class mainWindow(QtGui.QDialog):
         self.clearItemFilter()
 
     def setProjectInfo(self, game):
-        name_chn = QtGui.QTableWidgetItem(game['name_chn'])
+        name_chn = QtWidgets.QTableWidgetItem(game['name_chn'])
         name_chn.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(0, 0, name_chn)
 
-        game_type = QtGui.QTableWidgetItem(self.game_type_code_converter(game['game_type_code']))
+        game_type = QtWidgets.QTableWidgetItem(self.game_type_code_converter(game['game_type_code']))
         game_type.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(1, 0, game_type)
 
-        project_coordinator = QtGui.QTableWidgetItem(game['project_coordinator'])
+        project_coordinator = QtWidgets.QTableWidgetItem(game['project_coordinator'])
         project_coordinator.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(2, 0, project_coordinator)
 
         expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_start_date), '12-31-1999')"
         bsd = self.server.eval(expr)[0]
-        bid_start_date = QtGui.QTableWidgetItem(bsd)
+        bid_start_date = QtWidgets.QTableWidgetItem(bsd)
         bid_start_date.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(3, 0, bid_start_date)
 
         expr = "@FORMAT(@MIN(simpleslot/game['name','" + game['name'] + "'].sthpw/task.bid_end_date), '12-31-1999')"
         bed = self.server.eval(expr)[0]
-        bid_end_date = QtGui.QTableWidgetItem(bed)
+        bid_end_date = QtWidgets.QTableWidgetItem(bed)
         bid_end_date.setTextAlignment(QtCore.Qt.AlignHCenter)
         self.ui.project_info.setItem(4, 0, bid_end_date)
 
@@ -531,10 +545,10 @@ class mainWindow(QtGui.QDialog):
             elif status == '.Complete':
                 icon = complete_icon
 
-            qitem = QtGui.QListWidgetItem(icon, process)
+            qitem = QtWidgets.QListWidgetItem(icon, process)
             self.ui.asset_process_list.addItem(qitem)
 
-            qitem = QtGui.QListWidgetItem(icon, process)
+            qitem = QtWidgets.QListWidgetItem(icon, process)
             self.ui.shot_process_list.addItem(qitem)
 
         item_name_chn = self.item['description']
@@ -561,23 +575,23 @@ class mainWindow(QtGui.QDialog):
             if self.ui.asset_list.count() != 0:
                 self.ui.asset_process_list.setCurrentRow(selectedProcess)     # select first in process list if it contains anything
 
-                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
+                widgetItem = QtWidgets.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(0, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem(self.item_type)
+                widgetItem = QtWidgets.QTableWidgetItem(self.item_type)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.asset_info.setItem(1, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(task_assigned)
+                # widgetItem = QtWidgets.QTableWidgetItem(task_assigned)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(2, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(bid_start_date)
+                # widgetItem = QtWidgets.QTableWidgetItem(bid_start_date)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(3, 0, widgetItem)
 
-                # widgetItem = QtGui.QTableWidgetItem(bid_end_date)
+                # widgetItem = QtWidgets.QTableWidgetItem(bid_end_date)
                 # widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 # self.ui.asset_info.setItem(4, 0, widgetItem)
 
@@ -585,11 +599,11 @@ class mainWindow(QtGui.QDialog):
             if self.ui.shot_list.count() != 0:
                 self.ui.shot_process_list.setCurrentRow(selectedProcess)
 
-                widgetItem = QtGui.QTableWidgetItem(item_name_chn)
+                widgetItem = QtWidgets.QTableWidgetItem(item_name_chn)
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(0, 0, widgetItem)
 
-                widgetItem = QtGui.QTableWidgetItem("None")
+                widgetItem = QtWidgets.QTableWidgetItem("None")
                 widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                 self.ui.shot_info.setItem(1, 0, widgetItem)
 
@@ -684,7 +698,6 @@ class mainWindow(QtGui.QDialog):
         base_path = "//mcd-server/art_3d_project/"
         login = self.server.login
 
-        project = self.game['name']
         production_type = self.productionType()
 
         for task in self.tasks:
@@ -692,17 +705,17 @@ class mainWindow(QtGui.QDialog):
                 if task.get('process') == self.ui.asset_process_list.currentItem().text():
                     self.task = task
 
-                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem = QtWidgets.QTableWidgetItem(self.task['assigned'])
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(2, 0, widgetItem)
 
                     year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(3, 0, widgetItem)
 
                     year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.asset_info.setItem(4, 0, widgetItem)                    
 
@@ -710,17 +723,17 @@ class mainWindow(QtGui.QDialog):
                 if task.get('process') == self.ui.shot_process_list.currentItem().text():
                     self.task = task
 
-                    widgetItem = QtGui.QTableWidgetItem(self.task['assigned'])
+                    widgetItem = QtWidgets.QTableWidgetItem(self.task['assigned'])
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(2, 0, widgetItem)
 
                     year, month, day = self.task['bid_start_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(3, 0, widgetItem)
                     
                     year, month, day = self.task['bid_end_date'].split(" ")[0].split("-")
-                    widgetItem = QtGui.QTableWidgetItem(month + "-" + day + "-" + year)
+                    widgetItem = QtWidgets.QTableWidgetItem(month + "-" + day + "-" + year)
                     widgetItem.setTextAlignment(QtCore.Qt.AlignHCenter)
                     self.ui.shot_info.setItem(4, 0, widgetItem)                    
         self.sk = self.task['__search_key__']
@@ -742,20 +755,20 @@ class mainWindow(QtGui.QDialog):
         old_item_type = self.oldAssetTypeCode(self.item_type_code)
 
         if production_type == 'assets':
-            final_path = base_path + project + "/" + production_type + "/" + self.item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
-            self.old_path = base_path + project + "/casino/" + old_item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
+            final_path = base_path + self.game['name'] + "/" + production_type + "/" + self.item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
+            self.old_path = base_path + self.game['name'] + "/casino/" + old_item_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
 
-            base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
-            filename = jc.abbrName(project) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + login + ext
+            base_filename = jc.abbrName(self.game['name']) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            filename = jc.abbrName(self.game['name']) + "_" + jc.abbrItemType(self.item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + login + ext
 
             #backwards compat
-            self.old_base_filename = jc.abbrName(project) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
-            self.old_filename = jc.abbrName(project) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(self.old_path, self.old_base_filename, "maya") + "_" + login + ext
+            self.old_base_filename = jc.abbrName(self.game['name']) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            self.old_filename = jc.abbrName(self.game['name']) + "_" + jc.abbrItemType(old_item_type) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(self.old_path, self.old_base_filename, "maya") + "_" + login + ext
 
         elif production_type == 'shot':
-            final_path = base_path + project + "/" + production_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
-            base_filename = jc.abbrName(project) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
-            filename = jc.abbrName(project) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process']) + "_" + jc.maxVersion(final_path, base_filename, "maya") + "_" + login + ext
+            final_path = base_path + self.game['name'] + "/" + production_type + "/" + self.item['name'] + "/" + self.task['process'] + "/scenes/"
+            base_filename = jc.abbrName(self.game['name']) + "_" + self.item['name'] + "_" + jc.abbrName(self.task['process'])
+            filename = "%s_%s_%s_%s_%s%s" % (jc.abbrName(self.game['name']), self.item['name'], jc.abbrName(self.task['process']), jc.maxVersion(final_path, base_filename, "maya"), login, ext)
 
         final_path = final_path.replace(" ", "")
 
@@ -770,7 +783,14 @@ class mainWindow(QtGui.QDialog):
 
         self.getFiles(final_path, base_filename)
         self.base_filename = base_filename
-        #self.resetLocks()
+
+    def exportNuke(self):
+        jsonData = jc_export_data_to_nuke.exportData()
+        compPath = "%s/%s/%s/%s/%s/scenes" % ("//mcd-server/art_3d_project", self.game['name'], self.productionType(), self.item['name'], "comp")
+        compFullPath = "%s/%s_%s_%s_%s_%s%s" % (compPath, jc.abbrName(self.game['name']), self.item['name'], "comp", jc.maxVersion(compPath, self.base_filename.replace("lig","comp"), "maya"), self.server.login, ".nk")
+        # nuke module requires 64bit and subprocess arguments can only take json strings
+        subprocess.call(["C:/Program Files/Nuke10.0v2/python.exe", "//Art-1405260002/d/assets/scripts/nuke_scripts/jc_nk_autocomp.py", jsonData, compFullPath])
+
 
     def getFiles(self, final_path, base_filename):  # use getfilelist() and update ui
         fileList = []
@@ -796,9 +816,12 @@ class mainWindow(QtGui.QDialog):
             else:
                 fileList = [x for x in savedFiles if base_filename in x]
                 for filename in fileList:
-                    filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(final_path + filename)))
-                    self.ui.file_list.addItem(filedate + "  " + filename)
-                    index = index + 1
+                    if 'nk~' in filename or 'nk.autosave' in filename:
+                        pass
+                    else:
+                        filedate = time.strftime("%m/%d %H:%M", time.localtime(os.path.getmtime(final_path + filename)))
+                        self.ui.file_list.addItem(filedate + "  " + filename)
+                        index = index + 1
 
         file_list_count = self.ui.file_list.count()
 
@@ -864,130 +887,12 @@ class mainWindow(QtGui.QDialog):
         self.saveNotes(filename + u"設為MASTER檔")
         shutil.copy2(source, destination)
 
-    def resetLocks(self):
-        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item['code'], self.task['process'])
-        temp = self.server.eval(expr)[0]
-        new_notes = []
-        today = datetime.date.today()
-        if temp != "":
-            for task in self.tasks:
-                if task.get('process') == self.task['process']:
-                    sk = task.get('__search_key__')
-
-            notes = temp.split("\n")
-            for note in notes:
-                filename, msg = note.split("#")
-                msg_month, msg_day = msg.split(" ")[0].split("/")
-                msg_datetime = datetime.date(2016, int(msg_month), int(msg_day))
-                if u" 正在使用這個檔案。" in note:
-                    if today > msg_datetime:
-                        pass
-                    else:
-                        new_notes.append(note)
-                else:
-                    new_notes.append(note)
-            notes = "\n".join(new_notes)
-            if temp == notes:
-                pass
-            else:
-                print 'reseting locks'
-                data = {'description': notes}
-                self.server.update(sk, data)
-
-    def setLock(self):
-        self.saveNotes(self.server.login + u" 正在使用這個檔案。")
-
-    def unlock(self):
-        filename = ""
-        print 'unlocking'
-        if appName == 'maya':
-            filename = cmds.file(query=True, sceneName=True).split("/")[-1]
-        elif appName == '3dsmax':
-            import MaxPlus
-            filename = MaxPlus.FileManager.GetFileName()
-            print filename
-        elif 'Nuke' in appName:
-            import nuke
-            if nuke.root().name() == 'Root':
-                filename = ""
-                pass
-            else:
-                filename = nuke.root().name().split("/")[-1]
-                print filename
-        expr = "@GET(sthpw/task['search_code','%s']['process','%s'].description)" % (self.item['code'], self.task['process'])
-        temp = self.server.eval(expr)
-        notes = temp[0].split("\n")
-
-        if filename == "":
-            pass
-        else:
-            for task in self.tasks:
-                if task.get('process') == self.task['process']:
-                    sk = task.get('__search_key__')
-
-            new_notes = []
-            for note in notes:
-                if filename in note:
-                    note_ = note.split("#")[1]
-                    if u" 正在使用這個檔案。" in note:
-                        pass
-                    else:
-                        new_notes.append(note)
-                else:
-                    new_notes.append(note)
-
-            notes = "\n".join(new_notes)
-            data = {'description': notes}
-
-            self.server.update(sk, data)
-            self.getNotes()
-
-    def showdialog(self):
-       msg = QtGui.QMessageBox()
-       msg.setIcon(QtGui.QMessageBox.Information)
-
-       msg.setText(u"這個檔案有人在使用!")
-       #msg.setInformativeText("This is additional information")
-       msg.setWindowTitle(u"警告")
-       #msg.setDetailedText("The details are as follows:")
-       #msg.setStandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
-       #msg.buttonClicked.connect(self.msgbtn)
-
-       retval = msg.exec_()
-       #print "value of pressed message box button:", retval
-
-
-
-    # checks in note list if the file has been locked
-    def checkLock(self):
-        self.ui.note_list.count()
-        if self.ui.note_list.count() > 0:
-            for i in range(self.ui.note_list.count()):
-                if u" 正在使用這個檔案。" in self.ui.note_list.item(i).text():
-                    locked = True
-                else:
-                    locked = False
-        else:
-            locked = False
-        return locked
-
     def tacticLoad(self):
         self.fileOpen()
-        # if self.checkLock() is True:
-        #     self.showdialog()
-        #     pass
-        # elif self.checkLock() is False:
-        #     self.unlock()
-        #     self.fileOpen()
-        #     self.setLock()
 
     def tacticSave(self):
-        # if self.checkLock() is True:
-        #     self.unlock()
-        
         self.fileSave()
         self.updateStatus()
-        # self.setLock()
 
     def fileSave(self, arg=None):
         path = self.ui.save_path.text()
@@ -1005,8 +910,10 @@ class mainWindow(QtGui.QDialog):
         elif appName == "maya":
             jc.mayaWorkspaceFileRule(path)
             # cmds.setAttr("defaultRenderGlobals.imageFilePrefix", filename.replace(".mb", ""), type="string")
+            #self.mayaRenderSettings()
             cmds.file(rename=final)
             cmds.file(save=True, type='mayaBinary')
+
         elif "Nuke" in appName:
             import nuke
             nuke.scriptSaveAs(filename=final)
@@ -1025,6 +932,13 @@ class mainWindow(QtGui.QDialog):
         self.finalPath()
         self.getProcess()
         self.saveLog()
+
+    def mayaRenderSettings(self):        
+        cmds.setAttr('defaultRenderGlobals.imageFilePrefix', lock=False)
+        cmds.setAttr('defaultRenderGlobals.periodInExt', 1)
+        cmds.setAttr('defaultRenderGlobals.putFrameBeforeExt', 1)
+        cmds.setAttr('defaultRenderGlobals.imageFilePrefix', '<Scene>/<RenderLayer>/<RenderLayer>', type='string')
+        cmds.setAttr('defaultRenderGlobals.imageFilePrefix', lock=True)
 
     def fileOpen(self, arg=None):
         path = self.ui.save_path.text()
@@ -1055,25 +969,29 @@ class mainWindow(QtGui.QDialog):
                 "print rman"
                 pass
             jc.mayaWorkspaceFileRule(path)
+            #self.mayaRenderSettings()
 
         elif "Nuke" in appName:
             import nuke
-            nuke.Root().setModified(False)
-            nuke.scriptOpen(path + filename)
+            if "json" in filename:
+                print "do auto comp here"
+            else:
+                nuke.Root().setModified(False)
+                nuke.scriptOpen(path + filename)
             #nuke.root()['project_directory'].setValue(path.replace("scenes/", ""))
             #self.setNukeProject()
 
 
     def makeThumbnail(self, path, filename):
+        filename = filename.split(".")[0]
+        ext = ".tif"        
         if appName == "maya":
-            ext = "tif"
             currentFrame = cmds.currentTime(query=True)
-            #filename = self.ui.file_list.currentItem().text().split("  ")[1]
-            filename = filename.split(".")[0]
+           
             cmds.select(cl=True)
             cmds.playblast(st=currentFrame, et=currentFrame, format="image", filename=filename, forceOverwrite=True, sequenceTime=False, clearCache=True, viewer=False, showOrnaments=False, framePadding=4, percent=100, compression="tif", quality=70, width=400, height=400)
 
-            currentFrame = ".%04d." % int(currentFrame)
+            currentFrame = ".%04d" % int(currentFrame)
             thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + currentFrame + ext
             destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
             try:
@@ -1090,6 +1008,33 @@ class mainWindow(QtGui.QDialog):
             os.remove(thumbPath)
             self.getThumbnail()
 
+        elif appName == "3dsmax":
+            #filename=(MaxPlus.PathManager.GetRenderOutputDir() + "/" + filename + ext)
+            thumbPath = self.ui.save_path.text().replace("scenes/","images/") + filename + ext
+            destination = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
+            try:
+                os.makedirs(destination)
+            except:
+                pass
+
+            storage = MaxPlus.Factory.CreateStorage(6)
+            
+            bmi = storage.GetBitmapInfo()
+        
+            bmi.SetName(destination + filename + ext)
+
+            bmp = MaxPlus.Factory.CreateBitmap()
+
+            vm = MaxPlus.ViewportManager
+            av = vm.GetActiveViewport()
+            av.GetDIB(bmi, bmp)
+
+            bmp.OpenOutput(bmi)
+            bmp.Write(bmi)
+            bmp.Close(bmi)
+
+            self.getThumbnail()
+
 
     def getThumbnail(self):
         try:
@@ -1097,18 +1042,18 @@ class mainWindow(QtGui.QDialog):
             thumbPath = self.ui.save_path.text().replace("scenes/","data/others/thumbnails/")
             imageFiles = os.listdir(thumbPath)
             defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
-            image = QtGui.QImage(defaultImage)
-            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+            image = QtWidgets.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))
             
             for imageFile in imageFiles:
                 if selectedFile in imageFile:
-                    image = QtGui.QImage(thumbPath + imageFile)
-                    self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))
+                    image = QtWidgets.QImage(thumbPath + imageFile)
+                    self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))
                     break
         except:
             defaultImage = "//Art-1405260002/d/assets/scripts/maya_scripts/icons/default-placeholder.png"
-            image = QtGui.QImage(defaultImage)
-            self.ui.file_thumbnail.setPixmap(QtGui.QPixmap.fromImage(image))            
+            image = QtWidgets.QImage(defaultImage)
+            self.ui.file_thumbnail.setPixmap(QtWidgets.QPixmap.fromImage(image))            
          
 
 
@@ -1219,7 +1164,7 @@ def loginProcess():
         import MaxPlus
         MaxPlus.CUI.DisableAccelerators()
 
-    loginWidget = loginWindow(parent=QtGui.QApplication.activeWindow())
+    loginWidget = loginWindow(parent=QtWidgets.QApplication.activeWindow())
 
     if appName == "3dsmax":
         _GCProtector.widgets.append(loginWidget)
@@ -1235,7 +1180,7 @@ def loginProcess():
 
 def mainProcess(server=None):
     global widget
-    widget = mainWindow(parent=QtGui.QApplication.activeWindow())
+    widget = mainWindow(parent=QtWidgets.QApplication.activeWindow())
 
     try:
         login_name = server.login
@@ -1251,10 +1196,15 @@ def mainProcess(server=None):
         ctypes.pythonapi.PyCObject_AsVoidPtr.argtypes = [ctypes.py_object]
         ptr = ctypes.pythonapi.PyCObject_AsVoidPtr(capsule)
 
+    if appName == "maya":
+        pass
+        #cmds.scriptJob(event=['SceneSaved', jc_export_data_to_nuke.exportData])
+
     widget.show()
     widget.server = server
     widget.getProjects()
-    app.aboutToQuit.connect(widget.unlock)
+
+    #app.aboutToQuit.connect(widget.unlock)
 
 if __name__ == "__main__":
     qt_tactic_mainMain()
