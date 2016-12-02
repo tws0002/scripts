@@ -168,8 +168,13 @@ class Window(QtGui.QWidget):
         # get renderlayers here
         base = r"\\mcd-server\art_3d_project\fish_battle_cf\shot\shot_07\lighting\images"
         jsonPath = base.replace("\\","/") + "/fb_cf_shot_07_lig_v016_chihjung.json"
+
+        #base = r"\\mcd-server\art_3d_project\fish_battle_cf\shot\shot_01\lighting\images"
+        #jsonPath = base.replace("\\","/") + "/fb_cf_shot_01_lig_v029_sandy_yu.json"
+
         jsonData = file.read(open(jsonPath,"r"))
         self.renderData = json.loads(jsonData)
+        self.baseName = re.search('(.+?)(_v[0-9]{3})', self.renderData['name']).group(1)
 
         self.progress_bar = QtGui.QProgressBar(self)
         self.progress_bar.setEnabled(True)
@@ -192,6 +197,7 @@ class Window(QtGui.QWidget):
         self.tableWidget.clear()
 
         self.renderLayers = [x['name'] for x in self.renderData['renderLayers']]
+
         self.currentPath = self.renderData['currentPath']
         self.sceneData, self.existingDirs = self.getSceneData()
 
@@ -348,16 +354,14 @@ class Window(QtGui.QWidget):
     # 
     def getSceneData(self):
         imagesPath = self.currentPath + "/images"
-        existingDirs = [x for x in os.listdir(imagesPath) if os.path.isdir(os.path.join(imagesPath, x))]
-
+        existingDirs = [x for x in os.listdir(imagesPath) if os.path.isdir(os.path.join(imagesPath, x)) if self.baseName in x]
         sceneData = []
         for existingDir in existingDirs:
             # get those files using <scene>/<renderLayer>
             dirPath1 = "%s/%s" % (imagesPath,existingDir)
             files = os.listdir(dirPath1)
-
             versionData = []
-            if files[0] in self.renderLayers: # files in rl directories
+            if len(files) != 0 and files[0] in self.renderLayers: # files in rl directories
                 for renderLayer in self.renderLayers:
                     files = []
                     dirPath = "%s/%s/%s" % (imagesPath,existingDir, renderLayer)

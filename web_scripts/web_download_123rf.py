@@ -92,9 +92,10 @@ class searchThread(QtCore.QThread):
         mainpage = "http://www.123rf.com"
         
         self.driver.get(mainpage)
-       
-        username = "cy919"
-        password = "chungyo36f"
+
+        import pw
+        username = pw.username
+        password = pw.password
         
         loginButton = WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.CLASS_NAME, "signin_panel_btn")))
         loginButton.click()

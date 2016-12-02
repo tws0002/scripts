@@ -256,7 +256,7 @@ class AutoComp(object):
                 rgba = []
 
                 for renderPass in renderLayer['passes']:
-                    if 'beauty' in renderPass['name']:
+                    if 'lpe:beauty' in renderPass['name']:
                         try:
                             self.lightGroups.append(re.search('(lpe:beauty_)(.+)',renderPass['name']).group(2))
                         except:
